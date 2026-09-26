@@ -18,7 +18,7 @@ export default defineConfig({
     })
   ],
   define: {
-    CESIUM_BASE_URL: JSON.stringify(`/${cesiumBaseUrl}/`)
+    CESIUM_BASE_URL: JSON.stringify(`/${cesiumBaseUrl}`)
   },
   server: {
     port: 5173,
