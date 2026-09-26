@@ -139,3 +139,42 @@ export interface ProfileDetail {
     interpretation: string;
   };
 }
+
+
+export interface ProvenanceResponse {
+  model: {
+    label: string;
+    product: string;
+    dataset_id: string;
+    doi: string;
+    file: string;
+    freshness_class: string;
+    runtime_mode: string;
+  };
+  observations: {
+    provider: string;
+    doi: string;
+  };
+  quality_control: {
+    accepted_provider_qc: string[];
+    max_cell_distance_km: number | null;
+    matched_profiles: number;
+    no_extrapolation: boolean;
+    metrics_weighting: string | null;
+  };
+  methodology: {
+    horizontal: string | null;
+    depth: string | null;
+    time: Record<string, unknown> | null;
+    temperature: Record<string, unknown> | null;
+  };
+  integrity: {
+    created_utc: string | null;
+    source_checksums_unchanged: boolean | null;
+    configuration_sha256: string | null;
+    engine_sha256: string | null;
+    no_synthetic_measurements_in_outputs: boolean | null;
+  };
+  source_metadata_available: string[];
+  scientific_disclaimer: string;
+}
