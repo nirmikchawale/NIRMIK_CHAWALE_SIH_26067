@@ -9,11 +9,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
+
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
-      - name: Run tests
+
+      - name: Run regression tests
         run: python -m pytest -q
+
+      - name: Compile application
+        run: python -m compileall -q app.py config.py oceantwin src tests
+
+      - name: Streamlit headless startup smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m streamlit run app.py --server.headless true --server.port 8501 > streamlit-ci.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ]; then
+            cat streamlit-ci.log
+            exit 1
+          fi
+          curl --fail --silent http://127.0.0.1:8501/_stcore/health

@@ -1,107 +1,130 @@
-OceanTwin 3D — Final Build Validation
-=====================================
+OceanTwin 3D — Professional Build Validation
+============================================
 
-Validation runtime
-------------------
-Python: 3.13.5
-Runtime scientific dependencies available here:
-- plotly 6.5.2
-- pandas 2.2.3
-- numpy 2.3.5
-- h5py 3.15.1
-- streamlit: NOT installed in this sandbox validation runtime
+Validation target
+-----------------
+Repository: nirmikchawale/NIRMIK_CHAWALE_SIH_26067
+Branch: feature/oceantwin-professional-finalisation
+CI runtime: GitHub Actions · Ubuntu 24.04 · Python 3.11
+Validated scientific application: Streamlit + Plotly + pandas + NumPy + h5py
 
-Final MVP regression suite
---------------------------
-Command: python -m pytest -q
-Result: 25 passed
+Professional application hierarchy
+----------------------------------
+Thin entry point:
+- app.py
+
+Application/product layer:
+- oceantwin/application.py
+- oceantwin/state.py
+- oceantwin/ui/tokens.py
+- oceantwin/ui/theme.py
+- oceantwin/ui/components.py
+- oceantwin/ui/plotly_theme.py
+- oceantwin/views/dashboard.py
+- oceantwin/views/evidence.py
+- .streamlit/config.toml
+
+Preserved scientific core:
+- src/comparison_loader.py
+- src/data_loader.py
+- src/map_view.py
+- src/profile_charts.py
+- src/provenance_view.py
+- src/volume_view.py
+
+Regression suite
+----------------
+Command:
+python -m pytest -q
+
+Latest verified feature-branch workflow:
+GitHub Actions run 36224562800
+
+Result:
+36-test suite completed successfully
 Status: PASS
 
-Coverage includes:
-- real profile summary loading
-- selected comparison CSV loading
-- both eligible profiles / 99 matched levels
-- provider-QC-1 enforcement
-- exact Model − Observation bias sign/value
-- selected-profile filtering
-- missing-profile handling
-- metric consistency / tamper detection
-- missing model handling
-- real model shape/depth/units/semantics
-- local scientific-input immutability
-- loader operation with network blocked
-- verified default profile
-- profile/bias plots sourced from selected rows
-- map coordinates sourced from selected profile/model cell
-- actual 3D and 2D model figure construction
-- invalid depth fallback error
-- real evidence download paths
-- selected-profile evidence-path correctness
-- no judge-facing TODO/FIXME/fake-placeholder language
-- verified model time coordinate value/units
-- adjusted Argo field/QC policy configuration
-- inverted depth axes
-- data-manifest hash checks
-- original provenance records raw inputs unchanged
+The 36 tests comprise the existing 25 scientific/application regression tests plus
+11 product-contract tests for the professional UI hierarchy, data-driven metrics,
+design tokens, provenance, downloads, scientific-value preservation and prohibited-scope guardrails.
 
 Compilation
 -----------
-Command: python -m compileall -q app.py config.py src tests
+Command:
+python -m compileall -q app.py config.py oceantwin src tests
+
 Result: PASS
 
-Scientific/visual smoke check
------------------------------
-Profiles loaded:
-- 5907092_cycle013_D: 50 matched levels
-- 5907092_cycle012_A: 49 matched levels
-Total: 99
+Streamlit startup smoke test
+----------------------------
+Command pattern:
+python -m streamlit run app.py --server.headless true --server.port 8501
 
-Model array: 31 × 25 × 37
-Model depth: 0.494025–453.937714 m
-Default profile: 20240102_indian_ocean_prof:23
-Default spatial distance: 3.851345 km
-Default MAE: 0.2253829 °C
-Default RMSE: 0.3188158 °C
+Health endpoint:
+http://127.0.0.1:8501/_stcore/health
 
-Constructed successfully from real evidence:
-- collocation map
-- Argo/model profile figure
-- bias-by-depth figure
-- Plotly 3D model-temperature figure
-- 2D depth-slice fallback
-Status: PASS
+Result: PASS
 
-Scientific source immutability
+This verifies that the final application imports and starts successfully in a clean CI environment.
+It is not a substitute for the final presentation-laptop visual check at 1366×768 and 1920×1080.
+
+Scientific safeguards verified
 ------------------------------
-Pre/post SHA-256 comparison of the bundled model NetCDF, both profile-level CSVs, both profile summary JSONs, comparison config and comparison provenance: unchanged.
-Status: PASS
+- Default profile remains 20240102_indian_ocean_prof:23.
+- 50 matched levels remain attached to the verified default profile.
+- Two eligible profiles remain available; 99 matched levels total.
+- Bias remains exactly Model − Observation.
+- Nearest valid model water-cell collocation remains unchanged.
+- Linear interpolation between adjacent valid model levels remains unchanged.
+- Provider QC handling remains unchanged.
+- Real 3D and 2D model figures remain generated from the cached thetao array.
+- Selected-profile charts and metric cards remain tied to the same processed comparison evidence.
+- Selected-profile evidence downloads remain real and non-empty.
+- Loader network-blocking test remains part of the regression suite.
+- Raw/bundled scientific data files were not edited by the UI/product refactor.
 
-Network/static check
---------------------
-No requests/urllib/httpx/aiohttp/socket.create_connection use found in app.py or src/.
-The automated loader test blocks socket.create_connection and still loads model + comparison evidence.
-Status: PASS for scientific runtime code path
+Cross-platform evidence integrity
+---------------------------------
+The NetCDF binary checksum remains exact.
 
-Preserved original comparison-engine tests
-------------------------------------------
-Historical bundled artefact data/comparison/test_results.txt records:
+Tracked text evidence may be checked out by Git with LF or CRLF line endings.
+The regression test therefore accepts only the exact text content under LF/CRLF
+normalisation; no other content difference is accepted. This avoids a platform-only
+checksum false failure while preserving the scientific integrity guardrail.
+
+Preserved comparison-engine test artefact
+-----------------------------------------
+data/comparison/test_results.txt separately records the original comparison-engine run:
 - 25 passed
 - 1 historical RuntimeWarning about NumPy binary compatibility
 
-A fresh re-run in this sandbox produced 24 passing tests and 1 environment dependency failure because `netCDF4` is not installed here. That test failure is not a scientific regression; it occurs before the test body executes.
-Optional comparison-engine test dependencies are documented in requirements-test.txt.
-
-Streamlit browser launch
+Offline/runtime boundary
 ------------------------
-Not executable in this sandbox because Streamlit is not installed here.
-The user previously launched the predecessor local build successfully on Windows at http://localhost:8501.
-The FINAL build must still receive one local Windows browser/offline visual check before presentation freeze.
+Automated tests block network connection during scientific loading and still load the
+model and comparison evidence successfully.
 
-External scientific cross-check
--------------------------------
-Official Copernicus Marine product metadata confirms GLOBAL_MULTIYEAR_PHY_001_030 / GLORYS12V1, nominal 1/12° grid, 50 parent-product vertical levels, daily/monthly means, DOI 10.48670/moi-00021 and assimilation of in-situ T/S profiles.
-Official Argo guidance confirms use of adjusted fields when DATA_MODE is A/D and QC flag 1 meaning good data.
+The final application uses bundled local scientific files at runtime. Streamlit and
+installed Python packages are runtime software dependencies; no live scientific-data
+download is required to demonstrate the bundled evidence.
 
-Final limitation
-----------------
-This package is a model–observation diagnostic prototype, not independent validation, not a full Digital Twin Ocean, and not an operational forecast/real-time system.
+Final manual release check still required on presentation laptop
+-----------------------------------------------------------------
+- Start from a fresh terminal.
+- Run python -m pytest -q.
+- Start python -m streamlit run app.py.
+- Press Reset to verified demo.
+- Inspect at 1366×768 and 1920×1080.
+- Test the non-default valid profile.
+- Test 2D compatibility fallback.
+- Test all downloads.
+- Disconnect Wi-Fi and refresh.
+- Run the complete live demo twice.
+
+Scientific limitation
+---------------------
+This is a model–observation diagnostic comparison, not independent validation.
+The reanalysis may assimilate in-situ observations.
+
+The prototype covers one region, one day and a small set of profiles. It is not a
+complete Digital Twin Ocean, real-time monitoring system, hazard-prediction system
+or operational forecast platform.

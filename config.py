@@ -32,23 +32,24 @@ DISCLAIMER = (
     "operational forecasting system."
 )
 
-MODEL_COLOR = "#7B82FF"
-ARGO_COLOR = "#35E0CF"
-ZERO_COLOR = "#F2F6FC"
-PAGE_BG = "#06111F"
-PANEL_BG = "#0B1D31"
-TEXT = "#F2F7FF"
-MUTED = "#B1C3D6"
+# Scientific-series semantic colours. Values only affect presentation.
+MODEL_COLOR = "#39C6E8"
+ARGO_COLOR = "#F5B544"
+ZERO_COLOR = "#F4F8FC"
+PAGE_BG = "#04111D"
+PANEL_BG = "#0A1B2A"
+TEXT = "#F6FAFF"
+MUTED = "#8FA8BD"
 
 TEMP_COLORSCALE = [
-    [0.00, "#111B4C"],
-    [0.25, "#253C7A"],
-    [0.50, "#386F9C"],
-    [0.75, "#3DA7AC"],
-    [1.00, "#D7C98C"],
+    [0.00, "#102A56"],
+    [0.22, "#1F5F8E"],
+    [0.48, "#238EAD"],
+    [0.72, "#39C6C8"],
+    [1.00, "#F4D98E"],
 ]
 BIAS_COLORSCALE = [
-    [0.00, "#2878B5"],
-    [0.50, "#EDF3F8"],
-    [1.00, "#D97732"],
+    [0.00, "#4C8DFF"],
+    [0.50, "#F4F8FC"],
+    [1.00, "#FF7A6B"],
 ]
