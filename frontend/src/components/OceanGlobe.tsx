@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  ArcGisMapServerImageryProvider,
   Cartesian2,
   Cartesian3,
   Color,
@@ -82,12 +83,15 @@ export function OceanGlobe({
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const depthAnimationRef = useRef<number | null>(null);
   const zoomAnimationRef = useRef<number | null>(null);
+  const imageryRequestRef = useRef(0);
   const sliceHeightRef = useRef(0);
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [rendererError, setRendererError] = useState("");
   const [renderScale, setRenderScale] = useState(1);
   const [antialiasing, setAntialiasing] = useState("initializing");
   const [cameraHeight, setCameraHeight] = useState(0);
+  const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
+  const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -143,39 +147,6 @@ export function OceanGlobe({
 
     syncRenderQuality();
     window.addEventListener("resize", syncRenderQuality);
-
-    const addGridFallback = () => {
-      if (viewer.isDestroyed()) return;
-      viewer.imageryLayers.removeAll();
-      viewer.imageryLayers.addImageryProvider(
-        new GridImageryProvider({
-          color: Color.fromCssColorString("#2a6d89").withAlpha(0.52),
-          glowColor: Color.fromCssColorString("#071a28").withAlpha(0.42),
-          backgroundColor: Color.fromCssColorString("#082335")
-        })
-      );
-      viewer.scene.requestRender();
-    };
-
-    // Cesium ships a low-resolution Natural Earth II tile set in Assets/Textures.
-    // Use it as the default basemap so coastlines and geographic context work offline.
-    void TileMapServiceImageryProvider.fromUrl(
-      buildModuleUrl("Assets/Textures/NaturalEarthII"),
-      { maximumLevel: 2 }
-    )
-      .then((provider) => {
-        if (viewer.isDestroyed()) return;
-        viewer.imageryLayers.removeAll();
-        const layer = viewer.imageryLayers.addImageryProvider(provider);
-        layer.brightness = 1.10;
-        layer.contrast = 1.22;
-        layer.saturation = 1.02;
-        viewer.scene.requestRender();
-      })
-      .catch(() => {
-        // A missing/corrupt basemap must never take down the scientific demo.
-        addGridFallback();
-      });
 
     viewer.scene.backgroundColor = Color.fromCssColorString("#010913");
     viewer.scene.globe.baseColor = Color.fromCssColorString("#062438");
@@ -244,6 +215,92 @@ export function OceanGlobe({
       viewerRef.current = null;
     };
   }, [onSelectProfile]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+
+    const requestId = ++imageryRequestRef.current;
+    let removeOnlineErrorListener: (() => void) | null = null;
+
+    const isCurrent = () =>
+      !viewer.isDestroyed() && requestId === imageryRequestRef.current;
+
+    const addGridFallback = () => {
+      if (!isCurrent()) return;
+      viewer.imageryLayers.removeAll();
+      viewer.imageryLayers.addImageryProvider(
+        new GridImageryProvider({
+          color: Color.fromCssColorString("#2a6d89").withAlpha(0.52),
+          glowColor: Color.fromCssColorString("#071a28").withAlpha(0.42),
+          backgroundColor: Color.fromCssColorString("#082335")
+        })
+      );
+      setImageryStatus("grid");
+      viewer.scene.requestRender();
+    };
+
+    const addOfflineNaturalEarth = async () => {
+      if (!isCurrent()) return;
+      setImageryStatus("connecting");
+      try {
+        const provider = await TileMapServiceImageryProvider.fromUrl(
+          buildModuleUrl("Assets/Textures/NaturalEarthII"),
+          { maximumLevel: 2 }
+        );
+        if (!isCurrent()) return;
+        viewer.imageryLayers.removeAll();
+        const layer = viewer.imageryLayers.addImageryProvider(provider);
+        layer.brightness = 1.10;
+        layer.contrast = 1.22;
+        layer.saturation = 1.02;
+        setImageryStatus("offline");
+        viewer.scene.requestRender();
+      } catch {
+        addGridFallback();
+      }
+    };
+
+    const addOnlineWorldImagery = async () => {
+      setImageryStatus("connecting");
+      try {
+        const provider = await ArcGisMapServerImageryProvider.fromUrl(
+          "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"
+        );
+        if (!isCurrent()) return;
+
+        let tileErrorCount = 0;
+        let failedOver = false;
+        removeOnlineErrorListener = provider.errorEvent.addEventListener(() => {
+          tileErrorCount += 1;
+          if (tileErrorCount < 3 || failedOver || !isCurrent()) return;
+          failedOver = true;
+          void addOfflineNaturalEarth();
+        });
+
+        viewer.imageryLayers.removeAll();
+        const layer = viewer.imageryLayers.addImageryProvider(provider);
+        layer.brightness = 0.98;
+        layer.contrast = 1.06;
+        layer.saturation = 0.92;
+        setImageryStatus("online");
+        viewer.scene.requestRender();
+      } catch {
+        await addOfflineNaturalEarth();
+      }
+    };
+
+    if (imageryPreference === "offline") {
+      void addOfflineNaturalEarth();
+    } else {
+      void addOnlineWorldImagery();
+    }
+
+    return () => {
+      imageryRequestRef.current += 1;
+      removeOnlineErrorListener?.();
+    };
+  }, [imageryPreference]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -672,6 +729,8 @@ export function OceanGlobe({
       data-antialiasing={antialiasing}
       data-render-quality="high"
       data-camera-height={cameraHeight.toFixed(0)}
+      data-imagery-preference={imageryPreference}
+      data-imagery-status={imageryStatus}
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
@@ -683,6 +742,37 @@ export function OceanGlobe({
           </small>
         </div>
       )}
+      <div className="globe-overlay imagery-control" data-status={imageryStatus}>
+        <span>MAP IMAGERY</span>
+        <strong>
+          {imageryStatus === "online"
+            ? "World Imagery · online"
+            : imageryStatus === "offline"
+              ? "Natural Earth II · offline"
+              : imageryStatus === "grid"
+                ? "Scientific grid fallback"
+                : "Resolving best available layer…"}
+        </strong>
+        <div className="imagery-control-buttons">
+          <button
+            type="button"
+            className={imageryPreference === "auto" ? "active" : ""}
+            aria-pressed={imageryPreference === "auto"}
+            onClick={() => setImageryPreference("auto")}
+          >
+            High-res auto
+          </button>
+          <button
+            type="button"
+            className={imageryPreference === "offline" ? "active" : ""}
+            aria-pressed={imageryPreference === "offline"}
+            onClick={() => setImageryPreference("offline")}
+          >
+            Offline
+          </button>
+        </div>
+        <small>Basemap only · scientific coordinates and values are unchanged.</small>
+      </div>
       <div className="globe-overlay top-left judge-summary">
         <div>
           <span className="live-dot" />

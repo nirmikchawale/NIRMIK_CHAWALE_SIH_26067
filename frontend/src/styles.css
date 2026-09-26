@@ -4428,3 +4428,125 @@ input:focus-visible {
     left: 266px;
   }
 }
+
+
+/* Feature 4 — high-resolution online imagery with deterministic offline fallback. */
+.imagery-control {
+  top: 104px;
+  right: 354px;
+  display: grid;
+  gap: 5px;
+  width: 224px;
+  padding: 9px 10px;
+}
+
+.imagery-control > span {
+  color: #6fdcf2;
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: 0.12em;
+}
+
+.imagery-control > strong {
+  color: #e4f7fb;
+  font-size: 9px;
+}
+
+.imagery-control > small {
+  color: #708fa0;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.imagery-control-buttons {
+  display: grid;
+  grid-template-columns: 1fr 0.72fr;
+  gap: 5px;
+}
+
+.imagery-control-buttons button {
+  padding: 6px 7px;
+  border: 1px solid #28566b;
+  border-radius: 7px;
+  color: #83a8b9;
+  background: #082231;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 750;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.imagery-control-buttons button:hover {
+  border-color: #49c9e4;
+  color: #dffaff;
+  background: #0c3041;
+}
+
+.imagery-control-buttons button.active {
+  border-color: #55d3ec;
+  color: #e9fcff;
+  background: #103a4d;
+  box-shadow: inset 0 0 0 1px rgba(85, 211, 236, 0.12);
+}
+
+.imagery-control[data-status="offline"] {
+  border-color: rgba(211, 172, 77, 0.62);
+}
+
+.imagery-control[data-status="grid"] {
+  border-color: rgba(222, 123, 84, 0.68);
+}
+
+:root[data-theme="light"] .imagery-control {
+  border-color: #b5ced8;
+  background: rgba(249, 252, 253, 0.95);
+}
+
+:root[data-theme="light"] .imagery-control > span {
+  color: #117e9a;
+}
+
+:root[data-theme="light"] .imagery-control > strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .imagery-control > small {
+  color: #587487;
+}
+
+:root[data-theme="light"] .imagery-control-buttons button {
+  border-color: #bfd3db;
+  color: #517385;
+  background: #f6fafb;
+}
+
+:root[data-theme="light"] .imagery-control-buttons button.active {
+  border-color: #2f9bb7;
+  color: #16475a;
+  background: #e4f4f8;
+}
+
+.focus-mode .imagery-control {
+  right: 14px;
+}
+
+@media (max-width: 1150px) and (min-width: 761px) {
+  .imagery-control {
+    right: 326px;
+    width: 206px;
+  }
+}
+
+@media (max-width: 980px) and (min-width: 761px) {
+  .imagery-control {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .imagery-control {
+    top: 84px;
+    right: 12px;
+    width: min(210px, calc(100% - 24px));
+  }
+}

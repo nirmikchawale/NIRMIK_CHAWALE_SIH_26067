@@ -13,6 +13,23 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  const imageryGlobeShell = page.locator(".globe-shell").first();
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "auto");
+  await expect(page.getByRole("button", { name: "High-res auto" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Offline", exact: true })).toBeVisible();
+  await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
+    .toMatch(/^(online|offline|grid)$/);
+
+  await page.getByRole("button", { name: "Offline", exact: true }).click();
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
+  await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
+    .toMatch(/^(offline|grid)$/);
+
+  await page.getByRole("button", { name: "High-res auto" }).click();
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "auto");
+  await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
+    .toMatch(/^(online|offline|grid)$/);
+
 
   const documentRoot = page.locator("html");
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
