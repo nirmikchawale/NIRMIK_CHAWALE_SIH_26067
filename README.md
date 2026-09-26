@@ -2,7 +2,7 @@
 
 **SIH26067 · The Optimizers**
 
-OceanTwin 3D is an offline-capable Streamlit + Plotly scientific diagnostic application built around a cached Copernicus Marine temperature subset and QC-screened Argo profile evidence. The application is structured as a professional web application shell around a preserved scientific core.
+OceanTwin 3D is a React + TypeScript + CesiumJS judge-facing scientific web application backed by FastAPI and static hosted science exports, using bundled Copernicus Marine model evidence and QC-screened Argo comparison profiles. The earlier Streamlit + Plotly application remains preserved as the offline scientific reference and emergency fallback.
 
 > **Scientific framing:** This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations. This prototype covers one region, one day and a small set of profiles, and is not a complete Digital Twin Ocean or operational forecasting system.
 
@@ -36,10 +36,10 @@ OceanTwin 3D is an offline-capable Streamlit + Plotly scientific diagnostic appl
 - Friendly failure states; raw Python diagnostics are hidden unless explicitly enabled.
 - No required runtime scientific-data network request.
 
-## Professional application hierarchy
+## Preserved scientific fallback hierarchy
 
 ```text
-NIRMIK_CHAWALE_SIH_26067/
+NIRMIK_CHAWALE_SIH_PERSONAL/
 ├── app.py                         # thin Streamlit entry point
 ├── config.py                      # scientific/runtime constants + chart presentation tokens
 ├── .streamlit/
@@ -116,7 +116,7 @@ GitHub Actions now runs:
 2. Python compilation for `app.py`, `config.py`, `oceantwin/`, `src/` and `tests/`;
 3. headless Streamlit startup health check.
 
-The preserved historical comparison-engine artefact in `data/comparison/test_results.txt` separately records **25 passed** scientific-engine tests.
+Current scientific and product validation is enforced by the repository's active pytest, frontend typecheck/build, static-hosted, and live-browser workflows.
 
 ## Offline demonstration
 
@@ -141,7 +141,7 @@ The runtime scientific data path is local. The 2D fallback uses the same actual 
 
 ## Explicitly deferred scientific/product scope
 
-Roadmap labels may be visible, but this release does not implement salinity comparison, current validation, glider comparison, bilinear sensitivity analysis, Docker, FastAPI, React, Cesium, authentication, a database, ML, operational forecasting or hazard prediction.
+Roadmap labels may be visible, but this release does not implement salinity observation comparison, current observation validation, glider comparison, bilinear sensitivity analysis, Docker, authentication, a database, ML, operational forecasting or hazard prediction.
 
 ## Scientific sources
 
