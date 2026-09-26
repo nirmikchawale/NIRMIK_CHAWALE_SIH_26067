@@ -9,6 +9,7 @@ import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
+import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { FeaturePlaceholder } from "./pages/FeaturePlaceholder";
@@ -338,13 +339,20 @@ export default function App() {
                 playing={playing}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
-                onVisualizationModeChange={setVisualizationMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
                 onDepthChange={setDepthIndex}
                 onTimeChange={setTimeIndex}
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={setSelectedProfileId}
                 onPlayingChange={setPlaying}
+              />
+
+              <VisualizationDock
+                mode={visualizationMode}
+                scalarAvailable={variable !== "currents"}
+                variableLabel={selectedVariable?.label ?? variable}
+                depthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                onChange={setVisualizationMode}
               />
 
               {visualizationMode === "globe" ? (
