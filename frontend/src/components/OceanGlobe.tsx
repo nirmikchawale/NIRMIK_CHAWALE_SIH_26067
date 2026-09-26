@@ -428,7 +428,7 @@ export function OceanGlobe({
       <div ref={containerRef} className="cesium-host" />
       <div className="globe-overlay top-left">
         <span className="live-dot" />
-        <strong>Verified local scientific data</strong>
+        <strong>Verified scientific data · {profiles.length} Argo comparison profiles</strong>
       </div>
       {(field || currents) && !volume && (
         <div className="globe-overlay depth-indicator">
