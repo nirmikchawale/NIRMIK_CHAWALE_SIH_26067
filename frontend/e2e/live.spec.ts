@@ -92,6 +92,18 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(dataLabPage).toBeVisible();
   await expect(dataLabPage).toContainText("Additional dataset lab");
   await expect(dataLabPage).toContainText("Data stays in this browser session");
+  await expect(dataLabPage).toContainText("Official data launchpad");
+  await expect(dataLabPage.locator(".data-source-card")).toHaveCount(3);
+  await expect(dataLabPage).toContainText("GLORYS12V1 global ocean physics reanalysis");
+  await expect(dataLabPage).toContainText("Argo global profiling-float observations");
+  await expect(dataLabPage).toContainText("Indian Ocean official data access portal");
+  await expect(dataLabPage).toContainText("Reshape to OceanTwin schema");
+  const officialLinks = dataLabPage.locator(".data-source-actions a");
+  await expect(officialLinks).toHaveCount(3);
+  await expect(officialLinks.nth(0)).toHaveAttribute("href", /data\.marine\.copernicus\.eu/);
+  await expect(officialLinks.nth(1)).toHaveAttribute("href", /data-argo\.ifremer\.fr/);
+  await expect(officialLinks.nth(2)).toHaveAttribute("href", /las\.incois\.gov\.in/);
+  await expect(officialLinks.nth(0)).toHaveAttribute("target", "_blank");
 
   const validCsv = [
     "longitude,latitude,depth_m,timestamp,variable,value,units,source",
