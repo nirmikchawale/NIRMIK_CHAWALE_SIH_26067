@@ -132,7 +132,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   const profileSelect = page.locator(".control-panel select");
   const initialProfile = await page.locator(".profile-heading p").textContent();
-  await profileSelect.selectOption({ index: 1 });
+  await profileSelect.selectOption({ index: 0 });
   await expect(page.locator(".profile-heading p")).not.toHaveText(initialProfile ?? "");
   await expect(page.locator(".qc-pill")).toHaveText("QC ACCEPTED");
 
