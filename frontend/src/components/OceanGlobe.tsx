@@ -4,7 +4,9 @@ import {
   Cartesian3,
   Color,
   ConstantProperty,
+  ColorGeometryInstanceAttribute,
   EllipsoidTerrainProvider,
+  GeometryInstance,
   GridImageryProvider,
   TileMapServiceImageryProvider,
   buildModuleUrl,
@@ -13,7 +15,10 @@ import {
   Material,
   PointPrimitiveCollection,
   PolylineCollection,
+  Primitive,
+  PerInstanceColorAppearance,
   Rectangle,
+  RectangleGeometry,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   VerticalOrigin,
@@ -56,7 +61,7 @@ export function OceanGlobe({
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
-  const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection>>([]);
+  const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection | Primitive>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const depthAnimationRef = useRef<number | null>(null);
@@ -307,17 +312,48 @@ export function OceanGlobe({
     }
 
     if (volume) {
-      const collection = new PointPrimitiveCollection();
-      for (const [lon, lat, depth, value] of volume.points) {
-        collection.add({
-          position: Cartesian3.fromDegrees(lon, lat, -depth * verticalExaggeration),
-          pixelSize: 3.4,
-          color: scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.72),
-          disableDepthTestDistance: Number.POSITIVE_INFINITY
-        });
+      const longitudes = Array.from(new Set(volume.points.map(([lon]) => lon))).sort((a, b) => a - b);
+      const latitudes = Array.from(new Set(volume.points.map(([, lat]) => lat))).sort((a, b) => a - b);
+      const lonStep = longitudes.length > 1 ? Math.abs(longitudes[1] - longitudes[0]) : 0.15;
+      const latStep = latitudes.length > 1 ? Math.abs(latitudes[1] - latitudes[0]) : 0.15;
+      const maxCells = 5000;
+      const cellStride = Math.max(1, Math.ceil(volume.points.length / maxCells));
+      const instances: GeometryInstance[] = [];
+
+      for (let index = 0; index < volume.points.length; index += cellStride) {
+        const [lon, lat, depth, value] = volume.points[index];
+        const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.30);
+        instances.push(
+          new GeometryInstance({
+            geometry: new RectangleGeometry({
+              rectangle: Rectangle.fromDegrees(
+                lon - lonStep * 0.48,
+                lat - latStep * 0.48,
+                lon + lonStep * 0.48,
+                lat + latStep * 0.48
+              ),
+              height: -depth * verticalExaggeration,
+              vertexFormat: PerInstanceColorAppearance.VERTEX_FORMAT
+            }),
+            attributes: {
+              color: ColorGeometryInstanceAttribute.fromColor(color)
+            }
+          })
+        );
       }
-      viewer.scene.primitives.add(collection);
-      dynamicPrimitivesRef.current.push(collection);
+
+      if (instances.length > 0) {
+        const layeredVolume = new Primitive({
+          geometryInstances: instances,
+          appearance: new PerInstanceColorAppearance({
+            translucent: true,
+            closed: false
+          }),
+          asynchronous: false
+        });
+        viewer.scene.primitives.add(layeredVolume);
+        dynamicPrimitivesRef.current.push(layeredVolume);
+      }
     }
 
     if (currents) {
@@ -383,6 +419,11 @@ export function OceanGlobe({
           <span>{legendMax?.toFixed(3) ?? "—"}</span>
         </div>
       </div>
+      {volume && (
+        <div className="globe-overlay volume-note">
+          3D WATER COLUMN · stacked verified model layers · visual depth ×{verticalExaggeration}
+        </div>
+      )}
       {currents && (
         <div className="globe-overlay current-note">
           Selected-depth vectors projected above the globe for readability · {currents.depth_m.toFixed(2)} m
