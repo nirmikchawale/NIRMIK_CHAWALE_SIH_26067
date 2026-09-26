@@ -220,7 +220,7 @@ export default function App() {
           onSelectProfile={setSelectedProfileId}
         />
 
-        <ProfilePanel detail={profileDetail} loading={profileLoading} />
+        <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
         <ProvenanceDrawer
           open={provenanceOpen}
           provenance={provenance}
