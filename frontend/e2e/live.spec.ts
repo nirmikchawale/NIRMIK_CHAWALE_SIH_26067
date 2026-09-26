@@ -66,7 +66,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(depthNeighborhood).toContainText("descriptive vertical-change diagnostic");
 
   const telemetryInitialDepth = await telemetryPage.getAttribute("data-selected-depth");
-  const telemetryDepth = telemetryPage.getByLabel("Telemetry depth");
+  const telemetryDepth = telemetryPage.getByRole("slider", { name: "Telemetry depth", exact: true });
   await telemetryDepth.focus();
   await telemetryDepth.press("Home");
   await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", telemetryInitialDepth ?? "");
