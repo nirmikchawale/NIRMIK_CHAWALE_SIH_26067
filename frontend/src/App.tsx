@@ -7,6 +7,7 @@ import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
+import { InfoPage } from "./pages/InfoPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
 import { VisualizationDock } from "./components/VisualizationDock";
@@ -392,6 +393,8 @@ export default function App() {
             <AnomalyPage catalog={catalog} />
           ) : page === "data-lab" ? (
             <DataLabPage />
+          ) : page === "about" ? (
+            <InfoPage catalog={catalog} provenance={provenance} />
           ) : (
             <FeaturePlaceholder page={page} />
           )}
