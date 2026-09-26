@@ -1,4 +1,76 @@
-import type { ComparisonLevel, ProfileDetail } from "../types";
+import type { ComparisonLevel, ProfileDetail, ProvenanceResponse } from "../types";
+
+function downloadTextFile(filename: string, content: string, mimeType: string) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function csvCell(value: string | number) {
+  const text = String(value);
+  return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function downloadComparisonCsv(detail: ProfileDetail, provenance: ProvenanceResponse) {
+  const s = detail.summary;
+  const header = [
+    "profile_id",
+    "platform_id",
+    "cycle",
+    "direction",
+    "observation_time_utc",
+    "model_dataset_id",
+    "model_doi",
+    "argo_doi",
+    "observation_depth_m",
+    "observed_temperature_c",
+    "model_temperature_interpolated_c",
+    "signed_bias_model_minus_observation_c",
+    "absolute_error_c"
+  ];
+  const rows = detail.levels.map((level) => [
+    s.profile_id,
+    s.platform_id,
+    s.cycle,
+    s.direction,
+    s.observation_time_utc,
+    provenance.model.dataset_id,
+    provenance.model.doi,
+    provenance.observations.doi,
+    level.observation_depth_m,
+    level.observed_temperature,
+    level.model_temperature_interpolated,
+    level.signed_bias_celsius,
+    level.absolute_error_celsius
+  ]);
+  const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
+  downloadTextFile(
+    `OceanTwin_Argo_${s.platform_id}_cycle_${s.cycle}_comparison.csv`,
+    csv,
+    "text/csv;charset=utf-8"
+  );
+}
+
+function downloadEvidenceJson(detail: ProfileDetail, provenance: ProvenanceResponse) {
+  const s = detail.summary;
+  const payload = {
+    exported_by: "OceanTwin 3D · SIH26067",
+    evidence_type: "diagnostic model-observation consistency",
+    comparison: detail,
+    provenance
+  };
+  downloadTextFile(
+    `OceanTwin_Argo_${s.platform_id}_cycle_${s.cycle}_evidence.json`,
+    JSON.stringify(payload, null, 2),
+    "application/json;charset=utf-8"
+  );
+}
 
 function linePoints(
   levels: ComparisonLevel[],
@@ -129,10 +201,12 @@ function ProfileChart({ detail }: { detail: ProfileDetail }) {
 
 export function ProfilePanel({
   detail,
-  loading
+  loading,
+  provenance
 }: {
   detail: ProfileDetail | null;
   loading: boolean;
+  provenance: ProvenanceResponse | null;
 }) {
   if (loading) {
     return <aside className="profile-panel panel-placeholder">Loading verified profile…</aside>;
@@ -175,6 +249,23 @@ export function ProfilePanel({
         <p>{detail.comparison_semantics.horizontal}</p>
         <p>{detail.comparison_semantics.vertical}</p>
         <p className="accent">{detail.comparison_semantics.bias}</p>
+      </div>
+
+      <div className="evidence-actions">
+        <button
+          disabled={!provenance}
+          onClick={() => provenance && downloadComparisonCsv(detail, provenance)}
+          title={provenance ? "Download matched-level comparison CSV" : "Waiting for provenance metadata"}
+        >
+          Download CSV
+        </button>
+        <button
+          disabled={!provenance}
+          onClick={() => provenance && downloadEvidenceJson(detail, provenance)}
+          title={provenance ? "Download full comparison + provenance JSON" : "Waiting for provenance metadata"}
+        >
+          Download evidence JSON
+        </button>
       </div>
 
       <div className="observation-meta">
