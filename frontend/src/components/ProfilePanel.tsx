@@ -18,6 +18,50 @@ function linePoints(
     .join(" ");
 }
 
+function BiasChart({ detail }: { detail: ProfileDetail }) {
+  const width = 300;
+  const height = 170;
+  const levels = detail.levels;
+  const maxDepth = Math.max(...levels.map((level) => level.observation_depth_m));
+  const maxAbsBias = Math.max(
+    0.05,
+    ...levels.map((level) => Math.abs(level.signed_bias_celsius))
+  );
+  const xMin = -maxAbsBias;
+  const xMax = maxAbsBias;
+  const zeroX = width / 2;
+
+  const points = linePoints(
+    levels,
+    (level) => level.signed_bias_celsius,
+    width,
+    height,
+    xMin,
+    xMax,
+    maxDepth
+  );
+
+  return (
+    <div className="profile-chart-wrap bias-chart-wrap">
+      <div className="chart-title-row">
+        <span>Bias by depth · Model − Observation</span>
+        <span>±{maxAbsBias.toFixed(2)} °C</span>
+      </div>
+      <svg className="bias-chart" viewBox={`0 0 ${width} ${height}`} role="img">
+        <line x1={zeroX} x2={zeroX} y1="12" y2={height - 12} className="bias-zero-line" />
+        <line x1="12" x2={width - 12} y1="12" y2="12" className="grid-line" />
+        <line x1="12" x2={width - 12} y1={height - 12} y2={height - 12} className="grid-line" />
+        <polyline points={points} className="profile-line bias-line" />
+      </svg>
+      <div className="chart-legend">
+        <span>Negative = model cooler</span>
+        <span>Positive = model warmer</span>
+        <span>Depth ↓ {maxDepth.toFixed(0)} m</span>
+      </div>
+    </div>
+  );
+}
+
 function ProfileChart({ detail }: { detail: ProfileDetail }) {
   const width = 300;
   const height = 260;
@@ -119,6 +163,7 @@ export function ProfilePanel({
       </div>
 
       <ProfileChart detail={detail} />
+      <BiasChart detail={detail} />
 
       <div className="method-card">
         <strong>Comparison method</strong>
