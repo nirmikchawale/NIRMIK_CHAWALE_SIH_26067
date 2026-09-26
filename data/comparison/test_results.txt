@@ -1,7 +1,0 @@
-.........................                                                [100%]
-============================== warnings summary ===============================
-outputs/oceantwin_comparison/test_temperature_comparison.py::test_netcdf_packed_fill_is_masked_before_interpolation
-  <frozen importlib._bootstrap>:488: RuntimeWarning: numpy.ndarray size changed, may indicate binary incompatibility. Expected 16 from C header, got 96 from PyObject
-
--- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-25 passed, 1 warning in 0.49s

@@ -1,7 +1,0 @@
-{
-  "manifest_scope": "historical_initial_prototype",
-  "source_commit": "39e581d2bad357c57bfa45a5fd2ec289bf733268",
-  "note": "The original per-file size/hash manifest described the initial prototype and became stale after the professional UI refactor. Git history is authoritative for application-code changes. data_manifest.json and data/comparison/SHA256SUMS.txt remain the scientific-data integrity manifests; the UI refactor did not intentionally alter the bundled scientific data.",
-  "current_structure": "See GITHUB_REPO_TREE.txt and README.md",
-  "current_release_validation": "See BUILD_VALIDATION.txt and FINAL_HANDOVER.md"
-}
