@@ -130,6 +130,151 @@ function DepthTelemetryChart({
   );
 }
 
+function DepthLadder({
+  telemetry,
+  selectedDepthIndex,
+  onSelectDepth
+}: {
+  telemetry: TelemetryResponse;
+  selectedDepthIndex: number;
+  onSelectDepth: (depthIndex: number) => void;
+}) {
+  const means = telemetry.depth_stats.map((item) => item.mean);
+  const minMean = Math.min(...means);
+  const maxMean = Math.max(...means);
+  const span = Math.max(maxMean - minMean, 1e-12);
+
+  return (
+    <section className="telemetry-card telemetry-depth-ladder">
+      <div className="telemetry-card-heading">
+        <div>
+          <span>INTERACTIVE WATER-COLUMN INDEX</span>
+          <h3>Jump to any verified model depth</h3>
+        </div>
+        <strong>{telemetry.depth_stats.length} exact levels</strong>
+      </div>
+      <p>
+        Each button is one genuine GLORYS12V1 model depth. Bar length shows the full-grid spatial
+        mean at that level; selecting a level updates all telemetry cards together.
+      </p>
+      <div className="telemetry-depth-ladder-grid" role="list" aria-label="Verified telemetry depths">
+        {telemetry.depth_stats.map((item) => {
+          const width = 14 + 86 * ((item.mean - minMean) / span);
+          const selected = item.depth_index === selectedDepthIndex;
+          return (
+            <button
+              key={item.depth_index}
+              type="button"
+              role="listitem"
+              className={selected ? "active" : ""}
+              aria-pressed={selected}
+              aria-label={`Select telemetry depth ${item.depth_m.toFixed(2)} m`}
+              onClick={() => onSelectDepth(item.depth_index)}
+            >
+              <span>{item.depth_m.toFixed(item.depth_m < 100 ? 1 : 0)} m</span>
+              <i><b style={{ width: `${width}%` }} /></i>
+              <strong>{item.mean.toFixed(3)}</strong>
+            </button>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function DepthNeighborhood({
+  telemetry,
+  selectedDepthIndex
+}: {
+  telemetry: TelemetryResponse;
+  selectedDepthIndex: number;
+}) {
+  const selectedPosition = telemetry.depth_stats.findIndex((item) => item.depth_index === selectedDepthIndex);
+  const current = selectedPosition >= 0 ? telemetry.depth_stats[selectedPosition] : null;
+  if (!current) return null;
+
+  const previous = selectedPosition > 0 ? telemetry.depth_stats[selectedPosition - 1] : null;
+  const next = selectedPosition < telemetry.depth_stats.length - 1
+    ? telemetry.depth_stats[selectedPosition + 1]
+    : null;
+
+  let gradient: number | null = null;
+  let gradientSpan = "";
+  if (previous && next) {
+    gradient = (next.mean - previous.mean) / Math.max(next.depth_m - previous.depth_m, 1e-12);
+    gradientSpan = `${previous.depth_m.toFixed(1)}–${next.depth_m.toFixed(1)} m central difference`;
+  } else if (next) {
+    gradient = (next.mean - current.mean) / Math.max(next.depth_m - current.depth_m, 1e-12);
+    gradientSpan = `${current.depth_m.toFixed(1)}–${next.depth_m.toFixed(1)} m one-sided difference`;
+  } else if (previous) {
+    gradient = (current.mean - previous.mean) / Math.max(current.depth_m - previous.depth_m, 1e-12);
+    gradientSpan = `${previous.depth_m.toFixed(1)}–${current.depth_m.toFixed(1)} m one-sided difference`;
+  }
+
+  const rows = [previous, current, next].filter((item): item is TelemetryDepthStat => Boolean(item));
+
+  return (
+    <section className="telemetry-card telemetry-neighborhood-card">
+      <div className="telemetry-card-heading">
+        <div>
+          <span>LOCAL VERTICAL CONTEXT</span>
+          <h3>Selected layer and nearest genuine depths</h3>
+        </div>
+        <strong>{current.depth_m.toFixed(2)} m</strong>
+      </div>
+
+      <div className="telemetry-neighborhood-metrics">
+        <article>
+          <span>Local mean gradient</span>
+          <strong>{gradient == null ? "—" : `${gradient >= 0 ? "+" : ""}${gradient.toExponential(3)} ${telemetry.units}/m`}</strong>
+          <small>{gradientSpan || "Insufficient neighbouring level"}</small>
+        </article>
+        <article>
+          <span>Selected P10–P90 span</span>
+          <strong>{(current.p90 - current.p10).toFixed(4)} {telemetry.units}</strong>
+          <small>spatial percentile spread at this exact depth</small>
+        </article>
+        <article>
+          <span>Selected coefficient of variation</span>
+          <strong>{Math.abs(current.mean) > 1e-12 ? (100 * current.std / Math.abs(current.mean)).toFixed(2) : "—"}%</strong>
+          <small>std / |mean| · descriptive only</small>
+        </article>
+      </div>
+
+      <div className="telemetry-neighborhood-table-wrap">
+        <table className="telemetry-neighborhood-table">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Depth</th>
+              <th>Mean</th>
+              <th>P10–P90</th>
+              <th>Std</th>
+              <th>Finite cells</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr key={item.depth_index} className={item.depth_index === current.depth_index ? "selected" : ""}>
+                <td>{item.depth_index === current.depth_index ? "SELECTED" : item.depth_m < current.depth_m ? "ABOVE" : "BELOW"}</td>
+                <td>{item.depth_m.toFixed(2)} m</td>
+                <td>{item.mean.toFixed(4)} {telemetry.units}</td>
+                <td>{item.p10.toFixed(4)}–{item.p90.toFixed(4)}</td>
+                <td>{item.std.toFixed(4)}</td>
+                <td>{item.count.toLocaleString()}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="telemetry-neighborhood-note">
+        The gradient is calculated only between adjacent genuine model depth levels. It is a
+        descriptive vertical-change diagnostic, not a new measurement or interpolated layer.
+      </p>
+    </section>
+  );
+}
+
 function SelectedDepthCard({
   stat,
   telemetry
@@ -483,6 +628,12 @@ export function TelemetryPage({ catalog, provenance }: Props) {
             </article>
           </section>
 
+          <DepthLadder
+            telemetry={telemetry}
+            selectedDepthIndex={depthIndex}
+            onSelectDepth={setDepthIndex}
+          />
+
           <section className="telemetry-main-grid">
             <DepthTelemetryChart telemetry={telemetry} selectedDepthM={telemetry.selected_depth_m} />
             <div className="telemetry-side-stack">
@@ -490,6 +641,8 @@ export function TelemetryPage({ catalog, provenance }: Props) {
               <CurrentTelemetryCard telemetry={telemetry} />
             </div>
           </section>
+
+          <DepthNeighborhood telemetry={telemetry} selectedDepthIndex={depthIndex} />
 
           <TimeTelemetryCard telemetry={telemetry} />
 
