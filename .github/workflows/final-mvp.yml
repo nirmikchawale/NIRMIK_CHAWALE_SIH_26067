@@ -58,10 +58,12 @@ jobs:
           assert manifest["depth_levels"] == 31
           assert manifest["profiles"] == 2
           assert manifest["scientific_data_network_required_at_runtime"] is False
-          expected_files = 4 + manifest["profiles"] + manifest["time_steps"] * (2 + 5 * manifest["depth_levels"])
+          expected_files = 4 + manifest["profiles"] + manifest["time_steps"] * (2 + 7 * manifest["depth_levels"])
           assert len(manifest["files"]) == expected_files
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
           assert (root / "telemetry/so/t0_d18.json").is_file()
+          assert (root / "anomalies/thetao/t0_d18.json").is_file()
+          assert (root / "anomalies/so/t0_d18.json").is_file()
           print("Static science fail-safe verified:", len(manifest["files"]), "payloads")
           PY
 
@@ -89,6 +91,7 @@ jobs:
           curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=so&depth_index=0' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/currents?depth_index=0' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/telemetry?variable=thetao&depth_index=18' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/anomalies?variable=thetao&depth_index=18' >/dev/null
           curl --fail --silent http://127.0.0.1:8000/api/profiles >/dev/null
 
       - name: Frozen Streamlit fallback startup smoke test
@@ -250,6 +253,7 @@ jobs:
           salinity = get_json("/science-static/fields/so/t0_d18.json")
           currents = get_json("/science-static/currents/t0_d18.json")
           telemetry = get_json("/science-static/telemetry/thetao/t0_d18.json")
+          anomaly = get_json("/science-static/anomalies/thetao/t0_d18.json")
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
           natural_earth = get_bytes(
@@ -265,6 +269,9 @@ jobs:
           assert len(telemetry["depth_stats"]) == 31
           assert len(telemetry["time_stats"]) == 1
           assert telemetry["time_series_available"] is False
+          assert anomaly["method"]["absolute_threshold"] == 3.5
+          assert anomaly["temporal_screen"]["status"] == "locked"
+          assert anomaly["residual_screen"]["flagged_count"] > 0
           assert len(profiles["profiles"]) == 2
           assert provenance["scientific_disclaimer"]
           assert natural_earth[:2] == b"\xff\xd8"
