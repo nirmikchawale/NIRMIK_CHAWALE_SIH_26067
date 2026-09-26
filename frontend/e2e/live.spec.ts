@@ -15,6 +15,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
   const imageryGlobeShell = page.locator(".globe-shell").first();
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "auto");
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-failsafe", "online-hd+offline-natural-earth");
   await expect(page.getByRole("button", { name: "High-res auto" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Offline", exact: true })).toBeVisible();
   await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
