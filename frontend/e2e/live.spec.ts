@@ -30,6 +30,27 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toBeVisible();
   await expect(telemetryPage).toContainText("Telemetry workspace");
 
+  await page.getByRole("button", { name: "Model vs Observation" }).click();
+  await expect(page).toHaveURL(/#\/compare$/);
+  const comparisonPage = page.locator('.comparison-page[data-page="compare"]');
+  await expect(comparisonPage).toBeVisible();
+  await expect(comparisonPage).toContainText("Argo–GLORYS12V1 profile comparison");
+  await expect(comparisonPage).toContainText("Matched levels");
+  await expect(comparisonPage).toContainText("Observed vs interpolated model temperature");
+  await expect(comparisonPage).toContainText("Model − Observation by depth");
+  await expect(comparisonPage).toContainText("Depth-by-depth evidence table");
+  await expect(comparisonPage).toContainText("not independent validation");
+
+  const comparisonSelect = comparisonPage.locator("select");
+  const initialComparisonProfile = await comparisonPage.locator(".comparison-selector-meta strong").textContent();
+  await comparisonSelect.selectOption({ index: 1 });
+  await expect(comparisonPage.locator(".comparison-selector-meta strong")).not.toHaveText(initialComparisonProfile ?? "");
+  await expect(comparisonPage.locator(".comparison-table-wrap tbody tr")).toHaveCount(
+    await comparisonPage.locator(".comparison-table-wrap tbody tr").count()
+  );
+  await expect(comparisonPage.getByRole("button", { name: "Download comparison CSV" })).toBeEnabled();
+  await expect(comparisonPage.getByRole("button", { name: "Download evidence JSON" })).toBeEnabled();
+
   await page.getByRole("button", { name: "3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
