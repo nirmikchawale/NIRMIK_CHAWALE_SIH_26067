@@ -1684,3 +1684,114 @@
   .telemetry-depth-ladder-grid,
   .telemetry-neighborhood-metrics { grid-template-columns: 1fr; }
 }
+
+/* Final MVP UI Phase 1 — scientific context + accessible motion foundation. */
+:root {
+  --ot-motion-instant: 80ms;
+  --ot-motion-fast: 150ms;
+  --ot-motion-standard: 220ms;
+  --ot-motion-emphasis: 300ms;
+  --ot-ease-standard: cubic-bezier(.2, .8, .2, 1);
+  --ot-context-surface: rgba(5, 24, 36, .86);
+  --ot-context-border: rgba(61, 117, 140, .56);
+  --ot-context-label: #6f9aad;
+  --ot-context-value: #e4f5f9;
+  --ot-focus: #67d9ee;
+}
+
+.visualization-context-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr 1.15fr 1fr;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--ot-context-border);
+  border-radius: 10px;
+  background: var(--ot-context-border);
+}
+
+.visualization-context-row > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 7px 9px;
+  background: var(--ot-context-surface);
+}
+
+.visualization-context-row span {
+  color: var(--ot-context-label);
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.visualization-context-row strong {
+  overflow: hidden;
+  color: var(--ot-context-value);
+  font-size: 8px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualization-dock,
+.visualization-dock-modes button,
+.theme-toggle,
+.feature-rail button {
+  transition-duration: var(--ot-motion-standard);
+  transition-timing-function: var(--ot-ease-standard);
+}
+
+.visualization-dock-modes button,
+.theme-toggle {
+  transition-duration: var(--ot-motion-fast);
+}
+
+:root[data-theme="light"] {
+  --ot-context-surface: rgba(249, 252, 253, .96);
+  --ot-context-border: rgba(151, 187, 201, .72);
+  --ot-context-label: #587b8d;
+  --ot-context-value: #173849;
+}
+
+@media (max-width: 1200px) and (min-width: 761px) {
+  .visualization-context-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .visualization-context-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .visualization-context-row > div {
+    padding: 8px 9px;
+  }
+
+  .visualization-context-row strong {
+    font-size: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .visualization-context-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+}
+

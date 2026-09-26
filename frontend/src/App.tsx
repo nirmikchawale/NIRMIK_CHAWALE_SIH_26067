@@ -251,6 +251,10 @@ export default function App() {
     () => catalog?.variables.find((item) => item.id === variable),
     [catalog, variable]
   );
+  const selectedProfile = useMemo(
+    () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
+    [profiles, selectedProfileId]
+  );
   const currentPage = PAGE_ITEMS.find((item) => item.id === page) ?? PAGE_ITEMS[0];
 
   if (!catalog) {
@@ -352,6 +356,16 @@ export default function App() {
                 scalarAvailable={variable !== "currents"}
                 variableLabel={selectedVariable?.label ?? variable}
                 depthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                timeLabel={catalog.coordinates.time[timeIndex] ?? "Unavailable"}
+                regionLabel={catalog.dataset.region}
+                modelLabel={catalog.dataset.product}
+                observationLabel={
+                  selectedProfile
+                    ? `${selectedProfile.platform_id} · cycle ${selectedProfile.cycle} ${selectedProfile.direction}`
+                    : profiles.length === 0
+                      ? "Unavailable"
+                      : "Not selected"
+                }
                 onChange={setVisualizationMode}
               />
 
@@ -405,7 +419,11 @@ export default function App() {
       </div>
 
       {(scienceLoading || error) && (
-        <div className={`toast ${error ? "error" : ""}`}>
+        <div
+          className={`toast ${error ? "error" : ""}`}
+          role={error ? "alert" : "status"}
+          aria-live={error ? "assertive" : "polite"}
+        >
           {error ? error : "Loading selected verified ocean field…"}
         </div>
       )}
