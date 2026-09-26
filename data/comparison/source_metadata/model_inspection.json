@@ -1,0 +1,252 @@
+{
+  "status": "PASS_SUBSET_INSPECTION",
+  "product_id": "GLOBAL_MULTIYEAR_PHY_001_030",
+  "dataset_id": "cmems_mod_glo_phy_my_0.083deg_P1D-m",
+  "version": "202311",
+  "part": "default",
+  "raw_file": "glorys12_20240102_67E70E_12N14N_0m500m.nc",
+  "bytes": 262514,
+  "sha256": "b306ae1e4e13595688e994456e90e1ea59d4b76f3d1326e86710cf33efcf72c1",
+  "dimensions": {
+    "depth": 31,
+    "latitude": 25,
+    "longitude": 37,
+    "time": 1
+  },
+  "time_utc": [
+    "2024-01-02T00:00:00Z"
+  ],
+  "coordinates": {
+    "longitude": {
+      "units": "degrees_east",
+      "values": [
+        67.0,
+        67.08333587646484,
+        67.16666412353516,
+        67.25,
+        67.33333587646484,
+        67.41666412353516,
+        67.5,
+        67.58333587646484,
+        67.66666412353516,
+        67.75,
+        67.83333587646484,
+        67.91666412353516,
+        68.0,
+        68.08333587646484,
+        68.16666412353516,
+        68.25,
+        68.33333587646484,
+        68.41666412353516,
+        68.5,
+        68.58333587646484,
+        68.66666412353516,
+        68.75,
+        68.83333587646484,
+        68.91666412353516,
+        69.0,
+        69.08333587646484,
+        69.16666412353516,
+        69.25,
+        69.33333587646484,
+        69.41666412353516,
+        69.5,
+        69.58333587646484,
+        69.66666412353516,
+        69.75,
+        69.83333587646484,
+        69.91666412353516,
+        70.0
+      ],
+      "minimum": 67.0,
+      "maximum": 70.0
+    },
+    "latitude": {
+      "units": "degrees_north",
+      "values": [
+        12.0,
+        12.083333015441895,
+        12.166666984558105,
+        12.25,
+        12.333333015441895,
+        12.416666984558105,
+        12.5,
+        12.583333015441895,
+        12.666666984558105,
+        12.75,
+        12.833333015441895,
+        12.916666984558105,
+        13.0,
+        13.083333015441895,
+        13.166666984558105,
+        13.25,
+        13.333333015441895,
+        13.416666984558105,
+        13.5,
+        13.583333015441895,
+        13.666666984558105,
+        13.75,
+        13.833333015441895,
+        13.916666984558105,
+        14.0
+      ],
+      "minimum": 12.0,
+      "maximum": 14.0
+    },
+    "depth": {
+      "units": "m",
+      "values": [
+        0.49402499198913574,
+        1.5413750410079956,
+        2.6456689834594727,
+        3.8194949626922607,
+        5.078224182128906,
+        6.440614223480225,
+        7.92956018447876,
+        9.572997093200684,
+        11.404999732971191,
+        13.467140197753906,
+        15.810070037841797,
+        18.495559692382812,
+        21.598819732666016,
+        25.211410522460938,
+        29.444730758666992,
+        34.43415069580078,
+        40.344051361083984,
+        47.37369155883789,
+        55.76428985595703,
+        65.80726623535156,
+        77.85385131835938,
+        92.3260726928711,
+        109.72930145263672,
+        130.66600036621094,
+        155.85069274902344,
+        186.12559509277344,
+        222.47520446777344,
+        266.0403137207031,
+        318.1274108886719,
+        380.2130126953125,
+        453.9377136230469
+      ],
+      "minimum": 0.49402499198913574,
+      "maximum": 453.9377136230469
+    }
+  },
+  "variables": {
+    "thetao": {
+      "units": "degrees_C",
+      "standard_name": "sea_water_potential_temperature",
+      "shape": [
+        1,
+        31,
+        25,
+        37
+      ],
+      "valid_cells": 28675,
+      "missing_cells": 0,
+      "minimum": 11.322214432060719,
+      "maximum": 30.338663890957832,
+      "packing_verified": true
+    },
+    "so": {
+      "units": "1e-3",
+      "standard_name": "sea_water_salinity",
+      "shape": [
+        1,
+        31,
+        25,
+        37
+      ],
+      "valid_cells": 28675,
+      "missing_cells": 0,
+      "minimum": 34.54084899276495,
+      "maximum": 36.651203921064734,
+      "packing_verified": true
+    },
+    "uo": {
+      "units": "m s-1",
+      "standard_name": "eastward_sea_water_velocity",
+      "shape": [
+        1,
+        31,
+        25,
+        37
+      ],
+      "valid_cells": 28675,
+      "missing_cells": 0,
+      "minimum": -0.3485213778913021,
+      "maximum": 0.35218359902501106,
+      "packing_verified": true
+    },
+    "vo": {
+      "units": "m s-1",
+      "standard_name": "northward_sea_water_velocity",
+      "shape": [
+        1,
+        31,
+        25,
+        37
+      ],
+      "valid_cells": 28675,
+      "missing_cells": 0,
+      "minimum": -0.35401470959186554,
+      "maximum": 0.40894802659749985,
+      "packing_verified": true
+    }
+  },
+  "candidate_argo_profiles": [
+    {
+      "profile_id": "20240102_indian_ocean_prof:23",
+      "platform_id": "5907092",
+      "observation_time_utc": "2024-01-02T14:46:00Z",
+      "latitude": 12.837103333333333,
+      "longitude": 67.61864833333334,
+      "nearest_grid_latitude": 12.833333015441895,
+      "nearest_grid_longitude": 67.58333587646484,
+      "nearest_cell_temperature_valid_levels": 31,
+      "qc_accepted_potential_temperature_levels_in_model_depth_range": 50,
+      "status": "candidate_only_no_interpolation_or_metrics_computed"
+    },
+    {
+      "profile_id": "20240102_indian_ocean_prof:26",
+      "platform_id": "5907092",
+      "observation_time_utc": "2024-01-02T13:27:00Z",
+      "latitude": 12.836313333333333,
+      "longitude": 67.622105,
+      "nearest_grid_latitude": 12.833333015441895,
+      "nearest_grid_longitude": 67.58333587646484,
+      "nearest_cell_temperature_valid_levels": 31,
+      "qc_accepted_potential_temperature_levels_in_model_depth_range": 49,
+      "status": "candidate_only_no_interpolation_or_metrics_computed"
+    },
+    {
+      "profile_id": "20240102_indian_ocean_prof:37",
+      "platform_id": "5905083",
+      "observation_time_utc": "2024-01-02T08:47:18Z",
+      "latitude": 13.054,
+      "longitude": 68.719,
+      "nearest_grid_latitude": 13.083333015441895,
+      "nearest_grid_longitude": 68.75,
+      "nearest_cell_temperature_valid_levels": 31,
+      "qc_accepted_potential_temperature_levels_in_model_depth_range": 0,
+      "status": "candidate_only_no_interpolation_or_metrics_computed"
+    }
+  ],
+  "checks": [
+    "Raw SHA-256 verified",
+    "Product, dataset and version match saved official catalogue",
+    "Expected four variables and units verified",
+    "Dimensions, ascending spatial/depth coordinates and requested bounds verified",
+    "Decoded timestamp is 2024-01-02T00:00:00Z",
+    "Packed fill values, valid ranges, scale_factor and add_offset independently verified against decoded arrays",
+    "All four variables contain usable finite values"
+  ],
+  "caveats": [
+    "Daily mean model field, not instantaneous at observation time; time-matching policy is still required.",
+    "Model depth range is 0.49402499 to 453.93771362 m. Do not extrapolate to surface or 500 m.",
+    "Header field_date/bulletin_date and global bounds are stale inherited metadata; use actual coordinate arrays. Catalogue ties source MERCATOR GLORYS12V1 to reanalysis product despite legacy Analysis and Forecast title.",
+    "so units are 1e-3 with Practical Salinity Unit in unit_long; preserve this convention and reconcile with Argo PSAL explicitly.",
+    "Reanalysis assimilates observations; comparisons are diagnostic consistency rather than independent validation.",
+    "Candidate selection does not implement full collocation, vertical interpolation or bias/RMSE."
+  ]
+}

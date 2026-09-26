@@ -1,0 +1,69 @@
+{
+  "project": "SIH26067 OceanTwin 3D",
+  "team": "The Optimizers",
+  "inputs": {
+    "model_netcdf": {
+      "path": "C:\\Users\\admin\\OneDrive\\Desktop\\NEW SIH 26067\\CHAT GPT PLUS\\Copernicus_Model_20240102\\raw\\glorys12_20240102_67E70E_12N14N_0m500m.nc",
+      "sha256": "b306ae1e4e13595688e994456e90e1ea59d4b76f3d1326e86710cf33efcf72c1"
+    },
+    "argo_profiles": {
+      "path": "C:\\Users\\admin\\OneDrive\\Desktop\\NEW SIH 26067\\CHAT GPT PLUS\\OceanTwin_3D_Dataset_Ingestion_2026-09-26\\02_Reproducible_Workspace\\outputs\\oceantwin_ingestion\\curated\\argo\\v1\\profiles.json",
+      "sha256": "d2aa300043281b4e813b190208876a0a8f232d908cead58f2f01fc2388866a45"
+    },
+    "argo_levels": {
+      "path": "C:\\Users\\admin\\OneDrive\\Desktop\\NEW SIH 26067\\CHAT GPT PLUS\\OceanTwin_3D_Dataset_Ingestion_2026-09-26\\02_Reproducible_Workspace\\outputs\\oceantwin_ingestion\\curated\\argo\\v1\\levels.jsonl",
+      "sha256": "663b91fe5f66cd36aafe3f9150d96f7a2352d63b23954c155381abc34ad37607"
+    },
+    "argo_raw": {
+      "path": "C:\\Users\\admin\\OneDrive\\Desktop\\NEW SIH 26067\\CHAT GPT PLUS\\OceanTwin_3D_Dataset_Ingestion_2026-09-26\\02_Reproducible_Workspace\\outputs\\oceantwin_ingestion\\raw\\argo\\20240102_indian_ocean_prof.nc",
+      "sha256": "a61386d49408bcf47d3fc5f43dcc6aced024eb31748f69d8b3f517bb7419e84a"
+    }
+  },
+  "profile_ids": [
+    "20240102_indian_ocean_prof:23",
+    "20240102_indian_ocean_prof:26"
+  ],
+  "expected_counts": {
+    "20240102_indian_ocean_prof:23": 50,
+    "20240102_indian_ocean_prof:26": 49
+  },
+  "model_variable": "thetao",
+  "model_coordinates": {
+    "longitude": "longitude",
+    "latitude": "latitude",
+    "depth": "depth",
+    "time": "time"
+  },
+  "accepted_provider_qc": [
+    "1"
+  ],
+  "max_cell_distance_km": 10.0,
+  "earth_radius_km": 6371.0088,
+  "time_policy": {
+    "method": "same documented UTC daily averaging interval; no time interpolation",
+    "coverage_start_utc": "2024-01-02T00:00:00Z",
+    "coverage_end_exclusive_utc": "2024-01-03T00:00:00Z",
+    "representative_midpoint_utc": "2024-01-02T12:00:00Z",
+    "time_offset_hours_definition": "observation timestamp minus encoded model timestamp",
+    "evidence": "Copernicus PUM issue 1.7, section 2c Time averaging, printed page 9: daily means span midnight to midnight, centred at noon."
+  },
+  "temperature_policy": {
+    "observed_in_situ": "TEMP_ADJUSTED",
+    "pressure": "PRES_ADJUSTED",
+    "salinity_auxiliary_only": "PSAL_ADJUSTED",
+    "observed_comparison": "gsw.pt0_from_t(gsw.SA_from_SP(SP,p,lon,lat),TEMP_ADJUSTED,p)",
+    "reference_sea_pressure_dbar": 0,
+    "model": "thetao = sea_water_potential_temperature",
+    "limitation": "Physical quantity/reference aligned by CF definition; exact model equation-of-state and temperature-scale conventions are not fully established by the supplied file. TEOS-10 conversion may differ slightly from model thermodynamics."
+  },
+  "depth_policy": "-gsw.z_from_p(PRES_ADJUSTED, latitude); positive down; dynamic-height and sea-surface-geopotential corrections omitted; no extrapolation",
+  "horizontal_policy": "Haversine nearest cell with at least two finite valid temperature levels and a valid adjacent bracket for at least one eligible observation; distance cap 10 km. No interpolating across missing vertical gaps.",
+  "ranking": [
+    "matched_level_count descending",
+    "abs(time_offset_hours) ascending",
+    "spatial_distance_km ascending",
+    "rmse_celsius ascending"
+  ],
+  "metrics_weighting": "Unweighted across matched levels; not depth-thickness-weighted; samples are vertically correlated.",
+  "output_directory": "."
+}

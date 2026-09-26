@@ -1,0 +1,34 @@
+{
+  "profiles": 26,
+  "levels": 5259,
+  "unique_floats": 23,
+  "accepted_temperature_levels": 5257,
+  "accepted_salinity_levels": 4046,
+  "selected_qc_counts": {
+    "TEMP_ADJUSTED:1": 4815,
+    "PSAL_ADJUSTED:1": 3604,
+    "PSAL_ADJUSTED:4": 1213,
+    "TEMP:1": 442,
+    "PSAL:1": 442,
+    "TEMP_ADJUSTED:4": 2
+  },
+  "data_modes": {
+    "D": 24,
+    "R": 2
+  },
+  "depth_range_m": [
+    0.0,
+    499.83160585196106
+  ],
+  "bbox": [
+    60,
+    0,
+    100,
+    25
+  ],
+  "time_interval_utc": [
+    "2024-01-01T00:00:00Z",
+    "2024-01-04T00:00:00Z"
+  ],
+  "policy": "Strict QC 1 for position, time, selected pressure and each selected variable. A/D selects adjusted arrays; R selects raw. No fallback from bad/missing adjusted to raw. Original raw/adjusted values and QC retained. Depth=-gsw.z_from_p(pressure, latitude); no dynamic-height correction. Potential temperature uses TEOS-10 GSW pt0_from_t after SA_from_SP; not direct TEMP vs thetao."
+}

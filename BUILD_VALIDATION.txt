@@ -1,0 +1,107 @@
+OceanTwin 3D — Final Build Validation
+=====================================
+
+Validation runtime
+------------------
+Python: 3.13.5
+Runtime scientific dependencies available here:
+- plotly 6.5.2
+- pandas 2.2.3
+- numpy 2.3.5
+- h5py 3.15.1
+- streamlit: NOT installed in this sandbox validation runtime
+
+Final MVP regression suite
+--------------------------
+Command: python -m pytest -q
+Result: 25 passed
+Status: PASS
+
+Coverage includes:
+- real profile summary loading
+- selected comparison CSV loading
+- both eligible profiles / 99 matched levels
+- provider-QC-1 enforcement
+- exact Model − Observation bias sign/value
+- selected-profile filtering
+- missing-profile handling
+- metric consistency / tamper detection
+- missing model handling
+- real model shape/depth/units/semantics
+- local scientific-input immutability
+- loader operation with network blocked
+- verified default profile
+- profile/bias plots sourced from selected rows
+- map coordinates sourced from selected profile/model cell
+- actual 3D and 2D model figure construction
+- invalid depth fallback error
+- real evidence download paths
+- selected-profile evidence-path correctness
+- no judge-facing TODO/FIXME/fake-placeholder language
+- verified model time coordinate value/units
+- adjusted Argo field/QC policy configuration
+- inverted depth axes
+- data-manifest hash checks
+- original provenance records raw inputs unchanged
+
+Compilation
+-----------
+Command: python -m compileall -q app.py config.py src tests
+Result: PASS
+
+Scientific/visual smoke check
+-----------------------------
+Profiles loaded:
+- 5907092_cycle013_D: 50 matched levels
+- 5907092_cycle012_A: 49 matched levels
+Total: 99
+
+Model array: 31 × 25 × 37
+Model depth: 0.494025–453.937714 m
+Default profile: 20240102_indian_ocean_prof:23
+Default spatial distance: 3.851345 km
+Default MAE: 0.2253829 °C
+Default RMSE: 0.3188158 °C
+
+Constructed successfully from real evidence:
+- collocation map
+- Argo/model profile figure
+- bias-by-depth figure
+- Plotly 3D model-temperature figure
+- 2D depth-slice fallback
+Status: PASS
+
+Scientific source immutability
+------------------------------
+Pre/post SHA-256 comparison of the bundled model NetCDF, both profile-level CSVs, both profile summary JSONs, comparison config and comparison provenance: unchanged.
+Status: PASS
+
+Network/static check
+--------------------
+No requests/urllib/httpx/aiohttp/socket.create_connection use found in app.py or src/.
+The automated loader test blocks socket.create_connection and still loads model + comparison evidence.
+Status: PASS for scientific runtime code path
+
+Preserved original comparison-engine tests
+------------------------------------------
+Historical bundled artefact data/comparison/test_results.txt records:
+- 25 passed
+- 1 historical RuntimeWarning about NumPy binary compatibility
+
+A fresh re-run in this sandbox produced 24 passing tests and 1 environment dependency failure because `netCDF4` is not installed here. That test failure is not a scientific regression; it occurs before the test body executes.
+Optional comparison-engine test dependencies are documented in requirements-test.txt.
+
+Streamlit browser launch
+------------------------
+Not executable in this sandbox because Streamlit is not installed here.
+The user previously launched the predecessor local build successfully on Windows at http://localhost:8501.
+The FINAL build must still receive one local Windows browser/offline visual check before presentation freeze.
+
+External scientific cross-check
+-------------------------------
+Official Copernicus Marine product metadata confirms GLOBAL_MULTIYEAR_PHY_001_030 / GLORYS12V1, nominal 1/12° grid, 50 parent-product vertical levels, daily/monthly means, DOI 10.48670/moi-00021 and assimilation of in-situ T/S profiles.
+Official Argo guidance confirms use of adjusted fields when DATA_MODE is A/D and QC flag 1 meaning good data.
+
+Final limitation
+----------------
+This package is a model–observation diagnostic prototype, not independent validation, not a full Digital Twin Ocean, and not an operational forecast/real-time system.

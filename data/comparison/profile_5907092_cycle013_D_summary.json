@@ -1,0 +1,43 @@
+{
+  "profile_id": "20240102_indian_ocean_prof:23",
+  "file_id": "5907092_cycle013_D",
+  "platform_id": "5907092",
+  "cycle": 13,
+  "direction": "D",
+  "matched_level_count": 50,
+  "mean_bias_celsius": 0.023311987327530054,
+  "mae_celsius": 0.22538286668411817,
+  "rmse_celsius": 0.3188158440179983,
+  "maximum_absolute_error_celsius": 1.0759785241626858,
+  "spatial_distance_km": 3.851344566390636,
+  "time_offset_hours": 14.766666666666667,
+  "time_offset_from_daily_midpoint_hours": 2.7666666666666666,
+  "observation_time_utc": "2024-01-02T14:46:00Z",
+  "model_encoded_timestamp_utc": "2024-01-02T00:00:00Z",
+  "model_daily_mean_midpoint_utc": "2024-01-02T12:00:00Z",
+  "model_time_support_start_utc": "2024-01-02T00:00:00Z",
+  "model_time_support_end_exclusive_utc": "2024-01-03T00:00:00Z",
+  "observation_longitude": 67.61864833333334,
+  "observation_latitude": 12.837103333333333,
+  "model_cell_longitude": 67.58333587646484,
+  "model_cell_latitude": 12.833333015441895,
+  "model_cell_indices": {
+    "latitude": 10,
+    "longitude": 7
+  },
+  "shallowest_matched_depth_m": 1.3919436791479163,
+  "deepest_matched_depth_m": 447.0244991497731,
+  "model_valid_depth_min_m": 0.49402499198913574,
+  "model_valid_depth_max_m": 453.9377136230469,
+  "curated_input_level_count": 54,
+  "excluded_from_curated_input": {
+    "provider_qc_rejected": 2,
+    "outside_model_depth_range": 2
+  },
+  "temperature_units": "degree_Celsius",
+  "temperature_basis": "potential temperature referenced to 0 dbar",
+  "qc_policy": "Provider QC 1 for position, time, adjusted pressure, adjusted temperature and auxiliary adjusted salinity",
+  "comparison_status": "diagnostic_only_with_documented_thermodynamic_and_temporal_limitations",
+  "rank": 1,
+  "selected_for_first_demo": true
+}

@@ -1,0 +1,7 @@
+﻿profile_id,source_level_index,status,reason
+20240102_indian_ocean_prof:23,0,excluded,provider_qc_rejected
+20240102_indian_ocean_prof:23,1,excluded,provider_qc_rejected
+20240102_indian_ocean_prof:23,52,excluded,outside_model_depth_range
+20240102_indian_ocean_prof:23,53,excluded,outside_model_depth_range
+20240102_indian_ocean_prof:26,49,excluded,outside_model_depth_range
+20240102_indian_ocean_prof:26,50,excluded,outside_model_depth_range

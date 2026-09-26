@@ -1,0 +1,20 @@
+{
+  "retrieval_started_utc": "2026-09-25T19:37:42.641312+00:00",
+  "retrieval_completed_utc": "2026-09-25T19:38:15.564408+00:00",
+  "toolbox_version": "2.4.1",
+  "access_method": "Authenticated official Copernicus Marine Toolbox subset; saved local credentials; no credentials copied into output",
+  "product_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description",
+  "product_id": "GLOBAL_MULTIYEAR_PHY_001_030",
+  "dataset_id": "cmems_mod_glo_phy_my_0.083deg_P1D-m",
+  "dataset_doi": "10.48670/moi-00021",
+  "licence_url": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+  "raw_file": "raw\\glorys12_20240102_67E70E_12N14N_0m500m.nc",
+  "bytes": 262514,
+  "sha256": "b306ae1e4e13595688e994456e90e1ea59d4b76f3d1326e86710cf33efcf72c1",
+  "source_service_details": "catalogue.json and subset_response.json",
+  "raw_policy": "Unchanged returned subset, read-only, no overwrite; not the original global model archive",
+  "dataset_version": "202311",
+  "dataset_part": "default",
+  "version_evidence": "Toolbox retrieval log selected 202311/default; catalogue.json confirms the version",
+  "licence_file": "licences/copernicus_service_licence.html"
+}

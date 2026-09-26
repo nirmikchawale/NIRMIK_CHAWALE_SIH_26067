@@ -1,0 +1,844 @@
+{
+  "created_utc": "2026-09-25T19:02:01.059459+00:00",
+  "hash_algorithm": "SHA-256",
+  "sources": [
+    {
+      "id": 1,
+      "name": "INCOIS LAS",
+      "status": "catalogue_verified_data_endpoints_timed_out",
+      "raw_data_files": 0,
+      "licence_status": "unconfirmed"
+    },
+    {
+      "id": 2,
+      "name": "Copernicus GLOBAL_MULTIYEAR_PHY_001_030",
+      "status": "product_verified_download_not_attempted_missing_credentials",
+      "raw_data_files": 0,
+      "licence_status": "provider_licence_captured"
+    },
+    {
+      "id": 3,
+      "name": "Ifremer Argo GDAC",
+      "status": "ingested_curated",
+      "raw_data_files": 3,
+      "licence_status": "CC-BY-4.0 DOI registration verified",
+      "summary": "metadata/argo_summary.json"
+    },
+    {
+      "id": 4,
+      "name": "Ifremer Global Ocean Glider v2",
+      "status": "ingested_quarantined_missing_qc",
+      "raw_data_files": 2,
+      "licence_status": "GDAC CC-BY-4.0; conflicting ERDDAP legacy terms retained",
+      "summary": "metadata/glider_summary.json"
+    },
+    {
+      "id": 5,
+      "name": "Unspecified in-situ collection",
+      "status": "unconfirmed_not_ingested",
+      "raw_data_files": 0,
+      "licence_status": "unconfirmed",
+      "candidates": "metadata/dataset5_unconfirmed.json"
+    }
+  ],
+  "files": [
+    {
+      "path": "curated/argo/v1/index.json",
+      "bytes": 17435,
+      "sha256": "d7351aa32bf1f271e7521dc1ba66808c2f510ec83b1702d6e65975d4e8f56ddd",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/levels.jsonl",
+      "bytes": 3653036,
+      "sha256": "663b91fe5f66cd36aafe3f9150d96f7a2352d63b23954c155381abc34ad37607",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_000.json",
+      "bytes": 62927,
+      "sha256": "a855e353cfaf9b60f8fe1627ae53bd738ecdfec4df50dba43ccf3bec45066e26",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_001.json",
+      "bytes": 61458,
+      "sha256": "b0e2dad2713bbdc04960d4933ad2f17543e1e258fd69f020328b497ffb1c7415",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_002.json",
+      "bytes": 62961,
+      "sha256": "d3161d45eddc94c9f8f6b4dd2b0e8cba8b1a7b8e2408b3066910cc7cab46b2e6",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_003.json",
+      "bytes": 10755,
+      "sha256": "fc5fa880a1346d0bd8927b07a36abe773841ce2437df2f90f93756cbfe5faa97",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_004.json",
+      "bytes": 10989,
+      "sha256": "f42f66f2ccd06d9db09f8dee1f7b760d886c117fd65cd06eaf65f1bb65856ee3",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_005.json",
+      "bytes": 55002,
+      "sha256": "191986b5eb39649fc78347839d04778aadef81a6e85eec5f1d59781195906b70",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_006.json",
+      "bytes": 61706,
+      "sha256": "222a3697c01c963467153f2870f17e624b4923122e4684feb68f3d65b1c4cff2",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_007.json",
+      "bytes": 836,
+      "sha256": "67354f14aedd07d05661573a8e46c9aa05858fdbfd358003fb260173104c54f6",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_008.json",
+      "bytes": 834,
+      "sha256": "b7ba66813464818675b0a112b123a48d8fbaca6c8d5c7895edb9204a6cc246d7",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_009.json",
+      "bytes": 42519,
+      "sha256": "e6a946996cb63c7bf605c7c652ff9ed3c89e3f9ff6b1cbbcb2ab2e16b8ba874e",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_010.json",
+      "bytes": 106713,
+      "sha256": "c54a03746553f5fbaf9f2266663a65c6e716097ce830d261c565cd82e9b59d2b",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_011.json",
+      "bytes": 13845,
+      "sha256": "6c234001f9d63df0e1aaaf689af082f84ebac36b0de34471d78bef42d91518de",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_012.json",
+      "bytes": 13830,
+      "sha256": "9b60c71f6b808dc2767fff1e7c372d3a9076700a17c63b37b1fc10e112a0d564",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_013.json",
+      "bytes": 13188,
+      "sha256": "630e91a2d517daa3f9ee70dd509c75cf0d4be14eff1d001ed402fa7922062121",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_014.json",
+      "bytes": 13170,
+      "sha256": "1bc5520367d10248d599bc2e7e13479009a688e7f0b7ccadf46245e9b603996d",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_015.json",
+      "bytes": 43492,
+      "sha256": "a8820a5b64544c9d9822e85daf51288f03bcc9332de462322d4210c79633a611",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_016.json",
+      "bytes": 62975,
+      "sha256": "71c4fc7d5bfba524ac3657916854dca88a3c933efa554de302947cc214283332",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_017.json",
+      "bytes": 107903,
+      "sha256": "b2fb3fea1cbe66b933d24df902e870095dc98fb09e8736cde18b7a192fb38b69",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_018.json",
+      "bytes": 108340,
+      "sha256": "f2a8edf3ac7d3c0e59c3f9b6c102715f291bd4c5ec565a21a9cc66591cd376af",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_019.json",
+      "bytes": 56334,
+      "sha256": "01954b99b337a4f9db0a6d44123c2bd593813cc7c08a88079acc37c4da45025f",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_020.json",
+      "bytes": 66280,
+      "sha256": "bfcc9378af9a188569521e973391783d4da4a88ef03d5f5ec8e2e38567553b1a",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_021.json",
+      "bytes": 55017,
+      "sha256": "8b406bd37bf46557f5b0a470b257046315b14dfa6fa9ab057209a242b1897c0a",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_022.json",
+      "bytes": 10969,
+      "sha256": "3850b6e9d929930a24ec9d1b85efa5b3f5126e585e214349b66bdeddeb82c266",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_023.json",
+      "bytes": 56336,
+      "sha256": "c41b3e36ee667f8cd7ef16be7dbe430c6b5a7968e2c3318d53be61b45b9a47c1",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_024.json",
+      "bytes": 104712,
+      "sha256": "a65acbfc2bac319866dd98c2738478e09cc5c7a4726bc29df703ddb6d1c2d705",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles/profile_025.json",
+      "bytes": 62967,
+      "sha256": "84c02092065f74c51f1b558713db54b093f4c9b00300fa4fbc4febea13a48ae1",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/argo/v1/profiles.json",
+      "bytes": 16317,
+      "sha256": "d2aa300043281b4e813b190208876a0a8f232d908cead58f2f01fc2388866a45",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/argo/20240101_indian_ocean_prof.nc",
+        "raw/argo/20240102_indian_ocean_prof.nc",
+        "raw/argo/20240103_indian_ocean_prof.nc"
+      ],
+      "transformation": "scripts/curate_argo.py and scripts/argo_assets.py",
+      "licence_evidence": "metadata/licences/argo_datacite.json"
+    },
+    {
+      "path": "curated/glider/v1/observations_quarantined.jsonl",
+      "bytes": 5919298,
+      "sha256": "3245c72ac74341573922b5b5a9ffd149ebafd2f907edd556fe89ccef9f03c249",
+      "kind": "locally_generated",
+      "parent_raw_files": [
+        "raw/glider/Bellatrix_368_R.nc"
+      ],
+      "transformation": "scripts/curate_glider.py",
+      "release_status": "quarantined_missing_qc",
+      "licence_evidence": [
+        "metadata/licences/glider_datacite.json",
+        "metadata/discovery/glider_info.json"
+      ]
+    },
+    {
+      "path": "INGESTION_REPORT.md",
+      "bytes": 10791,
+      "sha256": "982e1b1ac92b42a67a0d879504dde1137acd0120f1b42505863416c80d8bd2fd",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/access_log.jsonl",
+      "bytes": 49675,
+      "sha256": "3bbe8212848ec9969fa86f535d39733ca91f3203c25dd2c499bfc609c864e8d2",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/argo_structure.json",
+      "bytes": 69249,
+      "sha256": "c11ab69f8da80c22875b885551096dfb76fb88e8a4ffa567d7b6931e64847ac3",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/argo_summary.json",
+      "bytes": 983,
+      "sha256": "b33045e29fd4815955524084b8239fd2e07d504fba5ccee8abb269a2908a5973",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/copernicus_subset_request.json",
+      "bytes": 1403,
+      "sha256": "1ed66d076d224ce5a5e18f46d83ab87e80950ad72490397a7714752f87cb199f",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/dataset5_unconfirmed.json",
+      "bytes": 1311,
+      "sha256": "05b78f9cb4753efaeed74d775963977c7183157437da04f83746286bd3f74acf",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/discovery/argo_ftp.txt",
+      "bytes": 1762,
+      "sha256": "899a9b4c3aa359c4b65fa24d1111cce22ab6395e3d1046c3adbfad8ac588ac88",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/argo/",
+      "retrieved_utc": "2026-09-25T18:59:01.732907+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/argo_indian_jan2024.html",
+      "bytes": 7364,
+      "sha256": "9f2851e65089a1274b8c15633adca4ad2cd501c60d31039d89ece57b972f7551",
+      "source_url": "https://data-argo.ifremer.fr/geo/indian_ocean/2024/01/",
+      "retrieved_utc": "2026-09-25T18:44:12.983478+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/bellatrix_20160702_ftp.txt",
+      "bytes": 142,
+      "sha256": "89d44d7b464188bbcb7c19f9c47fbc47b4fcde3022962d484c13cd241d92ba9c",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/v2/bellatrix/bellatrix_20160702/",
+      "retrieved_utc": "2026-09-25T18:51:48.132267+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/bellatrix_368_mission.json",
+      "bytes": 9417,
+      "sha256": "d2870d10cd70274fb5a6f17de8e8a1fb56c955deb05238803b4bd1bd76fc91ab",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/v2/bellatrix/bellatrix_20160702/368.json",
+      "retrieved_utc": "2026-09-25T18:52:38.799903+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/bellatrix_daily.csv",
+      "bytes": 1123,
+      "sha256": "183c825f9057ec292811f1f578c3d630fb700a1711895bd3848d0a238382e013",
+      "source_url": "https://erddap.ifremer.fr/erddap/tabledap/OceanGlidersGDACTrajectories.csv?platform_deployment,time,latitude,longitude&platform_deployment=%22Bellatrix_368%22&orderByLimit(%22time/1day,1%22)",
+      "retrieved_utc": "2026-09-25T18:50:37.934926+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/bellatrix_ftp.txt",
+      "bytes": 456,
+      "sha256": "691ab64bb268ec697ecd0a9e0d9259fb5b33137a073522e5b63717edd985c67a",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/v2/bellatrix/",
+      "retrieved_utc": "2026-09-25T18:50:39.705806+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/copernicus.html",
+      "bytes": 215512,
+      "sha256": "6aaad47829fdeeff90795e519aca4a6228acd83cfbca89c049be41a836187471",
+      "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description",
+      "retrieved_utc": "2026-09-25T18:44:13.754484+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/copernicus_auth.html",
+      "bytes": 251078,
+      "sha256": "7f26a6260f7da7593250f88138bf49a4cd59aef51c8c9aa77e0fd0ba02043d9b",
+      "source_url": "https://help.marine.copernicus.eu/en/articles/8185007-copernicus-marine-toolbox-credentials-configuration",
+      "retrieved_utc": "2026-09-25T18:45:23.676125+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/copernicus_services.html",
+      "bytes": 234967,
+      "sha256": "2a8356587f016d2fa89ffe20d315fd7914853eea9c10cd5d68e6280619cbc468",
+      "source_url": "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/services",
+      "retrieved_utc": "2026-09-25T18:45:22.572495+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/erddap_glider.json",
+      "bytes": 99986,
+      "sha256": "756c69fd9a6d02472398604e7280f9acf2ec8333f8d7ccf082e8c6310199c183",
+      "source_url": "https://www.ifremer.fr/erddap/info/index.json?searchFor=glider",
+      "retrieved_utc": "2026-09-25T18:44:17.848338+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/glider_ftp.txt",
+      "bytes": 11954,
+      "sha256": "57a4212466075f5175d142c8bf87535eafb3bbeb4b572696bcaa9fec3c5feb0f",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/v2/",
+      "retrieved_utc": "2026-09-25T18:44:17.684711+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/glider_indian_missions.csv",
+      "bytes": 86,
+      "sha256": "2de8063b3b0532009232b50a21749793483c5b1ad0e207e9adabcec3e041344b",
+      "source_url": "https://erddap.ifremer.fr/erddap/tabledap/OceanGlidersGDACTrajectories.csv?platform_deployment&latitude%3E=0&latitude%3C=25&longitude%3E=60&longitude%3C=100&distinct()",
+      "retrieved_utc": "2026-09-25T18:49:35.816038+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/glider_info.json",
+      "bytes": 31009,
+      "sha256": "db0b4b41b374da24c1aff6a55236b6e0438f1e681a197180522d444521503927",
+      "source_url": "https://erddap.ifremer.fr/erddap/info/OceanGlidersGDACTrajectories/index.json",
+      "retrieved_utc": "2026-09-25T18:45:21.866327+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/glider_missions.csv",
+      "bytes": 17835,
+      "sha256": "cc0bb27e934e32f706a30a5b51c56a67766501e052f464e0da02ad3cc9ae27ee",
+      "source_url": "https://erddap.ifremer.fr/erddap/tabledap/OceanGlidersGDACTrajectories.csv?platform_deployment&distinct()",
+      "retrieved_utc": "2026-09-25T18:48:07.598495+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/glider_parent_ftp.txt",
+      "bytes": 60,
+      "sha256": "8e10c87fc8c7f51ab7906b890d0769616dd7200997bba8c4f8bdaef5da77bcfb",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/",
+      "retrieved_utc": "2026-09-25T18:48:09.606045+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/incois_atlas_catalog.xml",
+      "bytes": 816,
+      "sha256": "af711d0759ccc380c097ead74af45305f523aef4a6e6763760f0a7d397032226",
+      "source_url": "https://las.incois.gov.in/thredds/catalog/las/ocean_atlas_subset/catalog.xml",
+      "retrieved_utc": "2026-09-25T18:49:36.760521+00:00",
+      "access_method": "HTTPS curl Windows certificate store",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/incois_catalog.xml",
+      "bytes": 843,
+      "sha256": "aed0ee280ea950245f30bd90c7db5c8223fbe2ae86d0d9ce8810001570326dae",
+      "source_url": "https://las.incois.gov.in/thredds/catalog.xml",
+      "retrieved_utc": "2026-09-25T18:46:17.392030+00:00",
+      "access_method": "HTTPS curl Windows certificate store",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/incois_las_catalog.xml",
+      "bytes": 8337,
+      "sha256": "c0b5534bc32c522c5f92e2eba999ac8524a346df25dd7dbd589cd4567bc79351",
+      "source_url": "https://las.incois.gov.in/thredds/catalog/las/catalog.xml",
+      "retrieved_utc": "2026-09-25T18:47:04.229259+00:00",
+      "access_method": "HTTPS curl Windows certificate store",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/incois_levitus_catalog.xml",
+      "bytes": 839,
+      "sha256": "5dd6af6281270fe7f3a1cc7d876d719475e8fb58804439f00693fb33ead2f1da",
+      "source_url": "https://las.incois.gov.in/thredds/catalog/las/levitus_climatology_cdf/catalog.xml",
+      "retrieved_utc": "2026-09-25T18:49:37.242244+00:00",
+      "access_method": "HTTPS curl Windows certificate store",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/incois_ui.html",
+      "bytes": 7572,
+      "sha256": "c4a5583b916cdc73360a0e8eaae37d41ce416cb5e3284aabefde3e5388bdd902",
+      "source_url": "https://las.incois.gov.in/las/UI.vm",
+      "retrieved_utc": "2026-09-25T18:46:16.399418+00:00",
+      "access_method": "HTTPS curl Windows certificate store",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/unconfirmed_insitu_copernicus.html",
+      "bytes": 994657,
+      "sha256": "2a4166dcaaf76df8dd990e387ddc38a01eab3b89fbdb8d2d6dfd8191b28f5134",
+      "source_url": "https://data.marine.copernicus.eu/product/INSITU_GLO_PHYBGCWAV_DISCRETE_MYNRT_013_030/description",
+      "retrieved_utc": "2026-09-25T18:52:37.799344+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/discovery/unconfirmed_insitu_cora.json",
+      "bytes": 39434,
+      "sha256": "f24ddbf6a9f5f0d1538475a09a1c1d845e07b73d89f6c98908b711c785fc2981",
+      "source_url": "https://api.datacite.org/dois/10.17882/46219",
+      "retrieved_utc": "2026-09-25T18:52:37.920993+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/glider_structure.json",
+      "bytes": 52051,
+      "sha256": "9f091032b46e41c27643af3a505734bae70ec28f0db6ac8b4d7f56c98480d476",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/glider_summary.json",
+      "bytes": 2422,
+      "sha256": "31950b2128a50ba00f222f3d5899a1846dda1936512644f345b284191c91c1b9",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/licences/argo_datacite.json",
+      "bytes": 2145061,
+      "sha256": "338b5828b8a4bc584c110c2458e0f07e58b62ab858b99dd46395881642e7de9d",
+      "source_url": "https://api.datacite.org/dois/10.17882/42182",
+      "retrieved_utc": "2026-09-25T18:52:44.183290+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/licences/copernicus.html",
+      "bytes": 294245,
+      "sha256": "9492c935a2130844731f0b97949d75921ba3ed950a4a9bf905e550ae345629cf",
+      "source_url": "https://marine.copernicus.eu/user-corner/service-commitments-and-licence",
+      "retrieved_utc": "2026-09-25T18:45:22.315031+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/licences/glider_datacite.json",
+      "bytes": 48849,
+      "sha256": "283b7cec601855092cab93992a25566a88051e4089cb11d856c5b89e4aa750c1",
+      "source_url": "https://api.datacite.org/dois/10.17882/56509",
+      "retrieved_utc": "2026-09-25T18:52:38.184252+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response"
+    },
+    {
+      "path": "metadata/source_status.json",
+      "bytes": 1156,
+      "sha256": "143f6c2337be1d34d8bddef0fcf14c14571d72056d14a9aac940c9d1d7021f28",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "metadata/validation.json",
+      "bytes": 589,
+      "sha256": "232d03fbc45a332c4e6d597835cc01a830bf91853a49bc9bdf022b933d1078c3",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "raw/argo/20240101_indian_ocean_prof.nc",
+      "bytes": 4089488,
+      "sha256": "7d486673d7f4e8b23286e4d45942bae9024137e12700e006382d142d29166f8e",
+      "source_url": "https://data-argo.ifremer.fr/geo/indian_ocean/2024/01/20240101_prof.nc",
+      "retrieved_utc": "2026-09-25T18:45:25.953796+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response",
+      "licence": "CC-BY-4.0",
+      "licence_evidence": "metadata/licences/argo_datacite.json",
+      "dataset_doi": "10.17882/42182",
+      "original_user_source": "ftp://ftp.ifremer.fr/ifremer/argo/",
+      "immutable_policy": "No overwrite; read-only attribute; SHA-256 verification"
+    },
+    {
+      "path": "raw/argo/20240102_indian_ocean_prof.nc",
+      "bytes": 6912760,
+      "sha256": "a61386d49408bcf47d3fc5f43dcc6aced024eb31748f69d8b3f517bb7419e84a",
+      "source_url": "https://data-argo.ifremer.fr/geo/indian_ocean/2024/01/20240102_prof.nc",
+      "retrieved_utc": "2026-09-25T18:45:25.018901+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response",
+      "licence": "CC-BY-4.0",
+      "licence_evidence": "metadata/licences/argo_datacite.json",
+      "dataset_doi": "10.17882/42182",
+      "original_user_source": "ftp://ftp.ifremer.fr/ifremer/argo/",
+      "immutable_policy": "No overwrite; read-only attribute; SHA-256 verification"
+    },
+    {
+      "path": "raw/argo/20240103_indian_ocean_prof.nc",
+      "bytes": 4278428,
+      "sha256": "5017b8ec3bc411ca6ba49753cfcfa2b5decf97a73937b0ff7ed386c42c79126c",
+      "source_url": "https://data-argo.ifremer.fr/geo/indian_ocean/2024/01/20240103_prof.nc",
+      "retrieved_utc": "2026-09-25T18:45:25.648533+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response",
+      "licence": "CC-BY-4.0",
+      "licence_evidence": "metadata/licences/argo_datacite.json",
+      "dataset_doi": "10.17882/42182",
+      "original_user_source": "ftp://ftp.ifremer.fr/ifremer/argo/",
+      "immutable_policy": "No overwrite; read-only attribute; SHA-256 verification"
+    },
+    {
+      "path": "raw/glider/bellatrix_368_20160703_erddap.nc",
+      "bytes": 420368,
+      "sha256": "6044a01a8f2ead0f195b6abef9faae124db38632f9a516f36aff24d8c11b556c",
+      "source_url": "https://erddap.ifremer.fr/erddap/tabledap/OceanGlidersGDACTrajectories.nc?platform_deployment,time,latitude,longitude,PRES,TEMP,PSAL,PRES_QC,TEMP_QC,PSAL_QC,POSITION_QC,TIME_QC&platform_deployment=%22Bellatrix_368%22&time%3E=2016-07-03T00%3A00%3A00Z&time%3C2016-07-04T00%3A00%3A00Z&latitude%3E=7&latitude%3C=9&longitude%3E=87&longitude%3C=89&PRES%3E=0&PRES%3C=500",
+      "retrieved_utc": "2026-09-25T18:51:49.780973+00:00",
+      "access_method": "HTTPS",
+      "kind": "unchanged_provider_response",
+      "licence": "GDAC CC-BY-4.0 registration; conflicting legacy ERDDAP terms unresolved",
+      "licence_evidence": [
+        "metadata/licences/glider_datacite.json",
+        "metadata/discovery/glider_info.json"
+      ],
+      "dataset_doi": "10.17882/56509",
+      "original_user_source": "ftp://ftp.ifremer.fr/ifremer/glider/v2/",
+      "immutable_policy": "No overwrite; read-only attribute; SHA-256 verification",
+      "release_status": "quarantined_missing_qc"
+    },
+    {
+      "path": "raw/glider/Bellatrix_368_R.nc",
+      "bytes": 41845660,
+      "sha256": "37bd015553fd43e875226952d0d7843054135e5c0392c92b73d68989c19dc08f",
+      "source_url": "ftp://ftp.ifremer.fr/ifremer/glider/v2/bellatrix/bellatrix_20160702/Bellatrix_368_R.nc",
+      "retrieved_utc": "2026-09-25T18:55:22.862687+00:00",
+      "access_method": "FTP",
+      "kind": "unchanged_provider_response",
+      "licence": "GDAC CC-BY-4.0 registration; conflicting legacy ERDDAP terms unresolved",
+      "licence_evidence": [
+        "metadata/licences/glider_datacite.json",
+        "metadata/discovery/glider_info.json"
+      ],
+      "dataset_doi": "10.17882/56509",
+      "original_user_source": "ftp://ftp.ifremer.fr/ifremer/glider/v2/",
+      "immutable_policy": "No overwrite; read-only attribute; SHA-256 verification",
+      "release_status": "quarantined_missing_qc"
+    },
+    {
+      "path": "scripts/argo_assets.py",
+      "bytes": 1283,
+      "sha256": "6a71f85f34b14d689259a75006b778175b796b7642f20bee0802abdb6a9e98cc",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "scripts/curate_argo.py",
+      "bytes": 4574,
+      "sha256": "e1eac7f3b39f92ecfbda92c5ddd44e60d120777e7be3e70353d7d5272f53808d",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "scripts/curate_glider.py",
+      "bytes": 4912,
+      "sha256": "46ad3a2cdbd0753f159d04356ba79c84247b691edf4af0adc1b48a341be68fc4",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "scripts/README.md",
+      "bytes": 1037,
+      "sha256": "818eb47174f2f008a1fbfb1bf6c9b11ca6ed4abb4d0a7654e364d5209e4f1403",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "scripts/requirements-lock.txt",
+      "bytes": 260,
+      "sha256": "7fc67ac508991267815a611934f6bbd4cae0c98080ecb447e38b2b038bf419ff",
+      "kind": "locally_generated"
+    },
+    {
+      "path": "scripts/verify_ingestion.py",
+      "bytes": 3169,
+      "sha256": "faa61c916067b3cf1066133d984a22ab75977acfa5f0e0328fb095afb7a79115",
+      "kind": "locally_generated"
+    }
+  ],
+  "raw_bytes": 57546704,
+  "notes": [
+    "Manifest and SHA256SUMS exclude themselves.",
+    "Generated records retain source row/profile/level indices. Raw directory contains provider response bytes, including rejected ERDDAP evidence.",
+    "raw/glider/Bellatrix_368_R.nc FTP listing reports 41845660 bytes and May 14 2019 modification date; original internal date_update is 2019-04-05T13:22:32Z.",
+    "UTC acquisition dates differ from India-local calendar date by timezone, not observation age."
+  ]
+}

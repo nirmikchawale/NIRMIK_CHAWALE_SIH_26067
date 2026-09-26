@@ -1,0 +1,11 @@
+{
+  "created_utc": "2026-09-26T03:13:06.692767+00:00",
+  "destination": "C:\\Users\\admin\\OneDrive\\Desktop\\NEW SIH 26067\\CHAT GPT PLUS\\OceanTwin_Temperature_Comparison_20240102",
+  "raw_inputs": "Referenced in comparison_config.json; preserved in original packages, not duplicated.",
+  "cache_directories_excluded": [
+    "__pycache__",
+    ".pytest_cache"
+  ],
+  "figure_visual_review": "All six PNG figures inspected; labels and data are visible.",
+  "copy_policy": "Create new destination only; verify every copied checksum."
+}

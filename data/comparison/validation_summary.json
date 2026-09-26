@@ -1,0 +1,10 @@
+{
+  "synthetic_tests": 25,
+  "failures": 0,
+  "errors": 0,
+  "independent_output_verification": "PASS",
+  "figures": 6,
+  "best_profile_id": "20240102_indian_ocean_prof:23",
+  "nonfatal_import_warnings": 1,
+  "environment_warning_status": "Unresolved NumPy/Cython size warning; recorded in test_results.txt; all tests and independent numerical checks pass."
+}

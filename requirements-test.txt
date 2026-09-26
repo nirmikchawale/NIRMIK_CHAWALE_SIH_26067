@@ -1,0 +1,5 @@
+# Optional extras only for re-running the preserved original comparison-engine regression suite.
+# The Streamlit MVP itself does not require these packages at runtime.
+netCDF4==1.7.2
+gsw==3.6.23
+matplotlib==3.11.2

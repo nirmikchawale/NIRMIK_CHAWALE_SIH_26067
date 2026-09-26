@@ -1,0 +1,21 @@
+{
+  "dataset_id": "cmems_mod_glo_phy_my_0.083deg_P1D-m",
+  "variables": [
+    "thetao",
+    "so",
+    "uo",
+    "vo"
+  ],
+  "minimum_longitude": 67,
+  "maximum_longitude": 70,
+  "minimum_latitude": 12,
+  "maximum_latitude": 14,
+  "minimum_depth": 0,
+  "maximum_depth": 500,
+  "start_datetime": "2024-01-02T00:00:00",
+  "end_datetime": "2024-01-02T23:59:59",
+  "coordinates_selection_method": "inside",
+  "output_directory": "outputs\\copernicus_model_20240102\\raw",
+  "output_filename": "glorys12_20240102_67E70E_12N14N_0m500m.nc",
+  "disable_progress_bar": true
+}

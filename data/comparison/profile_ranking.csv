@@ -1,0 +1,3 @@
+﻿rank,profile_id,file_id,platform_id,cycle,direction,matched_level_count,time_offset_hours,time_offset_from_daily_midpoint_hours,spatial_distance_km,mean_bias_celsius,mae_celsius,rmse_celsius,maximum_absolute_error_celsius,shallowest_matched_depth_m,deepest_matched_depth_m,selected_for_first_demo
+1,20240102_indian_ocean_prof:23,5907092_cycle013_D,5907092,13,D,50,14.766666666666667,2.7666666666666666,3.851344566390636,0.023311987327530054,0.22538286668411817,0.3188158440179983,1.0759785241626858,1.3919436791479163,447.0244991497731,True
+2,20240102_indian_ocean_prof:26,5907092_cycle012_A,5907092,12,A,49,13.45,1.45,4.216268990794637,-0.01837982155747383,0.2081244163253992,0.33137286323223936,1.3822264745909791,2.3861835800053965,447.0245132487202,False

@@ -1,0 +1,176 @@
+{
+  "format": "NETCDF4",
+  "dimensions": {
+    "depth": 31,
+    "latitude": 25,
+    "longitude": 37,
+    "time": 1
+  },
+  "attributes": {
+    "Conventions": "CF-1.4",
+    "bulletin_date": "2021-07-07 00:00:00",
+    "bulletin_type": "operational",
+    "comment": "CMEMS product",
+    "domain_name": "GL12",
+    "easting": "longitude",
+    "field_date": "2021-06-30 00:00:00",
+    "field_julian_date": 26113.0,
+    "field_type": "mean",
+    "forecast_range": "",
+    "forecast_type": "",
+    "history": "2023/06/01 16:20:05 MERCATOR OCEAN Netcdf creation",
+    "institution": "MERCATOR OCEAN",
+    "julian_day_unit": "days since 1950-01-01 00:00:00",
+    "latitude_max": 90.0,
+    "latitude_min": -80.0,
+    "longitude_max": 179.9166717529297,
+    "longitude_min": -180.0,
+    "northing": "latitude",
+    "references": "http://www.mercator-ocean.fr",
+    "source": "MERCATOR GLORYS12V1",
+    "title": "daily mean fields from Global Ocean Physics Analysis and Forecast updated Daily",
+    "z_max": 5727.9169921875,
+    "z_min": 0.49402499198913574,
+    "copernicusmarine_version": "2.4.1"
+  },
+  "variables": {
+    "depth": {
+      "dtype": "float32",
+      "dimensions": [
+        "depth"
+      ],
+      "attributes": {
+        "unit_long": "Meters",
+        "units": "m",
+        "axis": "Z",
+        "standard_name": "depth",
+        "long_name": "Depth",
+        "positive": "down"
+      }
+    },
+    "latitude": {
+      "dtype": "float32",
+      "dimensions": [
+        "latitude"
+      ],
+      "attributes": {
+        "unit_long": "Degrees North",
+        "units": "degrees_north",
+        "axis": "Y",
+        "standard_name": "latitude",
+        "long_name": "Latitude"
+      }
+    },
+    "longitude": {
+      "dtype": "float32",
+      "dimensions": [
+        "longitude"
+      ],
+      "attributes": {
+        "unit_long": "Degrees East",
+        "units": "degrees_east",
+        "axis": "X",
+        "standard_name": "longitude",
+        "long_name": "Longitude"
+      }
+    },
+    "time": {
+      "dtype": "float32",
+      "dimensions": [
+        "time"
+      ],
+      "attributes": {
+        "standard_name": "time",
+        "long_name": "Time",
+        "unit_long": "Hours Since 1950-01-01",
+        "axis": "T",
+        "units": "hours since 1950-01-01",
+        "calendar": "gregorian"
+      }
+    },
+    "thetao": {
+      "dtype": "int16",
+      "dimensions": [
+        "time",
+        "depth",
+        "latitude",
+        "longitude"
+      ],
+      "attributes": {
+        "_FillValue": -32767,
+        "cell_methods": "area: mean",
+        "long_name": "Temperature",
+        "standard_name": "sea_water_potential_temperature",
+        "unit_long": "Degrees Celsius",
+        "units": "degrees_C",
+        "valid_max": 21306,
+        "valid_min": -32766,
+        "add_offset": 21.0,
+        "scale_factor": 0.0007324442267417908
+      }
+    },
+    "so": {
+      "dtype": "int16",
+      "dimensions": [
+        "time",
+        "depth",
+        "latitude",
+        "longitude"
+      ],
+      "attributes": {
+        "_FillValue": -32767,
+        "cell_methods": "area: mean",
+        "long_name": "Salinity",
+        "standard_name": "sea_water_salinity",
+        "unit_long": "Practical Salinity Unit",
+        "units": "1e-3",
+        "valid_max": 28249,
+        "valid_min": 1,
+        "add_offset": -0.0015259254723787308,
+        "scale_factor": 0.0015259254723787308
+      }
+    },
+    "uo": {
+      "dtype": "int16",
+      "dimensions": [
+        "time",
+        "depth",
+        "latitude",
+        "longitude"
+      ],
+      "attributes": {
+        "_FillValue": -32767,
+        "cell_methods": "area: mean",
+        "long_name": "Eastward velocity",
+        "standard_name": "eastward_sea_water_velocity",
+        "unit_long": "Meters per second",
+        "units": "m s-1",
+        "valid_max": 4314,
+        "valid_min": -3123,
+        "add_offset": 0.0,
+        "scale_factor": 0.0006103701889514923
+      }
+    },
+    "vo": {
+      "dtype": "int16",
+      "dimensions": [
+        "time",
+        "depth",
+        "latitude",
+        "longitude"
+      ],
+      "attributes": {
+        "_FillValue": -32767,
+        "cell_methods": "area: mean",
+        "long_name": "Northward velocity",
+        "standard_name": "northward_sea_water_velocity",
+        "unit_long": "Meters per second",
+        "units": "m s-1",
+        "valid_max": 3639,
+        "valid_min": -3680,
+        "add_offset": 0.0,
+        "scale_factor": 0.0006103701889514923
+      }
+    }
+  }
+}

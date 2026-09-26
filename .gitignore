@@ -1,0 +1,47 @@
+# Python environments / caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Streamlit / secrets
+.streamlit/secrets.toml
+.env
+.env.*
+*.key
+*.pem
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local scratch / logs
+.cache/
+tmp/
+*.log
+
+# Large scientific source data that should stay outside Git by default
+raw/
+curated/
+data/raw/
+data/curated/
+*.nc4
+*.h5
+*.hdf5
+
+# The small, verified cached subset below IS intentionally versioned so the demo runs offline.
+!data/glorys12_20240102_67E70E_12N14N_0m500m.nc
+
+# Local presentation screenshots
+screenshots/*.png
+screenshots/*.jpg
+screenshots/*.jpeg
+!screenshots/.gitkeep

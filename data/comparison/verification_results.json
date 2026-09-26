@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "source_checksums_unchanged": true,
+  "independent_checks": [
+    "numpy.interp agrees with engine interpolation for all 99 real matched levels",
+    "math.fsum recomputation agrees with CSV/JSON metrics",
+    "unit-vector atan2 distances verify haversine and nearest cell",
+    "all matched rows have five provider QC flags equal to 1",
+    "all depths within actual model range"
+  ],
+  "profiles": [
+    {
+      "profile_id": "20240102_indian_ocean_prof:23",
+      "matched_levels": 50,
+      "interpolation_metrics_qc_bounds_nearest_cell": "PASS"
+    },
+    {
+      "profile_id": "20240102_indian_ocean_prof:26",
+      "matched_levels": 49,
+      "interpolation_metrics_qc_bounds_nearest_cell": "PASS"
+    }
+  ]
+}
