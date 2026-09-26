@@ -126,7 +126,7 @@ def section_title(title: str, subtitle: str | None = None, kicker: str | None = 
     subtitle_html = f'<div class="ot-section-subtitle">{_esc(subtitle)}</div>' if subtitle else ""
     st.markdown(
         '<div class="ot-section"><div class="ot-section-copy">'
-        f"{kicker_html}<div class="ot-section-title">{_esc(title)}</div>{subtitle_html}"
+        f'{kicker_html}<div class="ot-section-title">{_esc(title)}</div>{subtitle_html}'
         "</div></div>",
         unsafe_allow_html=True,
     )
