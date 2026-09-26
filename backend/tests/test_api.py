@@ -15,6 +15,7 @@ def test_health_preserves_reference_and_local_data():
     assert payload["status"] == "ok"
     assert payload["streamlit_reference_preserved"] is True
     assert payload["scientific_data_network_required"] is False
+    assert payload["runtime_mode"] == "cached_verified"
     assert {"thetao", "so", "uo", "vo"}.issubset(set(payload["variables"]))
 
 
