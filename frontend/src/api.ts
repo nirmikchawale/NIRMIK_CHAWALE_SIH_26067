@@ -4,6 +4,7 @@ import type {
   FieldResponse,
   ProfileDetail,
   ProfilesResponse,
+  ProvenanceResponse,
   VolumeResponse
 } from "./types";
 
@@ -24,6 +25,7 @@ export const api = {
   health: () => getJson<Record<string, unknown>>("/api/health"),
   catalog: () => getJson<Catalog>("/api/catalog"),
   profiles: () => getJson<ProfilesResponse>("/api/profiles"),
+  provenance: () => getJson<ProvenanceResponse>("/api/provenance"),
   profile: (profileId: string) =>
     getJson<ProfileDetail>(`/api/profiles/${encodeURIComponent(profileId)}`),
   field: (variable: "thetao" | "so", timeIndex: number, depthIndex: number) =>
