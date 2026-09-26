@@ -160,6 +160,22 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(comparisonPage).toContainText("Model − Observation by depth");
   await expect(comparisonPage).toContainText("Depth-by-depth evidence table");
   await expect(comparisonPage).toContainText("not independent validation");
+  const comparisonInspector = comparisonPage.locator(".comparison-depth-inspector");
+  await expect(comparisonInspector).toBeVisible();
+  await expect(comparisonInspector).toContainText("Depth-resolved inspector");
+  await expect(comparisonPage.locator(".comparison-diagnostic-summary")).toContainText("Warm / cool split");
+  await expect(comparisonPage.locator(".comparison-collocation-map svg")).toBeVisible();
+  await expect(comparisonPage.locator(".comparison-method-pipeline")).toContainText("Provider QC");
+  await expect(comparisonPage.locator(".comparison-method-pipeline")).toContainText("No extrapolation");
+
+  const comparisonDepth = comparisonPage.getByLabel("Matched comparison depth");
+  const initialInspectedDepth = await comparisonInspector.locator(".comparison-card-heading > strong").textContent();
+  await comparisonDepth.focus();
+  await comparisonDepth.press("End");
+  await expect(comparisonInspector.locator(".comparison-card-heading > strong")).not.toHaveText(initialInspectedDepth ?? "");
+  await expect(comparisonInspector).toContainText("Argo observed");
+  await expect(comparisonInspector).toContainText("Model interpolated");
+  await expect(comparisonInspector).toContainText("Bias M−O");
 
   const comparisonSelect = comparisonPage.locator("select");
   const initialComparisonProfile = await comparisonPage.locator(".comparison-selector-meta strong").textContent();
