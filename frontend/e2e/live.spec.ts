@@ -135,6 +135,15 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect.poll(async () => Number(await globeShell.getAttribute("data-render-scale"))).toBeGreaterThanOrEqual(1.5);
   await expect(globeShell).toHaveAttribute("data-antialiasing", /MSAA|FXAA/);
   await expect(page.locator(".render-quality-line")).toContainText("HD canvas");
+  const modeDock = page.locator(".dual-mode-dock");
+  await expect(modeDock).toBeVisible();
+  await expect(modeDock).toContainText("DUAL 3D VISUALIZATION");
+  await expect(modeDock.getByRole("button", { name: /Cesium Globe/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Globe zoom out" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Fit globe to model region" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Globe zoom in" })).toBeVisible();
+  await page.getByRole("button", { name: "Globe zoom in" }).click();
+  await page.getByRole("button", { name: "Fit globe to model region" }).click();
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
   await expect(page.locator(".profile-panel")).toContainText("Argo");
@@ -155,10 +164,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Water-column 3D" })).toBeDisabled();
+  await expect(modeDock.getByRole("button", { name: /Water-Column 3D/ })).toBeDisabled();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
-  const waterColumnButton = page.getByRole("button", { name: "Water-column 3D" });
+  const waterColumnButton = modeDock.getByRole("button", { name: /Water-Column 3D/ });
   await expect(waterColumnButton).toBeEnabled();
   await waterColumnButton.click();
 
@@ -175,6 +184,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(waterColumnShell).toHaveAttribute("data-opacity", "0.95");
 
   const waterColumnCanvas = page.locator(".water-column-canvas");
+  const initialWaterZoom = await waterColumnShell.getAttribute("data-zoom");
+  await page.getByRole("button", { name: "Water-column zoom in" }).click();
+  await expect(waterColumnShell).not.toHaveAttribute("data-zoom", initialWaterZoom ?? "");
+  await page.getByRole("button", { name: "Reset water-column view" }).click();
   const initialYaw = await waterColumnShell.getAttribute("data-yaw");
   await waterColumnCanvas.focus();
   await waterColumnCanvas.press("ArrowLeft");
@@ -191,7 +204,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await waterColumnDepthSlider.press("Home");
   await expect(selectedLayer).not.toHaveText(initialSelectedLayer ?? "");
 
-  await page.getByRole("button", { name: "Cesium Globe" }).click();
+  await page.locator(".dual-mode-dock").getByRole("button", { name: /Cesium Globe/ }).click();
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
 
