@@ -48,7 +48,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toHaveAttribute("data-variable", "so");
   await expect(telemetryPage.locator(".telemetry-depth-card")).toContainText("Salinity");
 
-  await page.getByRole("button", { name: "Data Lab" }).click();
+  await page.getByRole("button", { name: "Data Lab", exact: true }).click();
   await expect(page).toHaveURL(/#\/data-lab$/);
   const dataLabPage = page.locator('.data-lab-page[data-page="data-lab"]');
   await expect(dataLabPage).toBeVisible();
