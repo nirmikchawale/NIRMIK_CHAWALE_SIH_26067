@@ -341,6 +341,155 @@ def scalar_telemetry(
     }
 
 
+ROBUST_Z_THRESHOLD = 3.5
+ROBUST_Z_NORMALIZER = 0.67448975
+
+
+def _robust_scores(values: np.ndarray) -> tuple[np.ndarray, float, float]:
+    array = np.asarray(values, dtype=float)
+    finite = array[np.isfinite(array)]
+    if finite.size == 0:
+        raise HTTPException(status_code=404, detail="No finite values are available for anomaly screening.")
+    median = float(np.median(finite))
+    mad = float(np.median(np.abs(finite - median)))
+    if mad <= 0:
+        return np.full(array.shape, np.nan, dtype=float), median, mad
+    return ROBUST_Z_NORMALIZER * (array - median) / mad, median, mad
+
+
+@app.get("/api/anomalies")
+def anomaly_screen(
+    variable: str = Query("thetao", pattern="^(thetao|so)$"),
+    time_index: int = 0,
+    depth_index: int = 0,
+) -> dict[str, Any]:
+    dataset = _dataset()
+    if variable not in dataset["variables"]:
+        raise HTTPException(status_code=404, detail=f"Variable {variable!r} is not in the cached dataset.")
+    _ensure_index("time", time_index, len(dataset["time"]))
+    _ensure_index("depth", depth_index, len(dataset["depth"]))
+
+    meta = dataset["variables"][variable]
+    layer = np.asarray(meta["values"][time_index, depth_index], dtype=float)
+    spatial_scores, spatial_median, spatial_mad = _robust_scores(layer)
+    spatial_flags = []
+    if spatial_mad > 0:
+        for yi, lat in enumerate(dataset["latitude"]):
+            for xi, lon in enumerate(dataset["longitude"]):
+                value = float(layer[yi, xi])
+                score = float(spatial_scores[yi, xi])
+                if math.isfinite(value) and math.isfinite(score) and abs(score) >= ROBUST_Z_THRESHOLD:
+                    spatial_flags.append({
+                        "longitude": float(lon),
+                        "latitude": float(lat),
+                        "depth_m": float(dataset["depth"][depth_index]),
+                        "value": value,
+                        "robust_z": score,
+                    })
+    spatial_flags.sort(key=lambda item: abs(item["robust_z"]), reverse=True)
+
+    try:
+        _, _, profile_items = _comparison_bundle()
+    except EvidenceError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    residual_flags = []
+    residual_profiles = []
+    residual_sample_count = 0
+    for profile in profile_items:
+        table = profile["_table"]
+        biases = np.asarray(table["signed_bias_celsius"], dtype=float)
+        scores, median, mad = _robust_scores(biases)
+        finite_count = int(np.isfinite(biases).sum())
+        residual_sample_count += finite_count
+        profile_flag_count = 0
+        if mad > 0:
+            for row_index, (_, row) in enumerate(table.iterrows()):
+                bias = float(row["signed_bias_celsius"])
+                score = float(scores[row_index])
+                if math.isfinite(bias) and math.isfinite(score) and abs(score) >= ROBUST_Z_THRESHOLD:
+                    profile_flag_count += 1
+                    residual_flags.append({
+                        "profile_id": str(profile["profile_id"]),
+                        "platform_id": str(profile["platform_id"]),
+                        "cycle": int(profile["cycle"]),
+                        "direction": str(profile["direction"]),
+                        "observation_depth_m": float(row["observation_depth_m"]),
+                        "signed_bias_celsius": bias,
+                        "absolute_error_celsius": float(row["absolute_error_celsius"]),
+                        "robust_z": score,
+                    })
+        residual_profiles.append({
+            "profile_id": str(profile["profile_id"]),
+            "platform_id": str(profile["platform_id"]),
+            "cycle": int(profile["cycle"]),
+            "direction": str(profile["direction"]),
+            "sample_count": finite_count,
+            "median_bias_celsius": median,
+            "mad_bias_celsius": mad,
+            "flagged_count": profile_flag_count,
+            "screen_available": mad > 0,
+        })
+    residual_flags.sort(key=lambda item: abs(item["robust_z"]), reverse=True)
+    genuine_time_count = len(dataset["time"])
+
+    return {
+        "variable": variable,
+        "label": meta["label"],
+        "units": meta["units"],
+        "time_index": time_index,
+        "time": dataset["time_iso"][time_index],
+        "depth_index": depth_index,
+        "depth_m": float(dataset["depth"][depth_index]),
+        "method": {
+            "name": "median absolute deviation robust z-score",
+            "formula": "0.67448975 × (x − median) / MAD",
+            "absolute_threshold": ROBUST_Z_THRESHOLD,
+            "two_sided": True,
+            "zero_mad_policy": "fail closed: no robust score or flag is produced when MAD is zero",
+        },
+        "spatial_screen": {
+            "scope": "finite model grid cells at the exact selected depth and genuine timestamp",
+            "sample_count": int(np.isfinite(layer).sum()),
+            "median": spatial_median,
+            "mad": spatial_mad,
+            "screen_available": spatial_mad > 0,
+            "flagged_count": len(spatial_flags),
+            "flags": spatial_flags[:60],
+        },
+        "residual_screen": {
+            "scope": "verified Argo temperature residuals, Model − Observation, screened separately within each profile",
+            "temperature_only": True,
+            "profiles_screened": len(residual_profiles),
+            "sample_count": residual_sample_count,
+            "flagged_count": len(residual_flags),
+            "profile_statistics": residual_profiles,
+            "flags": residual_flags[:80],
+        },
+        "temporal_screen": {
+            "available": False,
+            "genuine_time_count": genuine_time_count,
+            "status": "locked",
+            "reason": (
+                "Temporal anomaly screening is disabled in this MVP because the bundled model evidence "
+                f"contains {genuine_time_count} genuine timestamp(s). At least three genuine timestamps "
+                "would be required before a robust temporal screen is scientifically meaningful."
+            ),
+        },
+        "provenance": {
+            "product": PRODUCT_LABEL,
+            "dataset_id": DATASET_ID,
+            "freshness_class": "reanalysis",
+            "runtime_mode": RUNTIME_MODE,
+            "argo_provider": ARGO_PROVIDER,
+        },
+        "interpretation": (
+            "Flags are explainable statistical extremes within the available evidence. They are not proof "
+            "of an ocean event, sensor fault, forecast anomaly, or independent validation result."
+        ),
+    }
+
+
 @app.get("/api/volume")
 def scalar_volume(
     variable: str = Query("thetao", pattern="^(thetao|so)$"),

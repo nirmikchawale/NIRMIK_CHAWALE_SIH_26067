@@ -48,6 +48,26 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toHaveAttribute("data-variable", "so");
   await expect(telemetryPage.locator(".telemetry-depth-card")).toContainText("Salinity");
 
+  await page.getByRole("button", { name: "Anomaly Screening" }).click();
+  await expect(page).toHaveURL(/#\/anomaly$/);
+  const anomalyPage = page.locator('.anomaly-page[data-page="anomaly"]');
+  await expect(anomalyPage).toBeVisible();
+  await expect(anomalyPage).toContainText("Anomaly screening");
+  await expect(anomalyPage).toContainText("|robust z| ≥ 3.5");
+  await expect(anomalyPage).toContainText("TEMPORAL SCREEN LOCKED");
+  await expect(anomalyPage).toContainText("not proof of an ocean event");
+  await expect(anomalyPage.locator(".anomaly-residual-table tbody tr").first()).toBeVisible();
+
+  const anomalyInitialDepth = await anomalyPage.getAttribute("data-depth-index");
+  const anomalyDepth = anomalyPage.getByLabel("Anomaly depth");
+  await anomalyDepth.focus();
+  await anomalyDepth.press("Home");
+  await expect(anomalyPage).not.toHaveAttribute("data-depth-index", anomalyInitialDepth ?? "");
+
+  await anomalyPage.getByRole("button", { name: "Salinity" }).click();
+  await expect(anomalyPage).toHaveAttribute("data-variable", "so");
+  await expect(anomalyPage).toContainText("Salinity spatial statistical extremes");
+
   await page.getByRole("button", { name: "Data Lab", exact: true }).click();
   await expect(page).toHaveURL(/#\/data-lab$/);
   const dataLabPage = page.locator('.data-lab-page[data-page="data-lab"]');

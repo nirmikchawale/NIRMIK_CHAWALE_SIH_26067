@@ -63,6 +63,8 @@ jobs:
           test -s frontend/dist/science-static/manifest.json
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/profiles/index.json
+          test -s frontend/dist/science-static/anomalies/thetao/t0_d18.json
+          test -s frontend/dist/science-static/anomalies/so/t0_d18.json
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
 
       - name: Configure GitHub Pages
@@ -163,6 +165,7 @@ jobs:
           thetao = get_json("/science-static/fields/thetao/t0_d18.json")
           salinity = get_json("/science-static/fields/so/t0_d18.json")
           currents = get_json("/science-static/currents/t0_d18.json")
+          anomaly = get_json("/science-static/anomalies/thetao/t0_d18.json")
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
           earth = get_bytes("/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg")
@@ -172,6 +175,9 @@ jobs:
           assert thetao["variable"] == "thetao"
           assert salinity["variable"] == "so"
           assert currents["variable"] == "currents"
+          assert anomaly["method"]["absolute_threshold"] == 3.5
+          assert anomaly["temporal_screen"]["status"] == "locked"
+          assert anomaly["residual_screen"]["flagged_count"] > 0
           assert len(profiles["profiles"]) == 2
           assert provenance["scientific_disclaimer"]
           assert earth[:2] == b"\xff\xd8"

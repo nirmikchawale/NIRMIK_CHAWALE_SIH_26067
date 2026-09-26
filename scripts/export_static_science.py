@@ -120,8 +120,19 @@ def export_static_science(output: Path) -> dict[str, Any]:
                         ),
                     )
                 )
+                records.append(
+                    _write_json(
+                        output,
+                        f"anomalies/{variable}/t{time_index}_d{depth_index}.json",
+                        api.anomaly_screen(
+                            variable=variable,
+                            time_index=time_index,
+                            depth_index=depth_index,
+                        ),
+                    )
+                )
 
-    expected = 4 + len(profile_items) + time_count * (2 + 5 * depth_count)
+    expected = 4 + len(profile_items) + time_count * (2 + 7 * depth_count)
     if len(records) != expected:
         raise RuntimeError(
             f"Static science export count mismatch: expected {expected}, wrote {len(records)}."

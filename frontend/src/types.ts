@@ -237,3 +237,81 @@ export interface TelemetryResponse {
   };
   statistic_definition: string;
 }
+
+
+export interface SpatialAnomalyFlag {
+  longitude: number;
+  latitude: number;
+  depth_m: number;
+  value: number;
+  robust_z: number;
+}
+export interface ResidualAnomalyFlag {
+  profile_id: string;
+  platform_id: string;
+  cycle: number;
+  direction: string;
+  observation_depth_m: number;
+  signed_bias_celsius: number;
+  absolute_error_celsius: number;
+  robust_z: number;
+}
+export interface ResidualProfileAnomalyStat {
+  profile_id: string;
+  platform_id: string;
+  cycle: number;
+  direction: string;
+  sample_count: number;
+  median_bias_celsius: number;
+  mad_bias_celsius: number;
+  flagged_count: number;
+  screen_available: boolean;
+}
+export interface AnomalyResponse {
+  variable: "thetao" | "so";
+  label: string;
+  units: string;
+  time_index: number;
+  time: string;
+  depth_index: number;
+  depth_m: number;
+  method: {
+    name: string;
+    formula: string;
+    absolute_threshold: number;
+    two_sided: boolean;
+    zero_mad_policy: string;
+  };
+  spatial_screen: {
+    scope: string;
+    sample_count: number;
+    median: number;
+    mad: number;
+    screen_available: boolean;
+    flagged_count: number;
+    flags: SpatialAnomalyFlag[];
+  };
+  residual_screen: {
+    scope: string;
+    temperature_only: boolean;
+    profiles_screened: number;
+    sample_count: number;
+    flagged_count: number;
+    profile_statistics: ResidualProfileAnomalyStat[];
+    flags: ResidualAnomalyFlag[];
+  };
+  temporal_screen: {
+    available: boolean;
+    genuine_time_count: number;
+    status: string;
+    reason: string;
+  };
+  provenance: {
+    product: string;
+    dataset_id: string;
+    freshness_class: string;
+    runtime_mode: string;
+    argo_provider: string;
+  };
+  interpretation: string;
+}

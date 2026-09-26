@@ -1,4 +1,5 @@
 import type {
+  AnomalyResponse,
   Catalog,
   CurrentsResponse,
   FieldResponse,
@@ -60,6 +61,11 @@ export const api = {
     getJson<TelemetryResponse>(
       `/api/telemetry?variable=${variable}&time_index=${timeIndex}&depth_index=${depthIndex}`,
       `/telemetry/${variable}/t${timeIndex}_d${depthIndex}.json`
+    ),
+  anomalies: (variable: "thetao" | "so", timeIndex: number, depthIndex: number) =>
+    getJson<AnomalyResponse>(
+      `/api/anomalies?variable=${variable}&time_index=${timeIndex}&depth_index=${depthIndex}`,
+      `/anomalies/${variable}/t${timeIndex}_d${depthIndex}.json`
     ),
   currents: (timeIndex: number, depthIndex: number) =>
     getJson<CurrentsResponse>(
