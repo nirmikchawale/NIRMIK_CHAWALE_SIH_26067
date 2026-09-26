@@ -45,3 +45,8 @@ screenshots/*.png
 screenshots/*.jpg
 screenshots/*.jpeg
 !screenshots/.gitkeep
+
+# React / Vite build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

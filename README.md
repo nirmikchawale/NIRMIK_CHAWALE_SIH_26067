@@ -153,3 +153,46 @@ Roadmap labels may be visible, but this release does not implement salinity comp
 ## Presentation rule
 
 Do not place Streamlit UI screenshots in the SIH PPT. Use native diagrams, architecture/methodology flowcharts, tables, metric callouts and scientific charts recreated directly from verified evidence where permitted. Demonstrate the application live.
+
+
+## Final MVP web architecture
+
+The final SIH26067 judge-facing MVP is being implemented additively on top of this
+verified prototype:
+
+```text
+React + CesiumJS
+       |
+     FastAPI
+       |
+validated Python scientific core
+       |
+bundled Copernicus + Argo evidence
+```
+
+The existing Streamlit application remains the **frozen scientific reference and emergency
+demo fallback**. It is not replaced or rewritten.
+
+The bundled Copernicus subset already contains verified `thetao`, `so`, `uo`, and `vo`
+fields, so the web MVP exposes real temperature, salinity, and current data from the same
+file. The current file contains one genuine model timestamp; the new UI reports that
+limitation and does not fabricate time animation.
+
+See:
+
+- `docs/FINAL_MVP_ARCHITECTURE.md`
+- `docs/FINAL_MVP_RUNBOOK.md`
+- `backend/README.md`
+- `frontend/README.md`
+
+
+## One-click local launch
+
+For Windows demo machines, after the one-time Python/Node setup is complete:
+
+- Double-click `START_OCEANTWIN.cmd` at the repository root.
+- It launches the FastAPI scientific API on port 8000 and the React + Cesium frontend on port 5173.
+- The browser opens automatically at `http://localhost:5173`.
+- Double-click `STOP_OCEANTWIN.cmd` to stop both local services.
+
+This is the preferred local judge/demo workflow; manual PowerShell startup is only a troubleshooting fallback.

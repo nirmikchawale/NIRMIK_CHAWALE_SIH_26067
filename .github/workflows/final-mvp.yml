@@ -1,0 +1,258 @@
+name: final-mvp
+
+on:
+  push:
+    branches:
+      - final-mvp-react-cesium-fastapi
+      - main
+  pull_request:
+
+jobs:
+  science-api-and-fallback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install frozen reference and API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r backend/requirements.txt
+
+      - name: Run frozen Streamlit regression suite
+        run: python -m pytest -q tests
+
+      - name: Run FastAPI scientific contract suite
+        run: python -m pytest -q backend/tests
+
+      - name: Compile Python application surfaces
+        run: python -m compileall -q app.py config.py oceantwin src backend api tests
+
+      - name: Validate hosted API entrypoint against bundled local evidence
+        run: |
+          python - <<'PY'
+          from api.index import app
+          assert app.title.startswith("OceanTwin 3D API")
+          print(app.title)
+          PY
+
+      - name: Export immutable static science fail-safe
+        run: |
+          rm -rf /tmp/oceantwin-static-science
+          python scripts/export_static_science.py --output /tmp/oceantwin-static-science
+          test -s /tmp/oceantwin-static-science/manifest.json
+          test -s /tmp/oceantwin-static-science/catalog.json
+          test -s /tmp/oceantwin-static-science/profiles/index.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("/tmp/oceantwin-static-science")
+          manifest = json.loads((root / "manifest.json").read_text())
+          assert manifest["schema"] == "oceantwin-static-science-v1"
+          assert manifest["time_steps"] == 1
+          assert manifest["depth_levels"] == 31
+          assert manifest["profiles"] == 2
+          assert manifest["scientific_data_network_required_at_runtime"] is False
+          assert len(manifest["files"]) == 101
+          print("Static science fail-safe verified:", len(manifest["files"]), "payloads")
+          PY
+
+      - name: FastAPI startup and evidence smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 > fastapi-ci.log 2>&1 &
+          API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/health >/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ]; then
+            cat fastapi-ci.log
+            exit 1
+          fi
+          curl --fail --silent http://127.0.0.1:8000/api/catalog >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=thetao&depth_index=0' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=so&depth_index=0' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/currents?depth_index=0' >/dev/null
+          curl --fail --silent http://127.0.0.1:8000/api/profiles >/dev/null
+
+      - name: Frozen Streamlit fallback startup smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m streamlit run app.py --server.headless true --server.port 8501 > streamlit-ci.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ]; then
+            cat streamlit-ci.log
+            exit 1
+          fi
+
+  react-cesium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Typecheck React and Cesium integration
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build production frontend
+        working-directory: frontend
+        run: npm run build
+
+
+  static-hosted-failsafe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install static export dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: Export canonical scientific API as immutable JSON
+        run: python scripts/export_static_science.py --output frontend/public/science-static
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Build hosted static fail-safe
+        working-directory: frontend
+        env:
+          VITE_STATIC_SCIENCE: "true"
+        run: npm run build
+
+      - name: Diagnose Cesium offline imagery artifact
+        run: |
+          echo "SOURCE NaturalEarthII:"
+          find frontend/node_modules/cesium/Build/Cesium/Assets -path '*NaturalEarthII*' -type f | sort | head -n 20 || true
+          echo "BUILT NaturalEarthII:"
+          find frontend/dist/cesiumStatic -path '*NaturalEarthII*' -type f | sort | head -n 20 || true
+          echo "BUILT Cesium texture directories:"
+          find frontend/dist/cesiumStatic/Assets/Textures -maxdepth 2 -type d | sort | head -n 40 || true
+
+      - name: Verify hosted static artifact contract
+        run: |
+          test -s frontend/dist/index.html
+          test -s frontend/dist/science-static/manifest.json
+          test -s frontend/dist/science-static/catalog.json
+          test -s frontend/dist/science-static/health.json
+          test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("frontend/dist/science-static")
+          health = json.loads((root / "health.json").read_text())
+          catalog = json.loads((root / "catalog.json").read_text())
+          manifest = json.loads((root / "manifest.json").read_text())
+          assert health["status"] == "ok"
+          assert sorted(health["variables"]) == ["so", "thetao", "uo", "vo"]
+          assert catalog["capabilities"]["current_vectors"] is True
+          assert catalog["capabilities"]["argo_profiles"] is True
+          assert manifest["scientific_data_network_required_at_runtime"] is False
+          assert (root / "fields/thetao/t0_d18.json").is_file()
+          assert (root / "fields/so/t0_d18.json").is_file()
+          assert (root / "currents/t0_d18.json").is_file()
+          print("Hosted static fail-safe artifact verified.")
+          PY
+
+      - name: Serve and smoke-test production static runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m http.server 4173 --bind 127.0.0.1 --directory frontend/dist > static-runtime-ci.log 2>&1 &
+          STATIC_PID=$!
+          trap 'kill $STATIC_PID 2>/dev/null || true' EXIT
+
+          ready=0
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat static-runtime-ci.log
+            exit 1
+          fi
+
+          python - <<'PY'
+          import json
+          from urllib.request import urlopen
+
+          base = "http://127.0.0.1:4173"
+
+          def get_bytes(path):
+              with urlopen(base + path, timeout=10) as response:
+                  assert response.status == 200, (path, response.status)
+                  return response.read()
+
+          def get_json(path):
+              return json.loads(get_bytes(path).decode("utf-8"))
+
+          index = get_bytes("/").decode("utf-8")
+          assert '<div id="root"></div>' in index
+
+          health = get_json("/science-static/health.json")
+          catalog = get_json("/science-static/catalog.json")
+          thetao = get_json("/science-static/fields/thetao/t0_d18.json")
+          salinity = get_json("/science-static/fields/so/t0_d18.json")
+          currents = get_json("/science-static/currents/t0_d18.json")
+          profiles = get_json("/science-static/profiles/index.json")
+          provenance = get_json("/science-static/provenance.json")
+          natural_earth = get_bytes(
+              "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
+          )
+
+          assert health["status"] == "ok"
+          assert "GLORYS12V1" in catalog["dataset"]["label"]
+          assert thetao["variable"] == "thetao"
+          assert salinity["variable"] == "so"
+          assert currents["variable"] == "currents"
+          assert len(profiles["profiles"]) == 2
+          assert provenance["scientific_disclaimer"]
+          assert natural_earth[:2] == b"\xff\xd8"
+
+          print("Production static runtime smoke test passed.")
+          PY
