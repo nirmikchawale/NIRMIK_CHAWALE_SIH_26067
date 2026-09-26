@@ -129,22 +129,40 @@ select {
 }
 
 .workspace {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 344px;
+  position: relative;
   min-height: 0;
+  overflow: hidden;
+}
+
+.globe-shell {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #01070c;
 }
 
 .control-panel,
 .profile-panel {
+  position: absolute;
+  top: 14px;
+  bottom: 14px;
+  z-index: 12;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #1f4056 transparent;
-  background: rgba(5, 18, 29, 0.97);
+  border: 1px solid rgba(39, 78, 102, 0.82);
+  border-radius: 12px;
+  background: rgba(4, 17, 27, 0.88);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
 }
 
 .control-panel {
-  padding: 18px 16px 28px;
-  border-right: 1px solid #173246;
+  left: 14px;
+  width: 260px;
+  padding: 16px 14px 22px;
 }
 
 .control-panel section {
@@ -325,14 +343,6 @@ input[type="range"] {
   background: #092a20;
 }
 
-.globe-shell {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: #01070c;
-}
-
 .cesium-host {
   position: absolute;
   inset: 0;
@@ -409,8 +419,9 @@ input[type="range"] {
 }
 
 .profile-panel {
-  padding: 18px;
-  border-left: 1px solid #173246;
+  right: 14px;
+  width: 326px;
+  padding: 16px;
 }
 
 .profile-heading {
@@ -636,12 +647,12 @@ input[type="range"] {
 }
 
 @media (max-width: 1150px) {
-  .workspace {
-    grid-template-columns: 250px minmax(0, 1fr);
+  .control-panel {
+    width: 238px;
   }
 
   .profile-panel {
-    display: none;
+    width: 300px;
   }
 
   .header-status > div {
@@ -669,22 +680,31 @@ input[type="range"] {
   .workspace {
     display: flex;
     flex-direction: column;
+    overflow: visible;
+  }
+
+  .control-panel,
+  .profile-panel,
+  .globe-shell {
+    position: relative;
+    inset: auto;
+    width: auto;
+    border-radius: 0;
   }
 
   .control-panel {
     order: 2;
-    border-right: 0;
   }
 
   .globe-shell {
     order: 1;
     height: 62vh;
+    flex: 0 0 62vh;
   }
 
   .profile-panel {
     display: block;
     order: 3;
-    border-left: 0;
   }
 
   .science-footer {
