@@ -82,27 +82,40 @@ export function OceanGlobe({
   const depthAnimationRef = useRef<number | null>(null);
   const sliceHeightRef = useRef(0);
   const [inspection, setInspection] = useState<Inspection | null>(null);
+  const [rendererError, setRendererError] = useState("");
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
 
-    const viewer = new Viewer(containerRef.current, {
-      animation: false,
-      timeline: false,
-      baseLayer: false,
-      baseLayerPicker: false,
-      geocoder: false,
-      homeButton: false,
-      navigationHelpButton: false,
-      sceneModePicker: false,
-      selectionIndicator: false,
-      infoBox: false,
-      fullscreenButton: false,
-      skyBox: false,
-      skyAtmosphere: false,
-      terrainProvider: new EllipsoidTerrainProvider(),
-      requestRenderMode: true,
-      maximumRenderTimeChange: Number.POSITIVE_INFINITY
+    let viewer: Viewer;
+    try {
+      viewer = new Viewer(containerRef.current, {
+        animation: false,
+        timeline: false,
+        baseLayer: false,
+        baseLayerPicker: false,
+        geocoder: false,
+        homeButton: false,
+        navigationHelpButton: false,
+        sceneModePicker: false,
+        selectionIndicator: false,
+        infoBox: false,
+        fullscreenButton: false,
+        skyBox: false,
+        skyAtmosphere: false,
+        terrainProvider: new EllipsoidTerrainProvider(),
+        requestRenderMode: true,
+        maximumRenderTimeChange: Number.POSITIVE_INFINITY
+      });
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : String(reason);
+      setRendererError(message || "Cesium viewer initialization failed.");
+      return;
+    }
+
+    const removeRenderErrorListener = viewer.scene.renderError.addEventListener((_scene, reason) => {
+      const message = reason instanceof Error ? reason.message : String(reason);
+      setRendererError(message || "Cesium rendering stopped.");
     });
 
     const addGridFallback = () => {
@@ -179,6 +192,7 @@ export function OceanGlobe({
     clickHandlerRef.current = handler;
 
     return () => {
+      removeRenderErrorListener();
       clickHandlerRef.current?.destroy();
       clickHandlerRef.current = null;
       viewer.destroy();
@@ -545,6 +559,15 @@ export function OceanGlobe({
   return (
     <main className="globe-shell">
       <div ref={containerRef} className="cesium-host" />
+      {rendererError && (
+        <div className="renderer-fallback-card" role="alert">
+          <strong>3D renderer degraded</strong>
+          <span>{rendererError}</span>
+          <small>
+            Scientific controls, provenance and evidence remain available. Reload the app; for a demo emergency use the preserved Streamlit fallback.
+          </small>
+        </div>
+      )}
       <div className="globe-overlay top-left">
         <span className="live-dot" />
         <strong>Verified scientific data · {profiles.length} Argo comparison profiles</strong>
