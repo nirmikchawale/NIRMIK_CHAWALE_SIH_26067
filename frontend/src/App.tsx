@@ -4,6 +4,7 @@ import { api } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { OceanGlobe } from "./components/OceanGlobe";
+import { WaterColumn3D } from "./components/WaterColumn3D";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { FeaturePlaceholder } from "./pages/FeaturePlaceholder";
@@ -16,6 +17,7 @@ import type {
   ProfileSummary,
   ProvenanceResponse,
   ViewMode,
+  VisualizationMode,
   VolumeResponse
 } from "./types";
 
@@ -46,6 +48,8 @@ export default function App() {
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
+  const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>("globe");
+  const [waterColumnOpacity, setWaterColumnOpacity] = useState(58);
   const [depthIndex, setDepthIndex] = useState(18);
   const [timeIndex, setTimeIndex] = useState(0);
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
@@ -206,7 +210,7 @@ export default function App() {
         ? api.currents(timeIndex, depthIndex).then((payload) => {
             if (!cancelled) setCurrents(payload);
           })
-        : viewMode === "volume"
+        : visualizationMode === "water-column" || viewMode === "volume"
           ? api.volume(variable, timeIndex).then((payload) => {
               if (!cancelled) setVolume(payload);
             })
@@ -225,12 +229,15 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [catalog, variable, viewMode, depthIndex, timeIndex]);
+  }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents") => {
       setVariable(value);
-      if (value === "currents") setViewMode("slice");
+      if (value === "currents") {
+        setViewMode("slice");
+        setVisualizationMode("globe");
+      }
     },
     []
   );
@@ -318,6 +325,8 @@ export default function App() {
                 profiles={profiles}
                 variable={variable}
                 viewMode={viewMode}
+                visualizationMode={visualizationMode}
+                waterColumnOpacity={waterColumnOpacity}
                 depthIndex={depthIndex}
                 timeIndex={timeIndex}
                 verticalExaggeration={verticalExaggeration}
@@ -325,6 +334,8 @@ export default function App() {
                 playing={playing}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
+                onVisualizationModeChange={setVisualizationMode}
+                onWaterColumnOpacityChange={setWaterColumnOpacity}
                 onDepthChange={setDepthIndex}
                 onTimeChange={setTimeIndex}
                 onVerticalExaggerationChange={setVerticalExaggeration}
@@ -332,15 +343,25 @@ export default function App() {
                 onPlayingChange={setPlaying}
               />
 
-              <OceanGlobe
-                field={field}
-                volume={volume}
-                currents={currents}
-                profiles={profiles}
-                selectedProfileId={selectedProfileId}
-                verticalExaggeration={verticalExaggeration}
-                onSelectProfile={setSelectedProfileId}
-              />
+              {visualizationMode === "globe" ? (
+                <OceanGlobe
+                  field={field}
+                  volume={volume}
+                  currents={currents}
+                  profiles={profiles}
+                  selectedProfileId={selectedProfileId}
+                  verticalExaggeration={verticalExaggeration}
+                  onSelectProfile={setSelectedProfileId}
+                />
+              ) : (
+                <WaterColumn3D
+                  volume={volume}
+                  selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                  verticalExaggeration={verticalExaggeration}
+                  opacity={waterColumnOpacity / 100}
+                  theme={theme}
+                />
+              )}
 
               <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
             </>

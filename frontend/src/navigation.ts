@@ -6,7 +6,7 @@ export const PAGE_ITEMS: Array<{
   label: string;
   description: string;
 }> = [
-  { id: "explore", short: "3D", label: "3D Explorer", description: "Cesium ocean field and water-column exploration" },
+  { id: "explore", short: "3D", label: "3D Explorer", description: "Selectable Cesium globe and scientific water-column 3D" },
   { id: "telemetry", short: "TEL", label: "Telemetry", description: "Depth, time and ocean telemetry visual analytics" },
   { id: "compare", short: "OBS", label: "Model vs Observation", description: "Argo comparison, bias and anomaly evidence" },
   { id: "data-lab", short: "DATA", label: "Data Lab", description: "Validate and analyse additional user datasets" },

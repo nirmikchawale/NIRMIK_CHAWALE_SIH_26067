@@ -1,10 +1,12 @@
-import type { Catalog, ProfileSummary, ViewMode } from "../types";
+import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
   variable: "thetao" | "so" | "currents";
   viewMode: ViewMode;
+  visualizationMode: VisualizationMode;
+  waterColumnOpacity: number;
   depthIndex: number;
   timeIndex: number;
   verticalExaggeration: number;
@@ -12,6 +14,8 @@ interface Props {
   playing: boolean;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
+  onVisualizationModeChange: (value: VisualizationMode) => void;
+  onWaterColumnOpacityChange: (value: number) => void;
   onDepthChange: (value: number) => void;
   onTimeChange: (value: number) => void;
   onVerticalExaggerationChange: (value: number) => void;
@@ -24,6 +28,8 @@ export function ControlPanel({
   profiles,
   variable,
   viewMode,
+  visualizationMode,
+  waterColumnOpacity,
   depthIndex,
   timeIndex,
   verticalExaggeration,
@@ -31,6 +37,8 @@ export function ControlPanel({
   playing,
   onVariableChange,
   onViewModeChange,
+  onVisualizationModeChange,
+  onWaterColumnOpacityChange,
   onDepthChange,
   onTimeChange,
   onVerticalExaggerationChange,
@@ -70,23 +78,70 @@ export function ControlPanel({
           </p>
         )}
 
-        <div className="segmented" aria-label="Visualization mode">
+        <div className="section-kicker visualization-kicker">3D visualization</div>
+        <div className="segmented visualization-selector" aria-label="3D visualization">
           <button
-            className={viewMode === "slice" ? "active" : ""}
-            disabled={!scalar}
-            onClick={() => onViewModeChange("slice")}
+            className={visualizationMode === "globe" ? "active" : ""}
+            onClick={() => onVisualizationModeChange("globe")}
           >
-            Depth slice
+            Cesium Globe
           </button>
           <button
-            className={viewMode === "volume" ? "active" : ""}
+            className={visualizationMode === "water-column" ? "active" : ""}
             disabled={!scalar}
-            onClick={() => onViewModeChange("volume")}
+            onClick={() => onVisualizationModeChange("water-column")}
           >
-            3D field
+            Water-column 3D
           </button>
         </div>
-        {!scalar && <p className="microcopy">Currents use selected-depth vector glyphs.</p>}
+
+        {visualizationMode === "globe" && (
+          <div className="segmented field-mode-selector" aria-label="Globe field mode">
+            <button
+              className={viewMode === "slice" ? "active" : ""}
+              disabled={!scalar}
+              onClick={() => onViewModeChange("slice")}
+            >
+              Depth slice
+            </button>
+            <button
+              className={viewMode === "volume" ? "active" : ""}
+              disabled={!scalar}
+              onClick={() => onViewModeChange("volume")}
+            >
+              3D field
+            </button>
+          </div>
+        )}
+
+        {visualizationMode === "water-column" && scalar && (
+          <label className="opacity-control">
+            <span className="label-row">
+              <span>Point opacity</span>
+              <strong>{waterColumnOpacity}%</strong>
+            </span>
+            <input
+              type="range"
+              min={15}
+              max={95}
+              value={waterColumnOpacity}
+              onChange={(event) => onWaterColumnOpacityChange(Number(event.target.value))}
+            />
+          </label>
+        )}
+
+        {!scalar && (
+          <p className="microcopy warning">
+            Water-column 3D is scalar-only. Currents stay on the globe because the bundled
+            evidence contains horizontal u/v only—no vertical current is invented.
+          </p>
+        )}
+        {visualizationMode === "water-column" && scalar && (
+          <p className="microcopy">
+            Opacity and vertical exaggeration change display geometry only; scientific values
+            and depth metres remain unchanged.
+          </p>
+        )}
       </section>
 
       <section>

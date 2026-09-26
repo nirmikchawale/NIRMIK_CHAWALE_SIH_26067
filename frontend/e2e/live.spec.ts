@@ -54,8 +54,46 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Water-column 3D" })).toBeDisabled();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
+  const waterColumnButton = page.getByRole("button", { name: "Water-column 3D" });
+  await expect(waterColumnButton).toBeEnabled();
+  await waterColumnButton.click();
+
+  const waterColumnShell = page.locator(".water-column-shell");
+  await expect(waterColumnShell).toBeVisible();
+  await expect(page.locator(".water-column-canvas")).toBeVisible();
+  await expect(waterColumnShell).toHaveAttribute("data-depth-count", "31");
+  await expect(page.locator(".water-column-selected")).toContainText("Depth (m, positive down)");
+  await expect(page.locator(".water-column-selected")).toContainText("SELECTED LAYER");
+
+  const opacitySlider = page.getByLabel("Point opacity");
+  await opacitySlider.focus();
+  await opacitySlider.press("End");
+  await expect(waterColumnShell).toHaveAttribute("data-opacity", "0.95");
+
+  const waterColumnCanvas = page.locator(".water-column-canvas");
+  const initialYaw = await waterColumnShell.getAttribute("data-yaw");
+  await waterColumnCanvas.focus();
+  await waterColumnCanvas.press("ArrowLeft");
+  await expect(waterColumnShell).not.toHaveAttribute("data-yaw", initialYaw ?? "");
+
+  const selectedLayer = page.locator(".water-column-selected");
+  const initialSelectedLayer = await selectedLayer.textContent();
+  const waterColumnDepthSlider = page
+    .locator(".control-panel section")
+    .filter({ hasText: "Water column" })
+    .locator('input[type="range"]')
+    .first();
+  await waterColumnDepthSlider.focus();
+  await waterColumnDepthSlider.press("Home");
+  await expect(selectedLayer).not.toHaveText(initialSelectedLayer ?? "");
+
+  await page.getByRole("button", { name: "Cesium Globe" }).click();
+  await expect(page.locator(".cesium-host canvas")).toBeVisible();
+  await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+
   await page.getByRole("button", { name: "3D field" }).click();
   await expect(page.locator(".volume-note")).toContainText("3D WATER COLUMN");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);

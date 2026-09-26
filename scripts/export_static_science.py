@@ -78,7 +78,7 @@ def export_static_science(output: Path) -> dict[str, Any]:
                         variable=variable,
                         time_index=time_index,
                         horizontal_stride=2,
-                        depth_stride=2,
+                        depth_stride=1,
                     ),
                 )
             )
