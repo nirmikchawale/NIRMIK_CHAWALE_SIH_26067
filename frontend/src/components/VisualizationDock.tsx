@@ -5,6 +5,10 @@ interface Props {
   scalarAvailable: boolean;
   variableLabel: string;
   depthM: number;
+  timeLabel: string;
+  regionLabel: string;
+  modelLabel: string;
+  observationLabel: string;
   onChange: (mode: VisualizationMode) => void;
 }
 
@@ -27,22 +31,30 @@ function ColumnIcon() {
   );
 }
 
+function compactUtc(value: string): string {
+  return value.replace("T", " ").replace("Z", " UTC");
+}
+
 export function VisualizationDock({
   mode,
   scalarAvailable,
   variableLabel,
   depthM,
+  timeLabel,
+  regionLabel,
+  modelLabel,
+  observationLabel,
   onChange
 }: Props) {
   return (
     <section
       className="visualization-dock"
-      aria-label="Dual 3D visualization modes"
+      aria-label="Scientific context and dual 3D visualization modes"
       data-visualization-mode={mode}
     >
       <div className="visualization-dock-copy">
-        <span>DUAL 3D VISUALIZATION</span>
-        <strong>Switch scientific view</strong>
+        <span>SCIENTIFIC VIEW</span>
+        <strong>Choose geographic or water-column context</strong>
         <small>{variableLabel} · {depthM.toFixed(2)} m · depth positive down</small>
       </div>
 
@@ -75,6 +87,25 @@ export function VisualizationDock({
             <small>{scalarAvailable ? "actual lon · lat · positive-down depth" : "scalar fields only"}</small>
           </span>
         </button>
+      </div>
+
+      <div className="visualization-context-row" aria-label="Current scientific context">
+        <div>
+          <span>UTC TIME</span>
+          <strong>{compactUtc(timeLabel)}</strong>
+        </div>
+        <div>
+          <span>REGION</span>
+          <strong title={regionLabel}>{regionLabel}</strong>
+        </div>
+        <div>
+          <span>MODEL / PRODUCT</span>
+          <strong title={modelLabel}>{modelLabel}</strong>
+        </div>
+        <div>
+          <span>OBSERVATION</span>
+          <strong title={observationLabel}>{observationLabel}</strong>
+        </div>
       </div>
     </section>
   );
