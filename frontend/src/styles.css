@@ -204,6 +204,7 @@ select {
 }
 
 .workspace-frame {
+  position: relative;
   display: grid;
   grid-template-columns: 74px minmax(0, 1fr) 74px;
   min-height: 0;
@@ -927,7 +928,23 @@ input[type="range"] {
 }
 
 .focus-mode .feature-rail-right {
-  transform: translateX(24px);
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 40;
+  width: 74px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+  overflow: visible;
+}
+
+.focus-mode .feature-rail-right .rail-title,
+.focus-mode .feature-rail-right button:not(:first-of-type) {
+  display: none;
 }
 
 .focus-mode .control-panel {
