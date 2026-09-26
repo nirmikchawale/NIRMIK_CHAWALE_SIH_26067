@@ -1,8 +1,46 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
-import type { AnomalyResponse, Catalog } from "../types";
+import type { AnomalyResponse, Catalog, ResidualAnomalyFlag, SpatialAnomalyFlag } from "../types";
 
 interface Props { catalog: Catalog; }
+
+type FocusScreen = "spatial" | "residual";
+
+function magnitudeBand(robustZ: number): { label: string; key: string } {
+  const magnitude = Math.abs(robustZ);
+  if (magnitude >= 6) return { label: "Very strong deviation", key: "very-strong" };
+  if (magnitude >= 4.5) return { label: "Strong deviation", key: "strong" };
+  return { label: "Threshold crossing", key: "threshold" };
+}
+
+function downloadScreeningEvidence(payload: AnomalyResponse) {
+  const exportPayload = {
+    exported_by: "OceanTwin 3D · Explainable Anomaly Screening",
+    exported_utc: new Date().toISOString(),
+    interpretation_guardrail: payload.interpretation,
+    method: payload.method,
+    selected_model_context: {
+      variable: payload.variable,
+      label: payload.label,
+      units: payload.units,
+      time: payload.time,
+      depth_m: payload.depth_m
+    },
+    spatial_screen: payload.spatial_screen,
+    residual_screen: payload.residual_screen,
+    temporal_screen: payload.temporal_screen,
+    provenance: payload.provenance
+  };
+  const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `OceanTwin_anomaly_screen_${payload.variable}_d${payload.depth_index}.json`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
 
 export function AnomalyPage({ catalog }: Props) {
   const [variable, setVariable] = useState<"thetao" | "so">("thetao");
@@ -10,6 +48,7 @@ export function AnomalyPage({ catalog }: Props) {
   const [payload, setPayload] = useState<AnomalyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [focusScreen, setFocusScreen] = useState<FocusScreen>("spatial");
 
   useEffect(() => {
     let cancelled = false;
@@ -25,6 +64,35 @@ export function AnomalyPage({ catalog }: Props) {
   const depth = catalog.coordinates.depth[depthIndex] ?? 0;
   const spatial = useMemo(() => payload?.spatial_screen.flags.slice(0, 12) ?? [], [payload]);
   const residual = useMemo(() => payload?.residual_screen.flags.slice(0, 16) ?? [], [payload]);
+  const strongestSpatial = useMemo(() =>
+    payload?.spatial_screen.flags.reduce<SpatialAnomalyFlag | null>(
+      (best, flag) => !best || Math.abs(flag.robust_z) > Math.abs(best.robust_z) ? flag : best,
+      null
+    ) ?? null, [payload]);
+  const strongestResidual = useMemo(() =>
+    payload?.residual_screen.flags.reduce<ResidualAnomalyFlag | null>(
+      (best, flag) => !best || Math.abs(flag.robust_z) > Math.abs(best.robust_z) ? flag : best,
+      null
+    ) ?? null, [payload]);
+  const focusedFlag = focusScreen === "spatial" ? strongestSpatial : strongestResidual;
+  const threshold = payload?.method.absolute_threshold ?? 3.5;
+  const focusedBand = focusedFlag ? magnitudeBand(focusedFlag.robust_z) : null;
+
+  const spatialPlot = useMemo(() => {
+    if (!payload || payload.spatial_screen.flags.length === 0) return [];
+    const flags = payload.spatial_screen.flags;
+    const lons = flags.map((flag) => flag.longitude);
+    const lats = flags.map((flag) => flag.latitude);
+    const lonMin = Math.min(...lons), lonMax = Math.max(...lons);
+    const latMin = Math.min(...lats), latMax = Math.max(...lats);
+    const lonSpan = Math.max(lonMax - lonMin, 1e-9);
+    const latSpan = Math.max(latMax - latMin, 1e-9);
+    return flags.map((flag) => ({
+      ...flag,
+      x: 8 + ((flag.longitude - lonMin) / lonSpan) * 84,
+      y: 92 - ((flag.latitude - latMin) / latSpan) * 84
+    }));
+  }, [payload]);
 
   return (
     <main className="anomaly-page" data-page="anomaly" data-variable={variable}
@@ -72,6 +140,110 @@ export function AnomalyPage({ catalog }: Props) {
             <small>temperature residuals, profile-wise</small></article>
           <article className="locked"><span>Temporal screen</span><strong>LOCKED</strong>
             <small>{payload.temporal_screen.genuine_time_count} genuine timestamp(s)</small></article>
+        </section>
+
+        <section className="anomaly-explainable-workspace" data-focus-screen={focusScreen}>
+          <article className="anomaly-focus-card">
+            <div className="anomaly-focus-heading">
+              <div>
+                <span>EXPLAINABLE FLAG INSPECTOR</span>
+                <h3>Why is this point flagged?</h3>
+              </div>
+              <div className="anomaly-focus-switcher" aria-label="Anomaly evidence focus">
+                <button className={focusScreen === "spatial" ? "active" : ""} onClick={() => setFocusScreen("spatial")}>
+                  Model cell
+                </button>
+                <button className={focusScreen === "residual" ? "active" : ""} onClick={() => setFocusScreen("residual")}>
+                  Argo residual
+                </button>
+              </div>
+            </div>
+
+            {focusedFlag && focusedBand ? (
+              <div className="anomaly-focus-body">
+                <div className="anomaly-z-orbit">
+                  <div className="anomaly-z-score">
+                    <span>ROBUST Z</span>
+                    <strong>{focusedFlag.robust_z.toFixed(2)}</strong>
+                    <small className={focusedBand.key}>{focusedBand.label}</small>
+                  </div>
+                  <div className="anomaly-threshold-rail" aria-label="Robust z threshold margin">
+                    <span className="rail-threshold" style={{ left: `${Math.min(100, threshold / 8 * 100)}%` }} />
+                    <span className="rail-value" style={{ width: `${Math.min(100, Math.abs(focusedFlag.robust_z) / 8 * 100)}%` }} />
+                  </div>
+                  <small>|z| exceeds the fixed threshold by {(Math.abs(focusedFlag.robust_z) - threshold).toFixed(2)} robust-z units.</small>
+                </div>
+
+                {focusScreen === "spatial" && strongestSpatial ? (
+                  <dl className="anomaly-why-grid">
+                    <div><dt>Actual value</dt><dd>{strongestSpatial.value.toFixed(4)} {payload.units}</dd></div>
+                    <div><dt>Layer median</dt><dd>{payload.spatial_screen.median.toFixed(4)} {payload.units}</dd></div>
+                    <div><dt>Layer MAD</dt><dd>{payload.spatial_screen.mad.toFixed(4)} {payload.units}</dd></div>
+                    <div><dt>Signed difference</dt><dd>{(strongestSpatial.value - payload.spatial_screen.median).toFixed(4)} {payload.units}</dd></div>
+                    <div><dt>Longitude</dt><dd>{strongestSpatial.longitude.toFixed(3)}°E</dd></div>
+                    <div><dt>Latitude</dt><dd>{strongestSpatial.latitude.toFixed(3)}°N</dd></div>
+                  </dl>
+                ) : strongestResidual ? (
+                  <dl className="anomaly-why-grid">
+                    <div><dt>Depth</dt><dd>{strongestResidual.observation_depth_m.toFixed(1)} m</dd></div>
+                    <div><dt>Model − obs</dt><dd>{strongestResidual.signed_bias_celsius.toFixed(3)} °C</dd></div>
+                    <div><dt>Absolute error</dt><dd>{strongestResidual.absolute_error_celsius.toFixed(3)} °C</dd></div>
+                    <div><dt>Argo platform</dt><dd>{strongestResidual.platform_id}</dd></div>
+                    <div><dt>Cycle</dt><dd>{strongestResidual.cycle}</dd></div>
+                    <div><dt>Screen</dt><dd>Within-profile residual</dd></div>
+                  </dl>
+                ) : null}
+              </div>
+            ) : (
+              <div className="anomaly-empty">No flag is available for this evidence screen at the selected context.</div>
+            )}
+            <div className="anomaly-inspector-guardrail">
+              Magnitude bands describe statistical departure only. They do not classify event severity, sensor health or operational risk.
+            </div>
+          </article>
+
+          <article className="anomaly-context-card">
+            <div className="anomaly-card-heading">
+              <div><span>FLAG CONTEXT</span><h3>{focusScreen === "spatial" ? "Flagged-cell constellation" : "Residual flags by depth"}</h3></div>
+              <button type="button" className="anomaly-download" onClick={() => downloadScreeningEvidence(payload)}>
+                Download screening evidence
+              </button>
+            </div>
+
+            {focusScreen === "spatial" ? (
+              spatialPlot.length ? (
+                <div className="anomaly-flag-map">
+                  <svg viewBox="0 0 100 100" role="img" aria-label="Flagged model cells positioned by actual longitude and latitude">
+                    <path d="M8 92H94M8 92V6" className="anomaly-axis" />
+                    {spatialPlot.map((flag, index) => (
+                      <g key={index}>
+                        <circle
+                          cx={flag.x}
+                          cy={flag.y}
+                          r={Math.min(4.8, 1.8 + Math.abs(flag.robust_z) * .35)}
+                          className={flag.robust_z >= 0 ? "flag-positive" : "flag-negative"}
+                        />
+                        <title>{`${flag.longitude.toFixed(3)}°E, ${flag.latitude.toFixed(3)}°N · z ${flag.robust_z.toFixed(2)}`}</title>
+                      </g>
+                    ))}
+                  </svg>
+                  <div className="anomaly-map-axis-labels"><span>Longitude →</span><span>Latitude ↑</span></div>
+                  <small>Only threshold-crossing cells are drawn; coordinates remain the actual model-cell lon/lat.</small>
+                </div>
+              ) : <div className="anomaly-empty">No flagged model cells at this depth.</div>
+            ) : residual.length ? (
+              <div className="anomaly-residual-ranks">
+                {[...residual].sort((a, b) => Math.abs(b.robust_z) - Math.abs(a.robust_z)).slice(0, 8).map((flag, index) => (
+                  <div key={index}>
+                    <span>{flag.observation_depth_m.toFixed(1)} m</span>
+                    <div><i style={{ width: `${Math.min(100, Math.abs(flag.robust_z) / 8 * 100)}%` }} /></div>
+                    <strong>{flag.robust_z.toFixed(2)}</strong>
+                  </div>
+                ))}
+                <small>Bar length encodes |robust z| for flagged, verified Argo matched levels only.</small>
+              </div>
+            ) : <div className="anomaly-empty">No flagged residuals are available.</div>}
+          </article>
         </section>
 
         <section className="anomaly-grid">

@@ -75,6 +75,19 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(anomalyPage).toContainText("TEMPORAL SCREEN LOCKED");
   await expect(anomalyPage).toContainText("not proof of an ocean event");
   await expect(anomalyPage.locator(".anomaly-residual-table tbody tr").first()).toBeVisible();
+  const anomalyInspector = anomalyPage.locator(".anomaly-explainable-workspace");
+  await expect(anomalyInspector).toBeVisible();
+  await expect(anomalyInspector).toHaveAttribute("data-focus-screen", "spatial");
+  await expect(anomalyInspector).toContainText("Why is this point flagged?");
+  await expect(anomalyInspector).toContainText("Magnitude bands describe statistical departure only");
+  await expect(anomalyPage.getByRole("button", { name: "Download screening evidence" })).toBeEnabled();
+  await expect(anomalyPage.locator(".anomaly-flag-map svg")).toBeVisible();
+  await anomalyPage.getByRole("button", { name: "Argo residual" }).click();
+  await expect(anomalyInspector).toHaveAttribute("data-focus-screen", "residual");
+  await expect(anomalyInspector).toContainText("Residual flags by depth");
+  await expect(anomalyPage.locator(".anomaly-residual-ranks")).toBeVisible();
+  await anomalyPage.getByRole("button", { name: "Model cell" }).click();
+  await expect(anomalyInspector).toHaveAttribute("data-focus-screen", "spatial");
 
   const anomalyInitialDepth = await anomalyPage.getAttribute("data-depth-index");
   const anomalyDepth = anomalyPage.getByLabel("Anomaly depth");
