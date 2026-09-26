@@ -4229,7 +4229,7 @@ input:focus-visible {
 }
 
 .water-column-smooth-zoom {
-  left: 14px;
+  left: 290px;
   bottom: 54px;
 }
 
@@ -4418,5 +4418,13 @@ input:focus-visible {
 
   .water-column-axis-key {
     display: none;
+  }
+}
+
+
+@media (max-width: 1150px) and (min-width: 761px) {
+  .cesium-smooth-zoom,
+  .water-column-smooth-zoom {
+    left: 266px;
   }
 }
