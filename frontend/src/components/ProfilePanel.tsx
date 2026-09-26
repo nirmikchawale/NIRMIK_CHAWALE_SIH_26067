@@ -160,6 +160,11 @@ export function ProfilePanel({
         <div><span>MAE</span><strong>{summary.mae_celsius.toFixed(3)} °C</strong></div>
         <div><span>RMSE</span><strong>{summary.rmse_celsius.toFixed(3)} °C</strong></div>
         <div><span>Cell distance</span><strong>{summary.spatial_distance_km.toFixed(2)} km</strong></div>
+        <div><span>Time offset</span><strong>{summary.time_offset_hours.toFixed(2)} h</strong></div>
+        <div>
+          <span>Matched depth</span>
+          <strong>{summary.shallowest_matched_depth_m.toFixed(0)}–{summary.deepest_matched_depth_m.toFixed(0)} m</strong>
+        </div>
       </div>
 
       <ProfileChart detail={detail} />
