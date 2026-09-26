@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type {
   ComparisonLevel,
   ProfileDetail,
@@ -107,7 +108,7 @@ function linePoints(
     .join(" ");
 }
 
-function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
+function ComparisonProfileChart({ detail, selectedIndex }: { detail: ProfileDetail; selectedIndex: number }) {
   const width = 560;
   const height = 360;
   const temperatures = detail.levels.flatMap((level) => [
@@ -117,6 +118,16 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
   const xMin = Math.min(...temperatures);
   const xMax = Math.max(...temperatures);
   const maxDepth = Math.max(...detail.levels.map((level) => level.observation_depth_m));
+  const selected = detail.levels[Math.min(selectedIndex, detail.levels.length - 1)];
+  const selectedY = selected
+    ? 18 + (selected.observation_depth_m / Math.max(maxDepth, 1e-9)) * (height - 36)
+    : null;
+  const selectedObservedX = selected
+    ? 22 + ((selected.observed_temperature - xMin) / Math.max(xMax - xMin, 1e-9)) * (width - 44)
+    : null;
+  const selectedModelX = selected
+    ? 22 + ((selected.model_temperature_interpolated - xMin) / Math.max(xMax - xMin, 1e-9)) * (width - 44)
+    : null;
 
   const observed = linePoints(
     detail.levels,
@@ -157,6 +168,13 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
         <line x1="22" x2={width - 22} y1={height - 18} y2={height - 18} className="grid-line" />
         <polyline points={model} className="profile-line model-line comparison-line" />
         <polyline points={observed} className="profile-line observation-line comparison-line" />
+        {selectedY != null && selectedObservedX != null && selectedModelX != null && (
+          <>
+            <line x1="22" x2={width - 22} y1={selectedY} y2={selectedY} className="comparison-selected-depth-line" />
+            <circle cx={selectedObservedX} cy={selectedY} r="5" className="comparison-selected-point observation-point" />
+            <circle cx={selectedModelX} cy={selectedY} r="5" className="comparison-selected-point model-point" />
+          </>
+        )}
       </svg>
       <div className="comparison-chart-legend">
         <span><i className="legend-dot model-dot" /> Copernicus interpolated model</span>
@@ -167,11 +185,18 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
   );
 }
 
-function ComparisonBiasChart({ detail }: { detail: ProfileDetail }) {
+function ComparisonBiasChart({ detail, selectedIndex }: { detail: ProfileDetail; selectedIndex: number }) {
   const width = 560;
   const height = 300;
   const maxDepth = Math.max(...detail.levels.map((level) => level.observation_depth_m));
   const maxAbsBias = Math.max(0.05, ...detail.levels.map((level) => Math.abs(level.signed_bias_celsius)));
+  const selected = detail.levels[Math.min(selectedIndex, detail.levels.length - 1)];
+  const selectedY = selected
+    ? 18 + (selected.observation_depth_m / Math.max(maxDepth, 1e-9)) * (height - 36)
+    : null;
+  const selectedX = selected
+    ? 22 + ((selected.signed_bias_celsius + maxAbsBias) / (2 * maxAbsBias)) * (width - 44)
+    : null;
   const points = linePoints(
     detail.levels,
     (level) => level.signed_bias_celsius,
@@ -201,6 +226,12 @@ function ComparisonBiasChart({ detail }: { detail: ProfileDetail }) {
         <line x1="22" x2={width - 22} y1="18" y2="18" className="grid-line" />
         <line x1="22" x2={width - 22} y1={height - 18} y2={height - 18} className="grid-line" />
         <polyline points={points} className="profile-line bias-line comparison-line" />
+        {selectedY != null && selectedX != null && (
+          <>
+            <line x1="22" x2={width - 22} y1={selectedY} y2={selectedY} className="comparison-selected-depth-line" />
+            <circle cx={selectedX} cy={selectedY} r="5" className="comparison-selected-point bias-point" />
+          </>
+        )}
       </svg>
       <div className="comparison-chart-legend">
         <span>Negative = model cooler</span>
@@ -208,6 +239,43 @@ function ComparisonBiasChart({ detail }: { detail: ProfileDetail }) {
         <span>Zero line = exact temperature agreement at a matched depth</span>
       </div>
     </section>
+  );
+}
+
+function CollocationDiagram({ summary }: { summary: ProfileSummary }) {
+  const lonMinRaw = Math.min(summary.observation_longitude, summary.model_cell_longitude);
+  const lonMaxRaw = Math.max(summary.observation_longitude, summary.model_cell_longitude);
+  const latMinRaw = Math.min(summary.observation_latitude, summary.model_cell_latitude);
+  const latMaxRaw = Math.max(summary.observation_latitude, summary.model_cell_latitude);
+  const lonPad = Math.max((lonMaxRaw - lonMinRaw) * .45, .03);
+  const latPad = Math.max((latMaxRaw - latMinRaw) * .45, .03);
+  const lonMin = lonMinRaw - lonPad, lonMax = lonMaxRaw + lonPad;
+  const latMin = latMinRaw - latPad, latMax = latMaxRaw + latPad;
+  const mapX = (lon: number) => 24 + ((lon - lonMin) / Math.max(lonMax - lonMin, 1e-9)) * 312;
+  const mapY = (lat: number) => 196 - ((lat - latMin) / Math.max(latMax - latMin, 1e-9)) * 160;
+  const ox = mapX(summary.observation_longitude), oy = mapY(summary.observation_latitude);
+  const mx = mapX(summary.model_cell_longitude), my = mapY(summary.model_cell_latitude);
+
+  return (
+    <article className="comparison-collocation-visual">
+      <div className="comparison-card-heading">
+        <div><span>SPATIAL COLLOCATION</span><h3>Argo observation ↔ selected model cell</h3></div>
+        <strong>{summary.spatial_distance_km.toFixed(2)} km apart</strong>
+      </div>
+      <svg viewBox="0 0 360 220" role="img" aria-label="Actual Argo observation and model cell collocation geometry">
+        <rect x="18" y="22" width="324" height="180" rx="9" className="collocation-frame" />
+        <path d={`M${ox.toFixed(1)} ${oy.toFixed(1)} L${mx.toFixed(1)} ${my.toFixed(1)}`} className="collocation-link" />
+        <circle cx={ox} cy={oy} r="7" className="collocation-argo" />
+        <rect x={mx - 6} y={my - 6} width="12" height="12" rx="2" className="collocation-model" />
+        <text x={ox + 10} y={oy - 9} className="collocation-label">ARGO</text>
+        <text x={mx + 10} y={my + 14} className="collocation-label">MODEL CELL</text>
+      </svg>
+      <div className="comparison-collocation-coordinates">
+        <span>Argo {summary.observation_latitude.toFixed(4)}°N · {summary.observation_longitude.toFixed(4)}°E</span>
+        <span>Model {summary.model_cell_latitude.toFixed(4)}°N · {summary.model_cell_longitude.toFixed(4)}°E</span>
+      </div>
+      <small>Local frame is scaled for legibility; marker labels preserve the actual collocation coordinates and reported distance.</small>
+    </article>
   );
 }
 
@@ -220,6 +288,13 @@ export function ComparisonPage({
   onProfileChange
 }: Props) {
   const summary = detail?.summary;
+  const [selectedLevelIndex, setSelectedLevelIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedLevelIndex(0);
+  }, [selectedProfileId]);
+
+  const selectedLevel = detail?.levels[Math.min(selectedLevelIndex, Math.max(0, detail.levels.length - 1))] ?? null;
 
   return (
     <main className="comparison-page" data-page="compare">
@@ -298,10 +373,51 @@ export function ComparisonPage({
             </article>
           </section>
 
+          {selectedLevel && (
+            <section className="comparison-depth-inspector" data-selected-depth={selectedLevel.observation_depth_m.toFixed(2)}>
+              <div className="comparison-depth-control">
+                <div>
+                  <span>LINKED DEPTH INSPECTOR</span>
+                  <strong>{selectedLevel.observation_depth_m.toFixed(2)} m</strong>
+                  <small>Move through provider-QC accepted matched levels only.</small>
+                </div>
+                <input
+                  aria-label="Comparison matched depth"
+                  type="range"
+                  min={0}
+                  max={Math.max(0, detail.levels.length - 1)}
+                  value={Math.min(selectedLevelIndex, Math.max(0, detail.levels.length - 1))}
+                  onChange={(event) => setSelectedLevelIndex(Number(event.target.value))}
+                />
+              </div>
+              <div className="comparison-depth-values">
+                <article><span>Argo observation</span><strong>{selectedLevel.observed_temperature.toFixed(4)} °C</strong></article>
+                <article><span>Interpolated model</span><strong>{selectedLevel.model_temperature_interpolated.toFixed(4)} °C</strong></article>
+                <article><span>Signed bias M−O</span><strong>{selectedLevel.signed_bias_celsius >= 0 ? "+" : ""}{selectedLevel.signed_bias_celsius.toFixed(4)} °C</strong></article>
+                <article><span>Absolute error</span><strong>{selectedLevel.absolute_error_celsius.toFixed(4)} °C</strong></article>
+              </div>
+            </section>
+          )}
+
           <div className="comparison-chart-grid">
-            <ComparisonProfileChart detail={detail} />
-            <ComparisonBiasChart detail={detail} />
+            <ComparisonProfileChart detail={detail} selectedIndex={selectedLevelIndex} />
+            <ComparisonBiasChart detail={detail} selectedIndex={selectedLevelIndex} />
           </div>
+
+          <section className="comparison-spatial-workspace">
+            <CollocationDiagram summary={summary} />
+            <article className="comparison-interpretation-card">
+              <div className="comparison-card-heading">
+                <div><span>READ THE EVIDENCE</span><h3>What the metrics mean here</h3></div>
+              </div>
+              <dl>
+                <div><dt>MAE</dt><dd>Average absolute temperature difference across this profile&apos;s matched levels.</dd></div>
+                <div><dt>RMSE</dt><dd>Also weights larger departures more strongly because errors are squared before averaging.</dd></div>
+                <div><dt>Signed bias</dt><dd>Positive means model warmer; negative means model cooler at that matched depth.</dd></div>
+                <div><dt>Scope</dt><dd>These metrics describe this verified collocated profile only, not global model skill.</dd></div>
+              </dl>
+            </article>
+          </section>
 
           <section className="comparison-evidence-grid">
             <article className="comparison-method-card">
