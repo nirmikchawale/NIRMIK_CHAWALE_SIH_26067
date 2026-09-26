@@ -45,21 +45,30 @@ export function ControlPanel({
     <aside className="control-panel">
       <section>
         <div className="section-kicker">Explore</div>
-        <label>
-          Variable
-          <select
-            value={variable}
-            onChange={(event) =>
-              onVariableChange(event.target.value as "thetao" | "so" | "currents")
-            }
-          >
-            {catalog.variables.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="variable-switcher" aria-label="Ocean variable">
+          {catalog.variables.map((item) => (
+            <button
+              key={item.id}
+              className={variable === item.id ? "active" : ""}
+              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents")}
+            >
+              <span>{item.label}</span>
+              <small>{item.units}</small>
+            </button>
+          ))}
+        </div>
+        {catalog.variables.find((item) => item.id === variable) && (
+          <p className="active-range">
+            Verified range{" "}
+            <strong>
+              {catalog.variables.find((item) => item.id === variable)?.minimum.toFixed(3)}
+              {" – "}
+              {catalog.variables.find((item) => item.id === variable)?.maximum.toFixed(3)}
+              {" "}
+              {catalog.variables.find((item) => item.id === variable)?.units}
+            </strong>
+          </p>
+        )}
 
         <div className="segmented" aria-label="Visualization mode">
           <button
