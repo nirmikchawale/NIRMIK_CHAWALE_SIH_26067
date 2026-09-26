@@ -5,6 +5,7 @@ import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
+import { DataLabPage } from "./pages/DataLabPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
 import { ProfilePanel } from "./components/ProfilePanel";
@@ -378,6 +379,8 @@ export default function App() {
               provenance={provenance}
               onProfileChange={setSelectedProfileId}
             />
+          ) : page === "data-lab" ? (
+            <DataLabPage />
           ) : (
             <FeaturePlaceholder page={page} />
           )}
