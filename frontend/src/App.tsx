@@ -254,6 +254,11 @@ export default function App() {
             <span>MODEL</span>
             <strong>GLORYS12V1</strong>
           </div>
+          {focusMode && (
+            <button className="evidence-button focus-exit-header" onClick={() => setFocusMode(false)}>
+              Show panels
+            </button>
+          )}
           <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
             {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● SCIENCE API READY"}
           </span>
