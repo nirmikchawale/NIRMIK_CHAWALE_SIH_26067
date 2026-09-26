@@ -1,3 +1,5 @@
+import json
+
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -84,3 +86,16 @@ def test_profile_endpoint_keeps_model_minus_observation_semantics():
         first["signed_bias_celsius"]
         - (first["model_temperature_interpolated"] - first["observed_temperature"])
     ) < 1e-10
+
+
+def test_provenance_is_judge_safe_and_exposes_qc_without_local_paths():
+    response = client.get("/api/provenance")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["model"]["freshness_class"] == "reanalysis"
+    assert payload["quality_control"]["accepted_provider_qc"] == ["1"]
+    assert payload["quality_control"]["no_extrapolation"] is True
+    assert payload["integrity"]["source_checksums_unchanged"] is True
+    serialized = json.dumps(payload)
+    assert "C:\\\\Users" not in serialized
+    assert "comparison_config" not in payload
