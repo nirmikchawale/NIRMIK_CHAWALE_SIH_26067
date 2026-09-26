@@ -48,6 +48,45 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toHaveAttribute("data-variable", "so");
   await expect(telemetryPage.locator(".telemetry-depth-card")).toContainText("Salinity");
 
+  await page.getByRole("button", { name: "Data Lab" }).click();
+  await expect(page).toHaveURL(/#\/data-lab$/);
+  const dataLabPage = page.locator('.data-lab-page[data-page="data-lab"]');
+  await expect(dataLabPage).toBeVisible();
+  await expect(dataLabPage).toContainText("Additional dataset lab");
+  await expect(dataLabPage).toContainText("Data stays in this browser session");
+
+  const validCsv = [
+    "longitude,latitude,depth_m,timestamp,variable,value,units,source",
+    "68.10,13.10,10,2020-07-01T00:00:00Z,temperature,28.2,degree_Celsius,judge_sample",
+    "68.20,13.20,50,2020-07-01T00:00:00Z,temperature,25.4,degree_Celsius,judge_sample",
+    "68.10,13.10,10,2020-07-01T00:00:00Z,salinity,35.1,1e-3,judge_sample",
+    "68.20,13.20,50,2020-07-01T00:00:00Z,salinity,35.0,1e-3,judge_sample"
+  ].join("\n");
+
+  await dataLabPage.getByLabel("Ocean dataset file").setInputFiles({
+    name: "judge_valid.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(validCsv)
+  });
+  await expect(dataLabPage.locator(".data-lab-status.valid")).toContainText("VALIDATED");
+  await expect(dataLabPage).toHaveAttribute("data-row-count", "4");
+  await expect(dataLabPage).toContainText("Only one genuine timestamp is present");
+  await expect(dataLabPage.locator(".data-lab-variable-grid article")).toHaveCount(2);
+  await expect(dataLabPage.getByRole("button", { name: "Download validation report" })).toBeEnabled();
+
+  const invalidCsv = [
+    "longitude,latitude,depth_m,timestamp,variable,value,units,source",
+    "68.10,95,10,2020-07-01T00:00:00Z,temperature,28.2,,judge_sample"
+  ].join("\n");
+  await dataLabPage.getByLabel("Ocean dataset file").setInputFiles({
+    name: "judge_invalid.csv",
+    mimeType: "text/csv",
+    buffer: Buffer.from(invalidCsv)
+  });
+  await expect(dataLabPage.locator(".data-lab-status.invalid")).toContainText("REJECTED");
+  await expect(dataLabPage).toContainText("Latitude must be between -90 and 90 degrees.");
+  await expect(dataLabPage).toContainText("Units are required.");
+
   await page.getByRole("button", { name: "Model vs Observation" }).click();
   await expect(page).toHaveURL(/#\/compare$/);
   const comparisonPage = page.locator('.comparison-page[data-page="compare"]');

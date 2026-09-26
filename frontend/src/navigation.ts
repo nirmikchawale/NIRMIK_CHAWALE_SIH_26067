@@ -9,7 +9,7 @@ export const PAGE_ITEMS: Array<{
   { id: "explore", short: "3D", label: "3D Explorer", description: "Selectable Cesium globe and scientific water-column 3D" },
   { id: "telemetry", short: "TEL", label: "Telemetry", description: "Depth, time and ocean telemetry visual analytics" },
   { id: "compare", short: "OBS", label: "Model vs Observation", description: "Argo comparison, bias and anomaly evidence" },
-  { id: "data-lab", short: "DATA", label: "Data Lab", description: "Validate and analyse additional user datasets" },
+  { id: "data-lab", short: "DATA", label: "Data Lab", description: "Local CSV/JSON schema, quality and provenance validation" },
   { id: "about", short: "INFO", label: "Science & System", description: "Sources, methods, limits and architecture" }
 ];
 
