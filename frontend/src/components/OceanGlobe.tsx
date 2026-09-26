@@ -568,9 +568,18 @@ export function OceanGlobe({
           </small>
         </div>
       )}
-      <div className="globe-overlay top-left">
-        <span className="live-dot" />
-        <strong>Verified scientific data · {profiles.length} Argo comparison profiles</strong>
+      <div className="globe-overlay top-left judge-summary">
+        <div>
+          <span className="live-dot" />
+          <strong>INDIAN OCEAN · VERIFIED WINDOW</strong>
+        </div>
+        <span>67–70°E · 12–14°N · {profiles.length} Argo comparison profiles</span>
+        <small>
+          {scalar?.label ?? (currents ? "Currents" : "Ocean field")}
+          {field ? ` · ${field.depth_m.toFixed(2)} m` : ""}
+          {currents ? ` · ${currents.depth_m.toFixed(2)} m` : ""}
+          {volume ? " · full water column" : ""}
+        </small>
       </div>
       {inspection && (
         <div className="globe-overlay inspection-card">
@@ -603,6 +612,9 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
+      <div className="globe-overlay interaction-hint">
+        Drag to orbit · scroll to zoom · click Argo or model cells to inspect
+      </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
         <div className="gradient-bar" />
