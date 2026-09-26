@@ -13,7 +13,6 @@ import { WaterColumn3D } from "./components/WaterColumn3D";
 import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
-import { FeaturePlaceholder } from "./pages/FeaturePlaceholder";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import type {
   Catalog,
@@ -393,10 +392,8 @@ export default function App() {
             <AnomalyPage catalog={catalog} />
           ) : page === "data-lab" ? (
             <DataLabPage />
-          ) : page === "about" ? (
-            <InfoPage catalog={catalog} provenance={provenance} />
           ) : (
-            <FeaturePlaceholder page={page} />
+            <InfoPage catalog={catalog} provenance={provenance} />
           )}
 
           <ProvenanceDrawer
