@@ -14,6 +14,16 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
 
+  const documentRoot = page.locator("html");
+  await expect(documentRoot).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(documentRoot).toHaveAttribute("data-theme", "light");
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("oceantwin-theme"))).toBe("light");
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(documentRoot).toHaveAttribute("data-theme", "light");
+
   await page.getByRole("button", { name: "Telemetry" }).click();
   await expect(page).toHaveURL(/#\/telemetry$/);
   const telemetryPage = page.locator('.feature-page[data-page="telemetry"]');
@@ -86,6 +96,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.getByRole("button", { name: "Show panels" })).toBeVisible();
   await page.getByRole("button", { name: "Show panels" }).click();
   await expect(page.locator(".app-shell")).not.toHaveClass(/focus-mode/);
+
+  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  await expect(documentRoot).toHaveAttribute("data-theme", "dark");
+  await expect.poll(() => page.evaluate(() => window.localStorage.getItem("oceantwin-theme"))).toBe("dark");
 
   expect(pageErrors).toEqual([]);
 });
