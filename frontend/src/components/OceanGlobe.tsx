@@ -6,6 +6,7 @@ import {
   ConstantProperty,
   ColorGeometryInstanceAttribute,
   EllipsoidTerrainProvider,
+  EasingFunction,
   GeometryInstance,
   GridImageryProvider,
   TileMapServiceImageryProvider,
@@ -31,8 +32,10 @@ import type {
   CurrentsResponse,
   FieldResponse,
   ProfileSummary,
+  VisualizationMode,
   VolumeResponse
 } from "../types";
+import { Dual3DModeSwitch } from "./Dual3DModeSwitch";
 
 interface Inspection {
   kind: "scalar" | "current";
@@ -55,8 +58,19 @@ interface Props {
   profiles: ProfileSummary[];
   selectedProfileId: string;
   verticalExaggeration: number;
+  visualizationMode: VisualizationMode;
+  scalarAvailable: boolean;
+  onVisualizationModeChange: (mode: VisualizationMode) => void;
   onSelectProfile: (profileId: string) => void;
 }
+
+const DEFAULT_GLOBE_VIEW = {
+  longitude: 72.0,
+  latitude: 14.2,
+  height: 1_900_000,
+  heading: CesiumMath.toRadians(248),
+  pitch: CesiumMath.toRadians(-76)
+};
 
 function scalarColor(value: number, minimum: number, maximum: number, variable: string): Color {
   const t = Math.max(0, Math.min(1, (value - minimum) / Math.max(maximum - minimum, 1e-12)));
@@ -73,6 +87,9 @@ export function OceanGlobe({
   profiles,
   selectedProfileId,
   verticalExaggeration,
+  visualizationMode,
+  scalarAvailable,
+  onVisualizationModeChange,
   onSelectProfile
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -189,10 +206,14 @@ export function OceanGlobe({
     // revealing India's west coast and enough globe curvature to read as geography,
     // not as a floating rectangular plot.
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+      destination: Cartesian3.fromDegrees(
+        DEFAULT_GLOBE_VIEW.longitude,
+        DEFAULT_GLOBE_VIEW.latitude,
+        DEFAULT_GLOBE_VIEW.height
+      ),
       orientation: {
-        heading: CesiumMath.toRadians(248),
-        pitch: CesiumMath.toRadians(-76),
+        heading: DEFAULT_GLOBE_VIEW.heading,
+        pitch: DEFAULT_GLOBE_VIEW.pitch,
         roll: 0
       },
       duration: 0
@@ -588,6 +609,42 @@ export function OceanGlobe({
     viewer.scene.requestRender();
   }, [field, volume, currents, verticalExaggeration]);
 
+  const smoothGlobeZoom = (factor: number) => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    const position = viewer.camera.positionCartographic;
+    const targetHeight = Math.min(6_000_000, Math.max(110_000, position.height * factor));
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromRadians(position.longitude, position.latitude, targetHeight),
+      orientation: {
+        heading: viewer.camera.heading,
+        pitch: viewer.camera.pitch,
+        roll: viewer.camera.roll
+      },
+      duration: 0.48,
+      easingFunction: EasingFunction.QUADRATIC_IN_OUT
+    });
+  };
+
+  const fitGlobeView = () => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(
+        DEFAULT_GLOBE_VIEW.longitude,
+        DEFAULT_GLOBE_VIEW.latitude,
+        DEFAULT_GLOBE_VIEW.height
+      ),
+      orientation: {
+        heading: DEFAULT_GLOBE_VIEW.heading,
+        pitch: DEFAULT_GLOBE_VIEW.pitch,
+        roll: 0
+      },
+      duration: 0.58,
+      easingFunction: EasingFunction.QUADRATIC_IN_OUT
+    });
+  };
+
   const scalar = field ?? volume;
   const legendMin = scalar?.minimum ?? currents?.minimum;
   const legendMax = scalar?.maximum ?? currents?.maximum;
@@ -602,6 +659,16 @@ export function OceanGlobe({
       data-render-quality="high"
     >
       <div ref={containerRef} className="cesium-host" />
+      <Dual3DModeSwitch
+        activeMode={visualizationMode}
+        scalarAvailable={scalarAvailable}
+        onChange={onVisualizationModeChange}
+      />
+      <div className="globe-overlay view-zoom-controls" data-label="CESIUM CAMERA">
+        <button type="button" aria-label="Globe zoom out" onClick={() => smoothGlobeZoom(1.34)}>−</button>
+        <button type="button" aria-label="Fit globe to model region" onClick={fitGlobeView}>FIT</button>
+        <button type="button" aria-label="Globe zoom in" onClick={() => smoothGlobeZoom(0.74)}>+</button>
+      </div>
       {rendererError && (
         <div className="renderer-fallback-card" role="alert">
           <strong>3D renderer degraded</strong>
