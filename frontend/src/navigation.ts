@@ -1,4 +1,4 @@
-export type PageId = "explore" | "telemetry" | "compare" | "data-lab" | "about";
+export type PageId = "explore" | "telemetry" | "compare" | "anomaly" | "data-lab" | "about";
 
 export const PAGE_ITEMS: Array<{
   id: PageId;
@@ -9,6 +9,7 @@ export const PAGE_ITEMS: Array<{
   { id: "explore", short: "3D", label: "3D Explorer", description: "Selectable Cesium globe and scientific water-column 3D" },
   { id: "telemetry", short: "TEL", label: "Telemetry", description: "Depth, time and ocean telemetry visual analytics" },
   { id: "compare", short: "OBS", label: "Model vs Observation", description: "Argo comparison, bias and anomaly evidence" },
+  { id: "anomaly", short: "FLAG", label: "Anomaly Screening", description: "Explainable spatial extremes and Argo residual outliers" },
   { id: "data-lab", short: "DATA", label: "Data Lab", description: "Local CSV/JSON schema, quality and provenance validation" },
   { id: "about", short: "INFO", label: "Science & System", description: "Sources, methods, limits and architecture" }
 ];
