@@ -8,7 +8,8 @@ import {
   type WheelEvent
 } from "react";
 
-import type { VolumeResponse } from "../types";
+import type { VisualizationMode, VolumeResponse } from "../types";
+import { Dual3DModeSwitch } from "./Dual3DModeSwitch";
 
 interface Props {
   volume: VolumeResponse | null;
@@ -16,6 +17,8 @@ interface Props {
   verticalExaggeration: number;
   opacity: number;
   theme: "dark" | "light";
+  visualizationMode: VisualizationMode;
+  onVisualizationModeChange: (mode: VisualizationMode) => void;
 }
 
 interface ProjectedPoint {
@@ -54,13 +57,62 @@ export function WaterColumn3D({
   selectedDepthM,
   verticalExaggeration,
   opacity,
-  theme
+  theme,
+  visualizationMode,
+  onVisualizationModeChange
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragRef = useRef({ active: false, x: 0, y: 0 });
   const projectedRef = useRef<ProjectedPoint[]>([]);
+  const zoomAnimationRef = useRef<number | null>(null);
+  const orbitRef = useRef(DEFAULT_ORBIT);
   const [orbit, setOrbit] = useState(DEFAULT_ORBIT);
   const [hover, setHover] = useState<HoverPoint | null>(null);
+
+  useEffect(() => {
+    orbitRef.current = orbit;
+  }, [orbit]);
+
+  useEffect(() => () => {
+    if (zoomAnimationRef.current != null) {
+      window.cancelAnimationFrame(zoomAnimationRef.current);
+    }
+  }, []);
+
+  const animateOrbit = (target: typeof DEFAULT_ORBIT) => {
+    if (zoomAnimationRef.current != null) {
+      window.cancelAnimationFrame(zoomAnimationRef.current);
+    }
+    const start = orbitRef.current;
+    const startedAt = performance.now();
+    const durationMs = 420;
+
+    const step = (now: number) => {
+      const raw = clamp((now - startedAt) / durationMs, 0, 1);
+      const eased = raw < 0.5 ? 4 * raw * raw * raw : 1 - Math.pow(-2 * raw + 2, 3) / 2;
+      const next = {
+        yaw: start.yaw + (target.yaw - start.yaw) * eased,
+        pitch: start.pitch + (target.pitch - start.pitch) * eased,
+        zoom: start.zoom + (target.zoom - start.zoom) * eased
+      };
+      orbitRef.current = next;
+      setOrbit(next);
+      if (raw < 1) {
+        zoomAnimationRef.current = window.requestAnimationFrame(step);
+      } else {
+        zoomAnimationRef.current = null;
+      }
+    };
+    zoomAnimationRef.current = window.requestAnimationFrame(step);
+  };
+
+  const smoothZoom = (factor: number) => {
+    const current = orbitRef.current;
+    animateOrbit({
+      ...current,
+      zoom: clamp(current.zoom * factor, 0.62, 1.9)
+    });
+  };
 
   const depthLevels = useMemo(() => {
     if (!volume) return [];
@@ -391,6 +443,18 @@ export function WaterColumn3D({
         onKeyDown={onKeyDown}
       />
 
+      <Dual3DModeSwitch
+        activeMode={visualizationMode}
+        scalarAvailable
+        onChange={onVisualizationModeChange}
+      />
+
+      <div className="globe-overlay view-zoom-controls" data-label="WATER-COLUMN CAMERA">
+        <button type="button" aria-label="Water-column zoom out" onClick={() => smoothZoom(0.82)}>−</button>
+        <button type="button" aria-label="Reset water-column view" onClick={() => animateOrbit(DEFAULT_ORBIT)}>FIT</button>
+        <button type="button" aria-label="Water-column zoom in" onClick={() => smoothZoom(1.22)}>+</button>
+      </div>
+
       <div className="globe-overlay top-left water-column-summary">
         <div>
           <span className="live-dot" />
@@ -415,14 +479,6 @@ export function WaterColumn3D({
           <span>{volume.maximum.toFixed(3)}</span>
         </div>
       </div>
-
-      <button
-        type="button"
-        className="globe-overlay water-column-reset"
-        onClick={() => setOrbit(DEFAULT_ORBIT)}
-      >
-        Reset 3D view
-      </button>
 
       {hover && (
         <div className="globe-overlay water-column-hover">
