@@ -6,6 +6,7 @@ import {
   GridImageryProvider,
   HorizontalOrigin,
   LabelStyle,
+  Material,
   PointPrimitiveCollection,
   PolylineCollection,
   ScreenSpaceEventHandler,
@@ -239,7 +240,7 @@ export function OceanGlobe({
         lines.add({
           positions: [start, end],
           width: 2.2,
-          material: color
+          material: Material.fromType("Color", { color })
         });
         heads.add({
           position: end,
