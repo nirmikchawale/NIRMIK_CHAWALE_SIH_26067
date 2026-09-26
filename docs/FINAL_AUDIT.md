@@ -1,71 +1,134 @@
 # OceanTwin 3D — Final Audit
 
-## Repository inspection
+## Repository architecture audit
 
-- Entry point: `app.py`.
-- Runtime: Python + Streamlit + Plotly; scientific loaders use pandas, NumPy and h5py.
-- Local model: `data/glorys12_20240102_67E70E_12N14N_0m500m.nc`.
-- Processed comparison evidence: `data/comparison/`.
-- Tests: `tests/` plus the preserved original comparison-engine test artefacts in `data/comparison/`.
-- No runtime scientific-data network call is used.
+The final application has a clear separation of responsibilities:
+
+- `app.py` — thin Streamlit entry point.
+- `oceantwin/application.py` — product orchestration and controls.
+- `oceantwin/state.py` — deterministic verified-demo/reset state.
+- `oceantwin/ui/` — versioned tokens, theme, components and Plotly presentation.
+- `oceantwin/views/` — dashboard and evidence composition.
+- `src/` — preserved scientific loaders and figure builders.
+- `data/` — bundled verified scientific evidence.
+- `tests/` — scientific/application regression and product-contract tests.
+- `docs/` — method, data dictionary, runbook, troubleshooting, UI system and release checklists.
 
 ## Scientific data audit
 
 ### Copernicus subset
 
-- Product ID: `GLOBAL_MULTIYEAR_PHY_001_030`.
-- Dataset ID: `cmems_mod_glo_phy_my_0.083deg_P1D-m`.
-- Dataset version recorded in provenance: `202311`.
-- DOI recorded in provenance: `10.48670/moi-00021`.
-- Variable: `thetao`, NetCDF `standard_name=sea_water_potential_temperature`, units `degrees_C`.
-- Cached dimensions used by the app: 31 depth × 25 latitude × 37 longitude, one time step.
-- Depth: metres, positive down, 0.494025–453.937714 m.
-- Encoded model timestamp: 2024-01-02 00:00 UTC.
-- Comparison configuration documents daily support 00:00–24:00 UTC, centred at noon.
+- Product family: `GLOBAL_MULTIYEAR_PHY_001_030`.
+- Dataset: `cmems_mod_glo_phy_my_0.083deg_P1D-m`.
+- Product label: GLORYS12V1.
+- Variable: `thetao`, sea-water potential temperature.
+- Cached dimensions: 31 depth × 25 latitude × 37 longitude.
+- Cached depth coverage: approximately 0.49–454 m.
+- Historical subset date: 2 January 2024.
+- Region: 67–70°E, 12–14°N.
 
 ### Argo comparison evidence
 
-- Curated ingestion summary: 26 profiles, 23 unique floats.
-- Two selected comparison profiles are from float 5907092.
-- Both selected profiles are documented as delayed mode (`DATA_MODE=D`) in `comparison_summary.md`.
-- Comparison uses `TEMP_ADJUSTED`, `PRES_ADJUSTED`, and auxiliary `PSAL_ADJUSTED` with provider QC flag 1.
-- Cycle 13 descending: 50 displayed matched levels.
-- Cycle 12 ascending: 49 displayed matched levels.
-- Total displayed matched levels: 99.
+- 26 profiles represented in ingestion provenance.
+- 2 eligible comparison profiles.
+- 99 valid matched temperature levels total.
+- Verified default profile: `20240102_indian_ocean_prof:23`.
+- Float: 5907092.
+- Cycle: 13.
+- Direction: descending.
+- Default matched levels: 50.
 
-## Default demo evidence
+### Method
 
-Profile `20240102_indian_ocean_prof:23` / float 5907092 / cycle 13 descending:
+- Spatial collocation: nearest valid model water cell.
+- Vertical matching: linear interpolation between adjacent valid model levels.
+- No spatial, vertical or temporal extrapolation is introduced by the UI.
+- Bias: Model − Observation.
+- Provider QC handling remains the locally verified baseline.
+- Metrics, charts and selected-profile downloads are sourced from the processed comparison evidence.
 
-- 50 matched levels.
-- 1.3919–447.0245 m matched range.
-- 3.8513 km nearest-cell separation.
-- +14.7667 h observation minus encoded model timestamp.
-- +2.7667 h from documented daily-mean midpoint.
-- MAE 0.2253829 °C.
-- RMSE 0.3188158 °C.
-- Bias definition: model − observation.
+## UI/product audit
 
-## Pre-change baseline
+The two supplied planning documents are implemented as two planning layers:
 
-- Hardened MVP tests: 12 passed.
-- Preserved original comparison-engine evidence: 25 passed, one recorded binary-compatibility warning in the historical test log.
+- the 12-feature finalisation plan defines the macro judge-facing end state;
+- the 250-feature backlog defines detailed shell, control, visualisation, trust and release work.
+
+The implementation matrix is stored in `docs/BACKLOG_IMPLEMENTATION_MATRIX.md`.
+
+The final primary layout places the model/map and profile/bias evidence in the main vertical flow instead of requiring judges to discover core evidence through tabs.
+
+## Test audit
+
+Latest verified feature-branch GitHub Actions result:
+
+- 36-test regression/product-contract suite: PASS.
+- Python compile check: PASS.
+- Headless Streamlit startup health check: PASS.
+
+Existing tests continue to protect:
+
+- verified default profile;
+- both eligible profiles and matched-level counts;
+- exact Model − Observation sign/value;
+- provider QC policy;
+- real model dimensions/units/depth semantics;
+- local data-loader immutability;
+- no-network scientific loading;
+- profile/bias source rows;
+- real map coordinates;
+- real 3D/2D figure construction;
+- evidence download existence and profile selection;
+- inverted depth axes;
+- scientific data-manifest integrity;
+- original provenance record of unchanged raw inputs.
+
+New product-contract tests protect:
+
+- professional folder hierarchy;
+- thin entry point;
+- versioned semantic tokens;
+- data-derived reset defaults;
+- data-driven metrics and safe missing values;
+- provenance method wording;
+- readable selected-profile download names;
+- Plotly styling without scientific-value mutation;
+- mandatory disclaimer;
+- prohibited architecture/ML claims.
+
+## Cross-platform checksum note
+
+The NetCDF binary checksum remains exact.
+
+For tracked text evidence, Git can represent identical text with LF or CRLF depending on checkout rules. The integrity test accepts only these line-ending variants of the same bytes; it does not accept arbitrary content changes.
 
 ## Risk register
 
-| Level | Issue | Final treatment |
+| Level | Item | Final treatment |
 |---|---|---|
-| BLOCKER | None found in the bundled comparison evidence | No blocker |
-| MUST FIX | Judge-facing evidence downloads did not expose provenance/config/verification | Added real-file downloads |
-| MUST FIX | Missing final handover documentation requested by the execution brief | Added `docs/` set |
-| SHOULD FIX | Header did not state the scientific scope explicitly enough | Added concise subtitle/scope line |
-| SHOULD FIX | Sidebar lacked a compact methodology reminder | Added “About this comparison” expander |
-| SHOULD FIX | Browser Plotly container could reveal a light/default render surface | Strengthened dark render-container CSS; final browser behaviour still requires local visual check |
-| DO NOT TOUCH | Nearest valid water-cell collocation | Preserved |
-| DO NOT TOUCH | Linear vertical interpolation | Preserved |
-| DO NOT TOUCH | Existing scientific CSV/JSON/NetCDF evidence | Hash-verified unchanged |
+| BLOCKER | Scientific method regression | None detected; regression suite green |
+| MUST FIX | Main science hidden behind tabs | Core rows moved into direct dashboard flow |
+| MUST FIX | Monolithic application layout | Product UI reorganised into `oceantwin/` hierarchy |
+| MUST FIX | Weak release/startup verification | CI now runs pytest, compile and Streamlit health check |
+| MUST FIX | Raw tracebacks potentially judge-facing | Friendly states + gated diagnostics |
+| SHOULD FIX | Inconsistent semantic colours | Cyan model, amber Argo, centred cool/warm bias system |
+| SHOULD FIX | Dense provenance | Compact inspectable evidence layout |
+| SHOULD FIX | Download naming | Profile-correct readable filenames |
+| MANUAL CHECK | Presentation-laptop visual rendering | Use `docs/VISUAL_DEMO_CHECKLIST.md` |
+| DO NOT TOUCH | QC/collocation/interpolation/bias | Preserved |
+| DO NOT TOUCH | Raw scientific files | Preserved |
 | DO NOT TOUCH | Temperature-only scientific scope | Preserved |
 
-## Known verification boundary
+## Known scientific boundaries
 
-The supplied scientific artefacts establish the comparison pipeline and provenance. The final package does not bundle the original raw Argo NetCDF/curated level store, so the application relies on the preserved comparison outputs and provenance for the selected profiles rather than re-running Argo ingestion at runtime.
+- daily-mean model field vs instantaneous Argo profile;
+- nearest-cell representativeness difference;
+- vertical interpolation between model levels;
+- one historical region/date and two eligible comparison profiles;
+- reanalysis may assimilate in-situ observations;
+- not independent validation;
+- no operational forecast, real-time monitoring or hazard prediction.
+
+## Mandatory framing
+
+> This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations.
