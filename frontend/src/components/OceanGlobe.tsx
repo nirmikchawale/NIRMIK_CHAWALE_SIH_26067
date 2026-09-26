@@ -5,6 +5,8 @@ import {
   Color,
   EllipsoidTerrainProvider,
   GridImageryProvider,
+  TileMapServiceImageryProvider,
+  buildModuleUrl,
   HorizontalOrigin,
   LabelStyle,
   Material,
@@ -78,24 +80,46 @@ export function OceanGlobe({
       maximumRenderTimeChange: Number.POSITIVE_INFINITY
     });
 
-    viewer.imageryLayers.addImageryProvider(
-      new GridImageryProvider({
-        color: Color.fromCssColorString("#21445b").withAlpha(0.45),
-        glowColor: Color.fromCssColorString("#061723").withAlpha(0.35),
-        backgroundColor: Color.fromCssColorString("#071a27")
+    const addGridFallback = () => {
+      if (viewer.isDestroyed()) return;
+      viewer.imageryLayers.removeAll();
+      viewer.imageryLayers.addImageryProvider(
+        new GridImageryProvider({
+          color: Color.fromCssColorString("#21445b").withAlpha(0.45),
+          glowColor: Color.fromCssColorString("#061723").withAlpha(0.35),
+          backgroundColor: Color.fromCssColorString("#071a27")
+        })
+      );
+      viewer.scene.requestRender();
+    };
+
+    // Cesium ships a low-resolution Natural Earth II tile set in Assets/Textures.
+    // Use it as the default basemap so coastlines and geographic context work offline.
+    void TileMapServiceImageryProvider.fromUrl(
+      buildModuleUrl("Assets/Textures/NaturalEarthII"),
+      { maximumLevel: 2 }
+    )
+      .then((provider) => {
+        if (viewer.isDestroyed()) return;
+        viewer.imageryLayers.removeAll();
+        viewer.imageryLayers.addImageryProvider(provider);
+        viewer.scene.requestRender();
       })
-    );
+      .catch(() => {
+        // A missing/corrupt basemap must never take down the scientific demo.
+        addGridFallback();
+      });
 
     viewer.scene.backgroundColor = Color.fromCssColorString("#020a11");
     viewer.scene.globe.baseColor = Color.fromCssColorString("#071a27");
     viewer.scene.globe.depthTestAgainstTerrain = false;
     viewer.scene.globe.translucency.enabled = true;
-    viewer.scene.globe.translucency.frontFaceAlpha = 0.72;
-    viewer.scene.globe.translucency.backFaceAlpha = 0.28;
+    viewer.scene.globe.translucency.frontFaceAlpha = 0.88;
+    viewer.scene.globe.translucency.backFaceAlpha = 0.20;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
 
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(68.5, 13.0, 780_000),
+      destination: Cartesian3.fromDegrees(68.5, 13.0, 1_350_000),
       duration: 0
     });
 
