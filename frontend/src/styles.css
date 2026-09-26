@@ -232,6 +232,7 @@ select {
   background: rgba(4, 17, 27, 0.88);
   backdrop-filter: blur(14px);
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+  transition: opacity 180ms ease, transform 220ms ease;
 }
 
 .control-panel {
@@ -492,12 +493,27 @@ input[type="range"] {
 
 .top-left {
   top: 14px;
-  left: 14px;
+  left: 290px;
+  display: grid;
+  gap: 4px;
+  padding: 9px 11px;
+  font-size: 9px;
+}
+
+.judge-summary > div {
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 10px;
-  font-size: 9px;
+}
+
+.judge-summary > span,
+.judge-summary > small {
+  color: #82a5b8;
+  font-size: 8px;
+}
+
+.judge-summary > small {
+  color: #b8e8f2;
 }
 
 .live-dot {
@@ -573,7 +589,7 @@ input[type="range"] {
 }
 
 .legend-card {
-  right: 14px;
+  right: 354px;
   bottom: 16px;
   width: 210px;
   padding: 9px 10px;
@@ -600,6 +616,16 @@ input[type="range"] {
   font-size: 8px;
 }
 
+.interaction-hint {
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 7px 10px;
+  color: #7397aa;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
 .volume-note {
   left: 50%;
   bottom: 16px;
@@ -613,7 +639,7 @@ input[type="range"] {
 }
 
 .current-note {
-  left: 14px;
+  left: 290px;
   bottom: 16px;
   max-width: 440px;
   padding: 8px 10px;
@@ -711,6 +737,34 @@ input[type="range"] {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.focus-mode .control-panel {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-18px);
+}
+
+.focus-mode .profile-panel {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(18px);
+}
+
+.focus-mode .top-left {
+  left: 14px;
+}
+
+.focus-mode .legend-card {
+  right: 14px;
+}
+
+.focus-mode .inspection-card {
+  right: 14px;
+}
+
+.focus-mode .current-note {
+  left: 14px;
 }
 
 .profile-panel {
@@ -987,6 +1041,24 @@ input[type="range"] {
 .boot-screen p {
   color: #7894a7;
   font-size: 11px;
+}
+
+@media (max-width: 1150px) {
+  .top-left {
+    left: 266px;
+  }
+
+  .legend-card {
+    right: 328px;
+  }
+
+  .current-note {
+    left: 266px;
+  }
+
+  .interaction-hint {
+    display: none;
+  }
 }
 
 @media (max-width: 1150px) {
