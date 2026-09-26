@@ -161,6 +161,15 @@ jobs:
           VITE_STATIC_SCIENCE: "true"
         run: npm run build
 
+      - name: Diagnose Cesium offline imagery artifact
+        run: |
+          echo "SOURCE NaturalEarthII:"
+          find frontend/node_modules/cesium/Build/Cesium/Assets -path '*NaturalEarthII*' -type f | sort | head -n 20 || true
+          echo "BUILT NaturalEarthII:"
+          find frontend/dist/cesiumStatic -path '*NaturalEarthII*' -type f | sort | head -n 20 || true
+          echo "BUILT Cesium texture directories:"
+          find frontend/dist/cesiumStatic/Assets/Textures -maxdepth 2 -type d | sort | head -n 40 || true
+
       - name: Verify hosted static artifact contract
         run: |
           test -s frontend/dist/index.html
