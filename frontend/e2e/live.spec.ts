@@ -108,7 +108,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
     .first();
 
   await depthSlider.focus();
-  await depthSlider.press("Home");
+  await depthSlider.press("End");
   await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
 
   const profileSelect = page.locator(".control-panel select");
