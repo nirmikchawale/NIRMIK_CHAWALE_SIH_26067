@@ -15,6 +15,7 @@ import {
   Material,
   PointPrimitiveCollection,
   PolylineCollection,
+  PolylineDashMaterialProperty,
   Primitive,
   PerInstanceColorAppearance,
   Rectangle,
@@ -171,6 +172,8 @@ export function OceanGlobe({
     for (const id of profileIdsRef.current) {
       viewer.entities.removeById(id);
     }
+    viewer.entities.removeById("selected-model-cell");
+    viewer.entities.removeById("selected-collocation-line");
     profileIdsRef.current = [];
 
     for (const profile of profiles) {
@@ -207,6 +210,60 @@ export function OceanGlobe({
         }
       });
     }
+
+    const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId);
+    if (selectedProfile) {
+      viewer.entities.add({
+        id: "selected-model-cell",
+        position: Cartesian3.fromDegrees(
+          selectedProfile.model_cell_longitude,
+          selectedProfile.model_cell_latitude,
+          7_500
+        ),
+        point: {
+          pixelSize: 13,
+          color: Color.fromCssColorString("#4ad7f5"),
+          outlineColor: Color.WHITE,
+          outlineWidth: 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        },
+        label: {
+          text: `Nearest model cell · ${selectedProfile.spatial_distance_km.toFixed(2)} km`,
+          font: "12px system-ui",
+          fillColor: Color.fromCssColorString("#b8f4ff"),
+          outlineColor: Color.fromCssColorString("#04111d"),
+          outlineWidth: 4,
+          style: LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: VerticalOrigin.TOP,
+          horizontalOrigin: HorizontalOrigin.CENTER,
+          pixelOffset: new Cartesian2(0, 16),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }
+      });
+
+      viewer.entities.add({
+        id: "selected-collocation-line",
+        polyline: {
+          positions: [
+            Cartesian3.fromDegrees(
+              selectedProfile.observation_longitude,
+              selectedProfile.observation_latitude,
+              7_500
+            ),
+            Cartesian3.fromDegrees(
+              selectedProfile.model_cell_longitude,
+              selectedProfile.model_cell_latitude,
+              7_500
+            )
+          ],
+          width: 3,
+          material: new PolylineDashMaterialProperty({
+            color: Color.fromCssColorString("#8cefff")
+          })
+        }
+      });
+    }
+
     viewer.scene.requestRender();
   }, [profiles, selectedProfileId]);
 
