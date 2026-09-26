@@ -16,6 +16,73 @@ const MAX_RECORDS = 100_000;
 const MAX_TEXT_LENGTH = 256;
 const EXPLICIT_TIMEZONE = /(?:Z|[+-]\d{2}:\d{2})$/i;
 
+type OfficialSourceKind = "model" | "float" | "india";
+
+const OFFICIAL_DATA_SOURCES: Array<{
+  kind: OfficialSourceKind;
+  provider: string;
+  title: string;
+  role: string;
+  nativeFormat: string;
+  variables: string[];
+  url: string;
+}> = [
+  {
+    kind: "model",
+    provider: "COPERNICUS MARINE",
+    title: "GLORYS12V1 global ocean physics reanalysis",
+    role: "Model temperature, salinity and horizontal currents with depth-aware gridded context.",
+    nativeFormat: "Native delivery: NetCDF / service subset",
+    variables: ["temperature", "salinity", "eastward velocity", "northward velocity"],
+    url: "https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description"
+  },
+  {
+    kind: "float",
+    provider: "ARGO GDAC · IFREMER",
+    title: "Argo global profiling-float observations",
+    role: "Observed vertical profiles for model–observation comparison and depth-resolved evidence.",
+    nativeFormat: "Native delivery: Argo NetCDF",
+    variables: ["pressure/depth", "temperature", "salinity", "QC metadata"],
+    url: "https://data-argo.ifremer.fr/"
+  },
+  {
+    kind: "india",
+    provider: "INCOIS LAS",
+    title: "Indian Ocean official data access portal",
+    role: "Regional ocean-data discovery and subsetting for Indian Ocean scientific context.",
+    nativeFormat: "Portal subset/export formats vary by dataset",
+    variables: ["ocean fields", "coordinates", "depth/time", "source metadata"],
+    url: "https://las.incois.gov.in/las/UI.vm"
+  }
+];
+
+function OfficialSourceIcon({ kind }: { kind: OfficialSourceKind }) {
+  if (kind === "model") {
+    return (
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="16" cy="16" r="11" />
+        <path d="M5 16h22M16 5c4 4 6 7.6 6 11s-2 7-6 11M16 5c-4 4-6 7.6-6 11s2 7 6 11" />
+        <path d="M8 11c5 2 11 2 16 0M8 21c5-2 11-2 16 0" />
+      </svg>
+    );
+  }
+  if (kind === "float") {
+    return (
+      <svg viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 4v18M12 8h8M12 22h8" />
+        <path d="M8 25c2-2 4-2 6 0s4 2 6 0 4-2 6 0" />
+        <circle cx="16" cy="7" r="3" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <path d="M7 6h18v20H7zM11 10h10M11 15h10M11 20h6" />
+      <path d="M22 19l4 4-4 4M26 23h-7" />
+    </svg>
+  );
+}
+
 type RequiredField = (typeof REQUIRED_FIELDS)[number];
 type Severity = "error" | "warning";
 
@@ -531,6 +598,55 @@ export function DataLabPage() {
           <strong>Data stays in this browser session</strong>
           <p>File bytes are parsed locally by this page and are not uploaded to an OceanTwin server.</p>
         </aside>
+      </section>
+
+      <section className="data-source-launchpad" aria-labelledby="official-data-launchpad-title">
+        <div className="data-source-heading">
+          <div>
+            <div className="section-kicker">START WITH TRUSTED SOURCES</div>
+            <h3 id="official-data-launchpad-title">Official data launchpad</h3>
+            <p>
+              Open a trusted ocean-data source, subset the measurements you need, then map them
+              into OceanTwin&apos;s guarded CSV/JSON contract for local validation.
+            </p>
+          </div>
+          <button type="button" onClick={downloadSchema}>Download import schema</button>
+        </div>
+
+        <div className="data-source-cards">
+          {OFFICIAL_DATA_SOURCES.map((source) => (
+            <article className="data-source-card" key={source.provider}>
+              <div className="data-source-card-top">
+                <div className={`data-source-icon ${source.kind}`}>
+                  <OfficialSourceIcon kind={source.kind} />
+                </div>
+                <div>
+                  <span>{source.provider}</span>
+                  <h4>{source.title}</h4>
+                </div>
+              </div>
+              <p>{source.role}</p>
+              <div className="data-source-variable-list">
+                {source.variables.map((variable) => <code key={variable}>{variable}</code>)}
+              </div>
+              <div className="data-source-native">{source.nativeFormat}</div>
+              <div className="data-source-actions">
+                <a href={source.url} target="_blank" rel="noreferrer">
+                  Open official source <span aria-hidden="true">↗</span>
+                </a>
+                <span>Map → lon · lat · depth · time · variable · value · units · source</span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="data-source-workflow" role="note">
+          <strong>Safe import path</strong>
+          <span>1 · Open official source</span>
+          <span>2 · Subset/export genuine measurements</span>
+          <span>3 · Reshape to OceanTwin schema</span>
+          <span>4 · Validate locally before analysis</span>
+        </div>
       </section>
 
       <section className="data-lab-grid">
