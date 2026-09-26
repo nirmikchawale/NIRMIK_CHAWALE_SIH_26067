@@ -4,6 +4,7 @@ import { api } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
+import { AnomalyPage } from "./pages/AnomalyPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
 import { OceanGlobe } from "./components/OceanGlobe";
@@ -379,6 +380,8 @@ export default function App() {
               provenance={provenance}
               onProfileChange={setSelectedProfileId}
             />
+          ) : page === "anomaly" ? (
+            <AnomalyPage catalog={catalog} />
           ) : page === "data-lab" ? (
             <DataLabPage />
           ) : (
