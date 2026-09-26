@@ -167,8 +167,10 @@ export function ControlPanel({
           Argo profile
           <select
             value={selectedProfileId}
+            disabled={profiles.length === 0}
             onChange={(event) => onProfileChange(event.target.value)}
           >
+            {profiles.length === 0 && <option value="">No verified profile available</option>}
             {profiles.map((profile) => (
               <option key={profile.profile_id} value={profile.profile_id}>
                 {profile.platform_id} · cycle {profile.cycle} {profile.direction}
@@ -176,7 +178,11 @@ export function ControlPanel({
             ))}
           </select>
         </label>
-        <p className="microcopy">Markers on the globe are also clickable.</p>
+        <p className={`microcopy ${profiles.length === 0 ? "warning" : ""}`}>
+          {profiles.length === 0
+            ? "Observation layer unavailable; verified model fields remain usable."
+            : "Markers on the globe are also clickable."}
+        </p>
       </section>
 
       <section className="source-card">
