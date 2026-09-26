@@ -433,6 +433,18 @@ input[type="range"] {
   box-shadow: 0 0 10px rgba(95, 229, 174, 0.65);
 }
 
+.depth-indicator {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 10px;
+  color: #aeefff;
+  border-color: rgba(70, 200, 230, 0.58);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
 .legend-card {
   right: 14px;
   bottom: 16px;
