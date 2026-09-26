@@ -41,6 +41,27 @@ jobs:
           print(app.title)
           PY
 
+      - name: Export immutable static science fail-safe
+        run: |
+          rm -rf /tmp/oceantwin-static-science
+          python scripts/export_static_science.py --output /tmp/oceantwin-static-science
+          test -s /tmp/oceantwin-static-science/manifest.json
+          test -s /tmp/oceantwin-static-science/catalog.json
+          test -s /tmp/oceantwin-static-science/profiles/index.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("/tmp/oceantwin-static-science")
+          manifest = json.loads((root / "manifest.json").read_text())
+          assert manifest["schema"] == "oceantwin-static-science-v1"
+          assert manifest["time_steps"] == 1
+          assert manifest["depth_levels"] == 31
+          assert manifest["profiles"] == 2
+          assert manifest["scientific_data_network_required_at_runtime"] is False
+          assert len(manifest["files"]) == 101
+          print("Static science fail-safe verified:", len(manifest["files"]), "payloads")
+          PY
+
       - name: FastAPI startup and evidence smoke test
         shell: bash
         run: |
