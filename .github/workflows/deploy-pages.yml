@@ -74,12 +74,80 @@ jobs:
           path: frontend/dist
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy OceanTwin to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  verify-public:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Verify live OceanTwin HTTPS deployment
+        shell: bash
+        env:
+          PAGE_URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          BASE="${PAGE_URL%/}"
+
+          ready=0
+          for attempt in {1..30}; do
+            if curl --fail --silent --show-error "${BASE}/" -o /tmp/oceantwin-index.html; then
+              ready=1
+              break
+            fi
+            sleep 2
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            echo "Published Pages site did not become reachable."
+            exit 1
+          fi
+
+          grep -q 'OceanTwin 3D' /tmp/oceantwin-index.html
+
+          python - <<'PY'
+          import json
+          import os
+          from urllib.request import urlopen
+
+          base = os.environ["PAGE_URL"].rstrip("/")
+
+          def get_bytes(path):
+              with urlopen(base + path, timeout=20) as response:
+                  assert response.status == 200, (path, response.status)
+                  return response.read()
+
+          def get_json(path):
+              return json.loads(get_bytes(path).decode("utf-8"))
+
+          health = get_json("/science-static/health.json")
+          catalog = get_json("/science-static/catalog.json")
+          thetao = get_json("/science-static/fields/thetao/t0_d18.json")
+          salinity = get_json("/science-static/fields/so/t0_d18.json")
+          currents = get_json("/science-static/currents/t0_d18.json")
+          profiles = get_json("/science-static/profiles/index.json")
+          provenance = get_json("/science-static/provenance.json")
+          earth = get_bytes("/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg")
+
+          assert health["status"] == "ok"
+          assert "GLORYS12V1" in catalog["dataset"]["label"]
+          assert thetao["variable"] == "thetao"
+          assert salinity["variable"] == "so"
+          assert currents["variable"] == "currents"
+          assert len(profiles["profiles"]) == 2
+          assert provenance["scientific_disclaimer"]
+          assert earth[:2] == b"\xff\xd8"
+
+          print("Live OceanTwin Pages deployment verified:", base)
+          PY
