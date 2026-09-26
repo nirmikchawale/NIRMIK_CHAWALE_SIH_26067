@@ -18,7 +18,7 @@ export function AppNavigation({
 }: Props) {
   return (
     <>
-      <nav className="feature-rail feature-rail-left" aria-label="OceanTwin pages">
+      <nav className="feature-rail feature-rail-left" aria-label="OceanTwin pages" aria-hidden={focusMode}>
         <div className="rail-title">PAGES</div>
         {PAGE_ITEMS.map((item) => (
           <button
@@ -34,7 +34,7 @@ export function AppNavigation({
         ))}
       </nav>
 
-      <aside className="feature-rail feature-rail-right" aria-label="OceanTwin actions">
+      <aside className="feature-rail feature-rail-right" aria-label="OceanTwin actions" aria-hidden={focusMode}>
         <div className="rail-title">ACTIONS</div>
         <button
           onClick={onToggleFocus}
