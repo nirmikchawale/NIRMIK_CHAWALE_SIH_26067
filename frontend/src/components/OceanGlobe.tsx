@@ -110,7 +110,7 @@ export function OceanGlobe({
     viewerRef.current = viewer;
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
-    handler.setInputAction((movement: { position: Cartesian3 }) => {
+    handler.setInputAction((movement: { position: Cartesian2 }) => {
       const picked = viewer.scene.pick(movement.position) as { id?: { id?: string } } | undefined;
       const id = picked?.id?.id;
       if (typeof id === "string" && id.startsWith("argo:")) {
@@ -165,7 +165,7 @@ export function OceanGlobe({
           style: LabelStyle.FILL_AND_OUTLINE,
           verticalOrigin: VerticalOrigin.BOTTOM,
           horizontalOrigin: HorizontalOrigin.CENTER,
-          pixelOffset: { x: 0, y: -18 } as never,
+          pixelOffset: new Cartesian2(0, -18),
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         }
       });
