@@ -184,3 +184,15 @@ See:
 - `docs/FINAL_MVP_RUNBOOK.md`
 - `backend/README.md`
 - `frontend/README.md`
+
+
+## One-click local launch
+
+For Windows demo machines, after the one-time Python/Node setup is complete:
+
+- Double-click `START_OCEANTWIN.cmd` at the repository root.
+- It launches the FastAPI scientific API on port 8000 and the React + Cesium frontend on port 5173.
+- The browser opens automatically at `http://localhost:5173`.
+- Double-click `STOP_OCEANTWIN.cmd` to stop both local services.
+
+This is the preferred local judge/demo workflow; manual PowerShell startup is only a troubleshooting fallback.
