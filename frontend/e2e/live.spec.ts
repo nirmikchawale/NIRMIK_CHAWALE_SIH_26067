@@ -13,6 +13,14 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  await page.getByRole("button", { name: "Telemetry" }).click();
+  await expect(page).toHaveURL(/#\/telemetry$/);
+  await expect(page.locator('.feature-page[data-page="telemetry"]')).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Telemetry workspace" })).toBeVisible();
+
+  await page.getByRole("button", { name: "3D Explorer" }).click();
+  await expect(page).toHaveURL(/#\/explore$/);
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
