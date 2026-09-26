@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - final-mvp-react-cesium-fastapi
+      - main
   workflow_dispatch:
 
 permissions:
