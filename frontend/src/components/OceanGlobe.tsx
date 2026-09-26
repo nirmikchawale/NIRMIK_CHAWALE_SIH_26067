@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Cartesian2,
   Cartesian3,
@@ -32,6 +32,20 @@ import type {
   ProfileSummary,
   VolumeResponse
 } from "../types";
+
+interface Inspection {
+  kind: "scalar" | "current";
+  variable: string;
+  longitude: number;
+  latitude: number;
+  depth_m: number;
+  time: string;
+  units: string;
+  value?: number;
+  u?: number;
+  v?: number;
+  speed?: number;
+}
 
 interface Props {
   field: FieldResponse | null;
@@ -67,6 +81,7 @@ export function OceanGlobe({
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const depthAnimationRef = useRef<number | null>(null);
   const sliceHeightRef = useRef(0);
+  const [inspection, setInspection] = useState<Inspection | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -149,10 +164,16 @@ export function OceanGlobe({
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
     handler.setInputAction((movement: { position: Cartesian2 }) => {
-      const picked = viewer.scene.pick(movement.position) as { id?: { id?: string } } | undefined;
-      const id = picked?.id?.id;
-      if (typeof id === "string" && id.startsWith("argo:")) {
-        onSelectProfile(id.slice(5));
+      const picked = viewer.scene.pick(movement.position) as { id?: unknown } | undefined;
+      const pickedId = picked?.id as { id?: string; kind?: string; inspection?: Inspection } | undefined;
+      const entityId = pickedId?.id;
+      if (typeof entityId === "string" && entityId.startsWith("argo:")) {
+        setInspection(null);
+        onSelectProfile(entityId.slice(5));
+        return;
+      }
+      if (pickedId?.kind === "ocean-inspection" && pickedId.inspection) {
+        setInspection(pickedId.inspection);
       }
     }, ScreenSpaceEventType.LEFT_CLICK);
     clickHandlerRef.current = handler;
@@ -351,6 +372,19 @@ export function OceanGlobe({
           const value = field.values[yi]?.[xi];
           if (value == null) continue;
           collection.add({
+            id: {
+              kind: "ocean-inspection",
+              inspection: {
+                kind: "scalar",
+                variable: field.label,
+                longitude: field.longitude[xi],
+                latitude: field.latitude[yi],
+                depth_m: field.depth_m,
+                time: field.time,
+                units: field.units,
+                value
+              } satisfies Inspection
+            },
             position: Cartesian3.fromDegrees(
               field.longitude[xi],
               field.latitude[yi],
@@ -382,6 +416,19 @@ export function OceanGlobe({
         const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.30);
         instances.push(
           new GeometryInstance({
+            id: {
+              kind: "ocean-inspection",
+              inspection: {
+                kind: "scalar",
+                variable: volume.label,
+                longitude: lon,
+                latitude: lat,
+                depth_m: depth,
+                time: volume.time,
+                units: volume.units,
+                value
+              } satisfies Inspection
+            },
             geometry: new RectangleGeometry({
               rectangle: Rectangle.fromDegrees(
                 lon - lonStep * 0.48,
@@ -460,6 +507,21 @@ export function OceanGlobe({
           material: Material.fromType("Color", { color })
         });
         heads.add({
+          id: {
+            kind: "ocean-inspection",
+            inspection: {
+              kind: "current",
+              variable: "Horizontal current",
+              longitude: lon,
+              latitude: lat,
+              depth_m: currents.depth_m,
+              time: currents.time,
+              units: currents.units,
+              u,
+              v,
+              speed
+            } satisfies Inspection
+          },
           position: end,
           pixelSize: 3.2,
           color,
@@ -487,6 +549,32 @@ export function OceanGlobe({
         <span className="live-dot" />
         <strong>Verified scientific data · {profiles.length} Argo comparison profiles</strong>
       </div>
+      {inspection && (
+        <div className="globe-overlay inspection-card">
+          <div className="inspection-title">
+            <strong>Scientific inspection</strong>
+            <button onClick={() => setInspection(null)} aria-label="Close inspection">×</button>
+          </div>
+          <span>{inspection.variable}</span>
+          <div className="inspection-grid">
+            <span>Lon</span><strong>{inspection.longitude.toFixed(4)}°</strong>
+            <span>Lat</span><strong>{inspection.latitude.toFixed(4)}°</strong>
+            <span>Depth</span><strong>{inspection.depth_m.toFixed(2)} m</strong>
+            {inspection.kind === "scalar" ? (
+              <>
+                <span>Value</span><strong>{inspection.value?.toFixed(4)} {inspection.units}</strong>
+              </>
+            ) : (
+              <>
+                <span>u / v</span><strong>{inspection.u?.toFixed(4)} / {inspection.v?.toFixed(4)} {inspection.units}</strong>
+                <span>Speed</span><strong>{inspection.speed?.toFixed(4)} {inspection.units}</strong>
+              </>
+            )}
+          </div>
+          <small>{inspection.time.replace("T", " ").replace("Z", " UTC")}</small>
+          <small>Copernicus GLORYS12V1 · cached verified reanalysis</small>
+        </div>
+      )}
       {(field || currents) && !volume && (
         <div className="globe-overlay depth-indicator">
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
