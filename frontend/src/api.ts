@@ -5,6 +5,7 @@ import type {
   ProfileDetail,
   ProfilesResponse,
   ProvenanceResponse,
+  TelemetryResponse,
   VolumeResponse
 } from "./types";
 
@@ -54,6 +55,11 @@ export const api = {
     getJson<VolumeResponse>(
       `/api/volume?variable=${variable}&time_index=${timeIndex}&horizontal_stride=2&depth_stride=1`,
       `/volumes/${variable}/t${timeIndex}.json`
+    ),
+  telemetry: (variable: "thetao" | "so", timeIndex: number, depthIndex: number) =>
+    getJson<TelemetryResponse>(
+      `/api/telemetry?variable=${variable}&time_index=${timeIndex}&depth_index=${depthIndex}`,
+      `/telemetry/${variable}/t${timeIndex}_d${depthIndex}.json`
     ),
   currents: (timeIndex: number, depthIndex: number) =>
     getJson<CurrentsResponse>(

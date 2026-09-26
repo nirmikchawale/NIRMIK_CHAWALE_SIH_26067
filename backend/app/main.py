@@ -238,6 +238,109 @@ def scalar_field(
     }
 
 
+def _summary_stats(values: np.ndarray) -> dict[str, float | int]:
+    finite = np.asarray(values, dtype=float)
+    finite = finite[np.isfinite(finite)]
+    if finite.size == 0:
+        raise HTTPException(status_code=404, detail="No finite model values are available for telemetry.")
+    p10, p50, p90 = np.percentile(finite, [10, 50, 90])
+    return {
+        "count": int(finite.size),
+        "mean": float(finite.mean()),
+        "minimum": float(finite.min()),
+        "maximum": float(finite.max()),
+        "std": float(finite.std()),
+        "p10": float(p10),
+        "p50": float(p50),
+        "p90": float(p90),
+    }
+
+
+@app.get("/api/telemetry")
+def scalar_telemetry(
+    variable: str = Query("thetao", pattern="^(thetao|so)$"),
+    time_index: int = 0,
+    depth_index: int = 0,
+) -> dict[str, Any]:
+    dataset = _dataset()
+    if variable not in dataset["variables"]:
+        raise HTTPException(status_code=404, detail=f"Variable {variable!r} is not in the cached dataset.")
+
+    _ensure_index("time", time_index, len(dataset["time"]))
+    _ensure_index("depth", depth_index, len(dataset["depth"]))
+
+    meta = dataset["variables"][variable]
+    values = meta["values"]
+
+    depth_stats = []
+    for di, depth in enumerate(dataset["depth"]):
+        depth_stats.append(
+            {
+                "depth_index": di,
+                "depth_m": float(depth),
+                **_summary_stats(values[time_index, di]),
+            }
+        )
+
+    time_stats = []
+    for ti, time_iso in enumerate(dataset["time_iso"]):
+        time_stats.append(
+            {
+                "time_index": ti,
+                "time": time_iso,
+                **_summary_stats(values[ti, depth_index]),
+            }
+        )
+
+    current_summary = None
+    if "uo" in dataset["variables"] and "vo" in dataset["variables"]:
+        u = np.asarray(dataset["variables"]["uo"]["values"][time_index, depth_index], dtype=float)
+        v = np.asarray(dataset["variables"]["vo"]["values"][time_index, depth_index], dtype=float)
+        keep = np.isfinite(u) & np.isfinite(v)
+        if np.any(keep):
+            speed = np.sqrt(u[keep] ** 2 + v[keep] ** 2)
+            current_summary = {
+                "count": int(speed.size),
+                "mean_speed": float(speed.mean()),
+                "maximum_speed": float(speed.max()),
+                "mean_u": float(u[keep].mean()),
+                "mean_v": float(v[keep].mean()),
+                "units": "m s-1",
+            }
+
+    return {
+        "variable": variable,
+        "label": meta["label"],
+        "units": meta["units"],
+        "time_index": time_index,
+        "time": dataset["time_iso"][time_index],
+        "selected_depth_index": depth_index,
+        "selected_depth_m": float(dataset["depth"][depth_index]),
+        "depth_positive": dataset["depth_positive"],
+        "depth_stats": depth_stats,
+        "time_stats": time_stats,
+        "time_series_available": len(dataset["time"]) > 1,
+        "current_summary": current_summary,
+        "spatial_grid": {
+            "longitude_count": int(len(dataset["longitude"])),
+            "latitude_count": int(len(dataset["latitude"])),
+            "finite_cell_statistics": "unweighted finite model grid cells",
+        },
+        "provenance": {
+            "product": PRODUCT_LABEL,
+            "dataset_id": DATASET_ID,
+            "freshness_class": "reanalysis",
+            "runtime_mode": RUNTIME_MODE,
+        },
+        "statistic_definition": (
+            "Depth summaries use unweighted finite model grid cells at each exact model depth "
+            "for the selected genuine timestamp. Time summaries use the same statistic at the "
+            "selected exact model depth for each genuine model timestamp. No temporal or vertical "
+            "samples are synthesized."
+        ),
+    }
+
+
 @app.get("/api/volume")
 def scalar_volume(
     variable: str = Query("thetao", pattern="^(thetao|so)$"),
