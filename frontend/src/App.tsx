@@ -23,6 +23,7 @@ export default function App() {
   const [profileDetail, setProfileDetail] = useState<ProfileDetail | null>(null);
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -209,7 +210,7 @@ export default function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${focusMode ? "focus-mode" : ""}`}>
       <header className="app-header">
         <div className="brand">
           <div className="brand-mark small">OT</div>
@@ -227,6 +228,9 @@ export default function App() {
             <span>MODEL</span>
             <strong>GLORYS12V1</strong>
           </div>
+          <button className="evidence-button" onClick={() => setFocusMode((current) => !current)}>
+            {focusMode ? "Show panels" : "Focus 3D"}
+          </button>
           <button className="evidence-button" onClick={() => setProvenanceOpen(true)}>
             Sources & QC
           </button>
