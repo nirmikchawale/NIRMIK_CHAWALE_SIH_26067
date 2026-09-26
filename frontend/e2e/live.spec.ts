@@ -144,6 +144,17 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(comparisonPage.getByRole("button", { name: "Download comparison CSV" })).toBeEnabled();
   await expect(comparisonPage.getByRole("button", { name: "Download evidence JSON" })).toBeEnabled();
 
+  await page.getByRole("button", { name: "Science & System" }).click();
+  await expect(page).toHaveURL(/#\/about$/);
+  const infoPage = page.locator('.info-page[data-page="about"]');
+  await expect(infoPage).toBeVisible();
+  await expect(infoPage).toHaveAttribute("data-info-status", "implemented");
+  await expect(infoPage).toContainText("SIH26067");
+  await expect(infoPage).toContainText("What the final MVP actually does");
+  await expect(infoPage).toContainText("Water-Column 3D");
+  await expect(infoPage).toContainText("No synthetic timestamps");
+  await expect(infoPage).toContainText("RECOMMENDED DEMO FLOW");
+
   await page.getByRole("button", { name: "3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
