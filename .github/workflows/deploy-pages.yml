@@ -76,7 +76,7 @@ jobs:
   deploy:
     if: github.ref == 'refs/heads/main'
     environment:
-      name: github-pages
+      name: oceantwin-pages-preview
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     needs: build
