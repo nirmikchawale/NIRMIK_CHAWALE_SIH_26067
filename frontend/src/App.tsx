@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./api";
+import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
+import { FeaturePlaceholder } from "./pages/FeaturePlaceholder";
+import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import type {
   Catalog,
   CurrentsResponse,
@@ -24,6 +27,7 @@ export default function App() {
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -40,6 +44,27 @@ export default function App() {
   const [error, setError] = useState("");
   const [startupError, setStartupError] = useState("");
   const [degradedWarnings, setDegradedWarnings] = useState<string[]>([]);
+
+  useEffect(() => {
+    const syncRoute = () => {
+      const next = routeFromHash(window.location.hash);
+      setPage(next);
+      if (next !== "explore") setFocusMode(false);
+    };
+    window.addEventListener("hashchange", syncRoute);
+    syncRoute();
+    return () => window.removeEventListener("hashchange", syncRoute);
+  }, []);
+
+  const navigate = useCallback((next: PageId) => {
+    const target = `#/${next}`;
+    if (window.location.hash === target) {
+      setPage(next);
+    } else {
+      window.location.hash = target;
+    }
+    if (next !== "explore") setFocusMode(false);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -189,6 +214,7 @@ export default function App() {
     () => catalog?.variables.find((item) => item.id === variable),
     [catalog, variable]
   );
+  const currentPage = PAGE_ITEMS.find((item) => item.id === page) ?? PAGE_ITEMS[0];
 
   if (!catalog) {
     return (
@@ -221,61 +247,72 @@ export default function App() {
         </div>
         <div className="header-status">
           <div>
-            <span>ACTIVE FIELD</span>
-            <strong>{selectedVariable?.label ?? variable}</strong>
+            <span>{page === "explore" ? "ACTIVE FIELD" : "PAGE"}</span>
+            <strong>{page === "explore" ? (selectedVariable?.label ?? variable) : currentPage.label}</strong>
           </div>
           <div>
             <span>MODEL</span>
             <strong>GLORYS12V1</strong>
           </div>
-          <button className="evidence-button" onClick={() => setFocusMode((current) => !current)}>
-            {focusMode ? "Show panels" : "Focus 3D"}
-          </button>
-          <button className="evidence-button" onClick={() => setProvenanceOpen(true)}>
-            Sources & QC
-          </button>
           <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
             {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● SCIENCE API READY"}
           </span>
         </div>
       </header>
 
-      <div className="workspace">
-        <ControlPanel
-          catalog={catalog}
-          profiles={profiles}
-          variable={variable}
-          viewMode={viewMode}
-          depthIndex={depthIndex}
-          timeIndex={timeIndex}
-          verticalExaggeration={verticalExaggeration}
-          selectedProfileId={selectedProfileId}
-          playing={playing}
-          onVariableChange={handleVariableChange}
-          onViewModeChange={setViewMode}
-          onDepthChange={setDepthIndex}
-          onTimeChange={setTimeIndex}
-          onVerticalExaggerationChange={setVerticalExaggeration}
-          onProfileChange={setSelectedProfileId}
-          onPlayingChange={setPlaying}
+      <div className="workspace-frame">
+        <AppNavigation
+          page={page}
+          focusMode={focusMode}
+          onNavigate={navigate}
+          onToggleFocus={() => setFocusMode((current) => !current)}
+          onOpenSources={() => setProvenanceOpen(true)}
         />
 
-        <OceanGlobe
-          field={field}
-          volume={volume}
-          currents={currents}
-          profiles={profiles}
-          selectedProfileId={selectedProfileId}
-          verticalExaggeration={verticalExaggeration}
-          onSelectProfile={setSelectedProfileId}
-        />
+        <div className="workspace">
+          {page === "explore" ? (
+            <>
+              <ControlPanel
+                catalog={catalog}
+                profiles={profiles}
+                variable={variable}
+                viewMode={viewMode}
+                depthIndex={depthIndex}
+                timeIndex={timeIndex}
+                verticalExaggeration={verticalExaggeration}
+                selectedProfileId={selectedProfileId}
+                playing={playing}
+                onVariableChange={handleVariableChange}
+                onViewModeChange={setViewMode}
+                onDepthChange={setDepthIndex}
+                onTimeChange={setTimeIndex}
+                onVerticalExaggerationChange={setVerticalExaggeration}
+                onProfileChange={setSelectedProfileId}
+                onPlayingChange={setPlaying}
+              />
 
-        <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
-        <ProvenanceDrawer
-          open={provenanceOpen}
-          provenance={provenance}
-          onClose={() => setProvenanceOpen(false)}
-        />
+              <OceanGlobe
+                field={field}
+                volume={volume}
+                currents={currents}
+                profiles={profiles}
+                selectedProfileId={selectedProfileId}
+                verticalExaggeration={verticalExaggeration}
+                onSelectProfile={setSelectedProfileId}
+              />
+
+              <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
+            </>
+          ) : (
+            <FeaturePlaceholder page={page} />
+          )}
+
+          <ProvenanceDrawer
+            open={provenanceOpen}
+            provenance={provenance}
+            onClose={() => setProvenanceOpen(false)}
+          />
+        </div>
       </div>
 
       {(scienceLoading || error) && (
