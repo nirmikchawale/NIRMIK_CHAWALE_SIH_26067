@@ -3,6 +3,7 @@ import {
   Cartesian2,
   Cartesian3,
   Color,
+  ConstantProperty,
   EllipsoidTerrainProvider,
   GridImageryProvider,
   TileMapServiceImageryProvider,
@@ -12,6 +13,7 @@ import {
   Material,
   PointPrimitiveCollection,
   PolylineCollection,
+  Rectangle,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   VerticalOrigin,
@@ -57,6 +59,8 @@ export function OceanGlobe({
   const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
+  const depthAnimationRef = useRef<number | null>(null);
+  const sliceHeightRef = useRef(0);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -205,6 +209,74 @@ export function OceanGlobe({
     const viewer = viewerRef.current;
     if (!viewer) return;
 
+    const depth = field?.depth_m ?? currents?.depth_m;
+    if (depth == null || volume) {
+      viewer.entities.removeById("selected-depth-plane");
+      if (depthAnimationRef.current != null) {
+        window.cancelAnimationFrame(depthAnimationRef.current);
+        depthAnimationRef.current = null;
+      }
+      viewer.scene.requestRender();
+      return;
+    }
+
+    let plane = viewer.entities.getById("selected-depth-plane");
+    if (!plane) {
+      plane = viewer.entities.add({
+        id: "selected-depth-plane",
+        rectangle: {
+          coordinates: Rectangle.fromDegrees(67, 12, 70, 14),
+          height: -depth * verticalExaggeration,
+          material: Color.fromCssColorString("#40d8f2").withAlpha(0.12),
+          outline: true,
+          outlineColor: Color.fromCssColorString("#55e3fa").withAlpha(0.72)
+        }
+      });
+      sliceHeightRef.current = -depth * verticalExaggeration;
+      viewer.scene.requestRender();
+      return;
+    }
+
+    if (!plane.rectangle) return;
+    if (depthAnimationRef.current != null) {
+      window.cancelAnimationFrame(depthAnimationRef.current);
+    }
+
+    const startHeight = sliceHeightRef.current;
+    const targetHeight = -depth * verticalExaggeration;
+    const startedAt = performance.now();
+    const durationMs = 320;
+
+    const animate = (now: number) => {
+      if (viewer.isDestroyed() || !plane?.rectangle) return;
+      const raw = Math.min(1, (now - startedAt) / durationMs);
+      const eased = raw * raw * (3 - 2 * raw);
+      const height = startHeight + (targetHeight - startHeight) * eased;
+      plane.rectangle.height = new ConstantProperty(height);
+      sliceHeightRef.current = height;
+      viewer.scene.requestRender();
+
+      if (raw < 1) {
+        depthAnimationRef.current = window.requestAnimationFrame(animate);
+      } else {
+        depthAnimationRef.current = null;
+      }
+    };
+
+    depthAnimationRef.current = window.requestAnimationFrame(animate);
+
+    return () => {
+      if (depthAnimationRef.current != null) {
+        window.cancelAnimationFrame(depthAnimationRef.current);
+        depthAnimationRef.current = null;
+      }
+    };
+  }, [field?.depth_m, currents?.depth_m, volume, verticalExaggeration]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+
     for (const primitive of dynamicPrimitivesRef.current) {
       viewer.scene.primitives.remove(primitive);
     }
@@ -297,6 +369,11 @@ export function OceanGlobe({
         <span className="live-dot" />
         <strong>Verified local scientific data</strong>
       </div>
+      {(field || currents) && !volume && (
+        <div className="globe-overlay depth-indicator">
+          DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
+        </div>
+      )}
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
         <div className="gradient-bar" />
