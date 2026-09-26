@@ -20,6 +20,16 @@ const CONTENT: Record<Exclude<PageId, "explore">, {
       { title: "Ocean variables", text: "Temperature, salinity and horizontal current telemetry with units and provenance.", state: "VERIFIED INPUTS" }
     ]
   },
+  anomaly: {
+    eyebrow: "DIAGNOSTIC SCREENING",
+    title: "Anomaly screening",
+    description: "Explainable robust statistical flags over verified model and Argo comparison evidence.",
+    cards: [
+      { title: "Spatial", text: "Model-grid robust extremes at an exact depth and genuine timestamp.", state: "LIVE" },
+      { title: "Residuals", text: "Profile-wise Model − Observation residual screening.", state: "LIVE" },
+      { title: "Temporal", text: "Locked until enough genuine timestamps exist.", state: "GUARDED" }
+    ]
+  },
   compare: {
     eyebrow: "EVIDENCE",
     title: "Model vs observation",
