@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
-import type { AnomalyResponse, Catalog } from "../types";
+import type { AnomalyResponse, Catalog, ResidualAnomalyFlag, SpatialAnomalyFlag } from "../types";
 
 interface Props { catalog: Catalog; }
 
@@ -65,12 +65,12 @@ export function AnomalyPage({ catalog }: Props) {
   const spatial = useMemo(() => payload?.spatial_screen.flags.slice(0, 12) ?? [], [payload]);
   const residual = useMemo(() => payload?.residual_screen.flags.slice(0, 16) ?? [], [payload]);
   const strongestSpatial = useMemo(() =>
-    payload?.spatial_screen.flags.reduce<typeof payload.spatial_screen.flags[number] | null>(
+    payload?.spatial_screen.flags.reduce<SpatialAnomalyFlag | null>(
       (best, flag) => !best || Math.abs(flag.robust_z) > Math.abs(best.robust_z) ? flag : best,
       null
     ) ?? null, [payload]);
   const strongestResidual = useMemo(() =>
-    payload?.residual_screen.flags.reduce<typeof payload.residual_screen.flags[number] | null>(
+    payload?.residual_screen.flags.reduce<ResidualAnomalyFlag | null>(
       (best, flag) => !best || Math.abs(flag.robust_z) > Math.abs(best.robust_z) ? flag : best,
       null
     ) ?? null, [payload]);
