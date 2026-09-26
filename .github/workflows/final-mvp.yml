@@ -252,7 +252,7 @@ jobs:
           assert currents["variable"] == "currents"
           assert len(profiles["profiles"]) == 2
           assert provenance["scientific_disclaimer"]
-          assert natural_earth[:2] == b"\\xff\\xd8"
+          assert natural_earth[:2] == b"\xff\xd8"
 
           print("Production static runtime smoke test passed.")
           PY
