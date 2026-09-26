@@ -130,6 +130,11 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page).toHaveURL(/#\/explore$/);
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+  const globeShell = page.locator(".globe-shell");
+  await expect(globeShell).toHaveAttribute("data-render-quality", "high");
+  await expect.poll(async () => Number(await globeShell.getAttribute("data-render-scale"))).toBeGreaterThanOrEqual(1.5);
+  await expect(globeShell).toHaveAttribute("data-antialiasing", /MSAA|FXAA/);
+  await expect(page.locator(".render-quality-line")).toContainText("HD canvas");
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
   await expect(page.locator(".profile-panel")).toContainText("Argo");

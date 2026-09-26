@@ -84,6 +84,8 @@ export function OceanGlobe({
   const sliceHeightRef = useRef(0);
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [rendererError, setRendererError] = useState("");
+  const [renderScale, setRenderScale] = useState(1);
+  const [antialiasing, setAntialiasing] = useState("initializing");
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -105,6 +107,7 @@ export function OceanGlobe({
         skyBox: false,
         skyAtmosphere: false,
         terrainProvider: new EllipsoidTerrainProvider(),
+        msaaSamples: 4,
         requestRenderMode: true,
         maximumRenderTimeChange: Number.POSITIVE_INFINITY
       });
@@ -119,14 +122,34 @@ export function OceanGlobe({
       setRendererError(message || "Cesium rendering stopped.");
     });
 
+    const syncRenderQuality = () => {
+      if (viewer.isDestroyed()) return;
+      const deviceRatio = window.devicePixelRatio || 1;
+      const nextScale = Math.min(2, Math.max(1.5, deviceRatio));
+      viewer.resolutionScale = nextScale;
+      setRenderScale(nextScale);
+
+      if (viewer.scene.msaaSupported) {
+        viewer.scene.msaaSamples = 4;
+        setAntialiasing("4× MSAA");
+      } else {
+        viewer.scene.postProcessStages.fxaa.enabled = true;
+        setAntialiasing("FXAA");
+      }
+      viewer.scene.requestRender();
+    };
+
+    syncRenderQuality();
+    window.addEventListener("resize", syncRenderQuality);
+
     const addGridFallback = () => {
       if (viewer.isDestroyed()) return;
       viewer.imageryLayers.removeAll();
       viewer.imageryLayers.addImageryProvider(
         new GridImageryProvider({
-          color: Color.fromCssColorString("#21445b").withAlpha(0.45),
-          glowColor: Color.fromCssColorString("#061723").withAlpha(0.35),
-          backgroundColor: Color.fromCssColorString("#071a27")
+          color: Color.fromCssColorString("#2a6d89").withAlpha(0.52),
+          glowColor: Color.fromCssColorString("#071a28").withAlpha(0.42),
+          backgroundColor: Color.fromCssColorString("#082335")
         })
       );
       viewer.scene.requestRender();
@@ -142,9 +165,9 @@ export function OceanGlobe({
         if (viewer.isDestroyed()) return;
         viewer.imageryLayers.removeAll();
         const layer = viewer.imageryLayers.addImageryProvider(provider);
-        layer.brightness = 1.05;
-        layer.contrast = 1.12;
-        layer.saturation = 0.92;
+        layer.brightness = 1.10;
+        layer.contrast = 1.22;
+        layer.saturation = 1.02;
         viewer.scene.requestRender();
       })
       .catch(() => {
@@ -152,12 +175,14 @@ export function OceanGlobe({
         addGridFallback();
       });
 
-    viewer.scene.backgroundColor = Color.fromCssColorString("#020a11");
-    viewer.scene.globe.baseColor = Color.fromCssColorString("#071a27");
+    viewer.scene.backgroundColor = Color.fromCssColorString("#010913");
+    viewer.scene.globe.baseColor = Color.fromCssColorString("#062438");
     viewer.scene.globe.depthTestAgainstTerrain = false;
+    viewer.scene.globe.maximumScreenSpaceError = 1.0;
+    viewer.scene.fog.enabled = false;
     viewer.scene.globe.translucency.enabled = true;
-    viewer.scene.globe.translucency.frontFaceAlpha = 0.88;
-    viewer.scene.globe.translucency.backFaceAlpha = 0.20;
+    viewer.scene.globe.translucency.frontFaceAlpha = 0.95;
+    viewer.scene.globe.translucency.backFaceAlpha = 0.28;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
 
     // Judge-first framing: keep the verified model window central while also
@@ -179,7 +204,7 @@ export function OceanGlobe({
         positions: Cartesian3.fromDegreesArray([
           67, 12, 70, 12, 70, 14, 67, 14, 67, 12
         ]),
-        width: 2,
+        width: 2.5,
         material: Color.fromCssColorString("#4ad7f5").withAlpha(0.85)
       }
     });
@@ -205,6 +230,7 @@ export function OceanGlobe({
 
     return () => {
       removeRenderErrorListener();
+      window.removeEventListener("resize", syncRenderQuality);
       clickHandlerRef.current?.destroy();
       clickHandlerRef.current = null;
       viewer.destroy();
@@ -235,7 +261,7 @@ export function OceanGlobe({
           7_500
         ),
         point: {
-          pixelSize: selected ? 16 : 11,
+          pixelSize: selected ? 17 : 12,
           color: selected
             ? Color.fromCssColorString("#ffd56a")
             : Color.fromCssColorString("#f0a93d"),
@@ -268,7 +294,7 @@ export function OceanGlobe({
           7_500
         ),
         point: {
-          pixelSize: 13,
+          pixelSize: 14,
           color: Color.fromCssColorString("#4ad7f5"),
           outlineColor: Color.WHITE,
           outlineWidth: 2,
@@ -416,10 +442,10 @@ export function OceanGlobe({
               field.latitude[yi],
               -field.depth_m * verticalExaggeration
             ),
-            pixelSize: 6,
+            pixelSize: 7,
             color: scalarColor(value, field.minimum, field.maximum, field.variable),
             outlineColor: Color.fromCssColorString("#00111c"),
-            outlineWidth: 0.5,
+            outlineWidth: 1,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
           });
         }
@@ -439,7 +465,7 @@ export function OceanGlobe({
 
       for (let index = 0; index < volume.points.length; index += cellStride) {
         const [lon, lat, depth, value] = volume.points[index];
-        const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.30);
+        const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.36);
         instances.push(
           new GeometryInstance({
             id: {
@@ -504,7 +530,7 @@ export function OceanGlobe({
         const end = Cartesian3.fromDegrees(endLon, endLat, 12_000);
         lines.add({
           positions: [start, end],
-          width: 2.2,
+          width: 2.6,
           material: Material.fromType("Color", { color })
         });
 
@@ -529,7 +555,7 @@ export function OceanGlobe({
         );
         lines.add({
           positions: [left, end, right],
-          width: 2.2,
+          width: 2.6,
           material: Material.fromType("Color", { color })
         });
         heads.add({
@@ -549,7 +575,7 @@ export function OceanGlobe({
             } satisfies Inspection
           },
           position: end,
-          pixelSize: 3.2,
+          pixelSize: 3.8,
           color,
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         });
@@ -569,7 +595,12 @@ export function OceanGlobe({
   const legendLabel = scalar?.label ?? (currents ? "Current speed" : "Ocean field");
 
   return (
-    <main className="globe-shell">
+    <main
+      className="globe-shell"
+      data-render-scale={renderScale.toFixed(2)}
+      data-antialiasing={antialiasing}
+      data-render-quality="high"
+    >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
         <div className="renderer-fallback-card" role="alert">
@@ -591,6 +622,9 @@ export function OceanGlobe({
           {field ? ` · ${field.depth_m.toFixed(2)} m` : ""}
           {currents ? ` · ${currents.depth_m.toFixed(2)} m` : ""}
           {volume ? " · full water column" : ""}
+        </small>
+        <small className="render-quality-line">
+          HD canvas ×{renderScale.toFixed(2)} · {antialiasing}
         </small>
       </div>
       {inspection && (
