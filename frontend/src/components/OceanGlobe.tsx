@@ -377,9 +377,34 @@ export function OceanGlobe({
           width: 2.2,
           material: Material.fromType("Color", { color })
         });
+
+        const dx = endLon - lon;
+        const dy = endLat - lat;
+        const length = Math.max(Math.hypot(dx, dy), 1e-9);
+        const ux = dx / length;
+        const uy = dy / length;
+        const px = -uy;
+        const py = ux;
+        const headLength = Math.min(0.16, Math.max(0.07, length * 0.34));
+        const headWidth = headLength * 0.55;
+        const left = Cartesian3.fromDegrees(
+          endLon - ux * headLength + px * headWidth,
+          endLat - uy * headLength + py * headWidth,
+          12_000
+        );
+        const right = Cartesian3.fromDegrees(
+          endLon - ux * headLength - px * headWidth,
+          endLat - uy * headLength - py * headWidth,
+          12_000
+        );
+        lines.add({
+          positions: [left, end, right],
+          width: 2.2,
+          material: Material.fromType("Color", { color })
+        });
         heads.add({
           position: end,
-          pixelSize: 4.5,
+          pixelSize: 3.2,
           color,
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         });
@@ -426,7 +451,7 @@ export function OceanGlobe({
       )}
       {currents && (
         <div className="globe-overlay current-note">
-          Selected-depth vectors projected above the globe for readability · {currents.depth_m.toFixed(2)} m
+          HORIZONTAL u/v FLOW · arrow direction + speed colour · {currents.depth_m.toFixed(2)} m · projected above globe for readability
         </div>
       )}
     </main>
