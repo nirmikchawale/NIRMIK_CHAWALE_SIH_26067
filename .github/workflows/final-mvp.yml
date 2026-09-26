@@ -194,3 +194,38 @@ jobs:
           assert (root / "currents/t0_d18.json").is_file()
           print("Hosted static fail-safe artifact verified.")
           PY
+
+      - name: Serve and smoke-test production static runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m http.server 4173 --bind 127.0.0.1 --directory frontend/dist > static-runtime-ci.log 2>&1 &
+          STATIC_PID=$!
+          trap 'kill $STATIC_PID 2>/dev/null || true' EXIT
+
+          ready=0
+          for attempt in {1..20}; do
+            if curl --fail --silent http://127.0.0.1:4173/ >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" -ne 1 ]; then
+            cat static-runtime-ci.log
+            exit 1
+          fi
+
+          curl --fail --silent http://127.0.0.1:4173/ | grep -q '<div id="root"></div>'
+          curl --fail --silent http://127.0.0.1:4173/science-static/health.json | grep -q '"status":"ok"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/catalog.json | grep -q '"GLORYS12V1"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/fields/thetao/t0_d18.json | grep -q '"variable":"thetao"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/fields/so/t0_d18.json | grep -q '"variable":"so"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/currents/t0_d18.json | grep -q '"variable":"currents"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/profiles/index.json | grep -q '"profiles"'
+          curl --fail --silent http://127.0.0.1:4173/science-static/provenance.json | grep -q '"scientific_disclaimer"'
+          curl --fail --silent --output /tmp/natural-earth.jpg             http://127.0.0.1:4173/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
+          test -s /tmp/natural-earth.jpg
+
+          echo "Production static runtime smoke test passed."
