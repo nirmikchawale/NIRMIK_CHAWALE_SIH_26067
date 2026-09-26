@@ -144,7 +144,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(comparisonPage.getByRole("button", { name: "Download comparison CSV" })).toBeEnabled();
   await expect(comparisonPage.getByRole("button", { name: "Download evidence JSON" })).toBeEnabled();
 
-  await page.getByRole("button", { name: "Science & System" }).click();
+  await page.getByRole("button", { name: "Science & System", exact: true }).first().click();
   await expect(page).toHaveURL(/#\/about$/);
   const infoPage = page.locator('.info-page[data-page="about"]');
   await expect(infoPage).toBeVisible();
