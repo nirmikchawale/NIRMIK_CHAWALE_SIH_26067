@@ -87,6 +87,7 @@ export function OceanGlobe({
   const [rendererError, setRendererError] = useState("");
   const [renderScale, setRenderScale] = useState(1);
   const [antialiasing, setAntialiasing] = useState("initializing");
+  const [cameraHeight, setCameraHeight] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -198,6 +199,7 @@ export function OceanGlobe({
       },
       duration: 0
     });
+    setCameraHeight(viewer.camera.positionCartographic.height);
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -631,6 +633,7 @@ export function OceanGlobe({
 
       if (direction === "in") viewer.camera.zoomIn(delta);
       else viewer.camera.zoomOut(delta);
+      setCameraHeight(viewer.camera.positionCartographic.height);
       viewer.scene.requestRender();
 
       if (raw < 1) {
@@ -657,7 +660,8 @@ export function OceanGlobe({
         pitch: CesiumMath.toRadians(-76),
         roll: 0
       },
-      duration: 0.75
+      duration: 0.75,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
 
@@ -667,6 +671,7 @@ export function OceanGlobe({
       data-render-scale={renderScale.toFixed(2)}
       data-antialiasing={antialiasing}
       data-render-quality="high"
+      data-camera-height={cameraHeight.toFixed(0)}
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
