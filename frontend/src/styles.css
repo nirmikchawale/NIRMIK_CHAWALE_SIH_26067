@@ -473,6 +473,18 @@ input[type="range"] {
   font-size: 8px;
 }
 
+.volume-note {
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  max-width: 460px;
+  padding: 8px 10px;
+  color: #9be8f7;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+}
+
 .current-note {
   left: 14px;
   bottom: 16px;
