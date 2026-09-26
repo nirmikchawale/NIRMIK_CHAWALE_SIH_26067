@@ -45,9 +45,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const initialComparisonProfile = await comparisonPage.locator(".comparison-selector-meta strong").textContent();
   await comparisonSelect.selectOption({ index: 1 });
   await expect(comparisonPage.locator(".comparison-selector-meta strong")).not.toHaveText(initialComparisonProfile ?? "");
-  await expect(comparisonPage.locator(".comparison-table-wrap tbody tr")).toHaveCount(
-    await comparisonPage.locator(".comparison-table-wrap tbody tr").count()
-  );
+  expect(await comparisonPage.locator(".comparison-table-wrap tbody tr").count()).toBeGreaterThan(0);
   await expect(comparisonPage.getByRole("button", { name: "Download comparison CSV" })).toBeEnabled();
   await expect(comparisonPage.getByRole("button", { name: "Download evidence JSON" })).toBeEnabled();
 
