@@ -809,6 +809,34 @@ input[type="range"] {
   font-weight: 700;
 }
 
+.evidence-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 13px;
+}
+
+.evidence-actions button {
+  padding: 8px 7px;
+  border: 1px solid #28566d;
+  border-radius: 7px;
+  color: #c5eff7;
+  background: #092331;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.evidence-actions button:hover:not(:disabled) {
+  border-color: #4bd6f0;
+  background: #103246;
+}
+
+.evidence-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
 .observation-meta {
   display: grid;
   gap: 9px;
