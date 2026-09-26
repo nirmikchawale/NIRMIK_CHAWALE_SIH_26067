@@ -1,0 +1,79 @@
+import type { VisualizationMode } from "../types";
+
+interface Props {
+  mode: VisualizationMode;
+  scalarAvailable: boolean;
+  variableLabel: string;
+  depthM: number;
+  onChange: (mode: VisualizationMode) => void;
+}
+
+function GlobeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M3.8 12h16.4M12 3.5c2.3 2.2 3.6 5 3.6 8.5S14.3 18.3 12 20.5M12 3.5c-2.3 2.2-3.6 5-3.6 8.5s1.3 6.3 3.6 8.5" />
+    </svg>
+  );
+}
+
+function ColumnIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 5.5 12 3l7 2.5-7 2.5-7-2.5Z" />
+      <path d="M5 5.5v13L12 21l7-2.5v-13M12 8v13" />
+      <path d="m5 12.1 7 2.5 7-2.5" />
+    </svg>
+  );
+}
+
+export function VisualizationDock({
+  mode,
+  scalarAvailable,
+  variableLabel,
+  depthM,
+  onChange
+}: Props) {
+  return (
+    <section
+      className="visualization-dock"
+      aria-label="Dual 3D visualization modes"
+      data-visualization-mode={mode}
+    >
+      <div className="visualization-dock-copy">
+        <span>DUAL 3D VISUALIZATION</span>
+        <strong>{variableLabel}</strong>
+        <small>{depthM.toFixed(2)} m selected · depth positive down</small>
+      </div>
+
+      <div className="visualization-dock-modes">
+        <button
+          type="button"
+          className={mode === "globe" ? "active" : ""}
+          aria-pressed={mode === "globe"}
+          onClick={() => onChange("globe")}
+        >
+          <span className="mode-icon"><GlobeIcon /></span>
+          <span className="mode-label">
+            <strong>Cesium Globe</strong>
+            <small>geospatial ocean context</small>
+          </span>
+        </button>
+        <button
+          type="button"
+          className={mode === "water-column" ? "active" : ""}
+          aria-pressed={mode === "water-column"}
+          disabled={!scalarAvailable}
+          title={scalarAvailable ? "Open scientific water-column 3D" : "Water-column 3D requires a scalar field"}
+          onClick={() => onChange("water-column")}
+        >
+          <span className="mode-icon"><ColumnIcon /></span>
+          <span className="mode-label">
+            <strong>Water-Column 3D</strong>
+            <small>{scalarAvailable ? "scientific lon/lat/depth box" : "scalar fields only"}</small>
+          </span>
+        </button>
+      </div>
+    </section>
+  );
+}
