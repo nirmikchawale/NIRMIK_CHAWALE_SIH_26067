@@ -1,18 +1,20 @@
 # OceanTwin Continuation State
 
-- Last fully verified baseline before current work: `5441ad1b19ae2ef419a614d7f1d3348eb010f1a8`
-- Public MVP: https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_26067/
-- Active branch: `feature/dual-3d-ux-v2`
-- Active feature: Feature 3 UX v2 — prominent dual 3D visualization + independent smooth zoom
-- Current status: implementation in progress; not yet merged or production-verified
-- Do not start Feature 4 until Feature 3 UX v2 is green on the exact merged SHA.
+- Repository: https://github.com/nirmikchawale/NIRMIK_CHAWALE_SIH_PERSONAL
+- Verified application baseline: `ec3a1701960c11088e180cc609c24bd2e2d9f41f`
+- Public MVP: https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/
+- Cleanup PR: #35 — merged
+- Cleanup verification: tests PASS · final-mvp PASS · Pages build PASS · deploy PASS · public HTTPS PASS · live Chromium judge-flow PASS
+- Scientific capability changed by cleanup: no
+- Active feature branch: none
+- Current status: repository cleanup complete; start future work from latest `main`.
 
 ## Recovery checklist
-1. Fetch latest main and active branch.
-2. Compare active branch against baseline above.
-3. Run/inspect branch tests.
-4. Open/refresh PR only after branch regression gate passes.
-5. Require tests + final-mvp before merge.
-6. After merge, require tests + final-mvp + deploy-oceantwin-pages on the exact merge SHA.
-7. Confirm verify-public HTTPS step and live Chromium judge-flow pass.
-8. Update this file with the new verified SHA and next feature.
+1. Fetch latest `main`.
+2. Confirm the repository remote is `nirmikchawale/NIRMIK_CHAWALE_SIH_PERSONAL`.
+3. Inspect the newest commit on `main` and any open PRs before starting work.
+4. For any product change, use a dedicated branch and keep the change isolated.
+5. Require `tests` + `final-mvp` before merge.
+6. After merge, require `tests` + `final-mvp` + `deploy-oceantwin-pages` on the merged SHA.
+7. Confirm public HTTPS verification and the live Chromium judge-flow.
+8. Never fabricate timestamps, measurements, profiles, anomalies, validation, or provenance.
