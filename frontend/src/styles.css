@@ -654,6 +654,18 @@ input[type="range"] {
   font-size: 8px !important;
 }
 
+.render-quality-line {
+  color: #6fdcf2 !important;
+  font-size: 7px !important;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:root[data-theme="light"] .render-quality-line {
+  color: #167a98 !important;
+}
+
 .globe-overlay {
   position: absolute;
   z-index: 8;
