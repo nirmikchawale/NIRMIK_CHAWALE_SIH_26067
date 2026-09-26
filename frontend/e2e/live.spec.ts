@@ -55,12 +55,26 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toContainText("genuine timestamps");
   await expect(telemetryPage).toContainText("TIME SERIES LOCKED");
   await expect(telemetryPage.locator(".telemetry-current-card")).toContainText("Mean speed");
+  const depthLadder = telemetryPage.locator(".telemetry-depth-ladder");
+  await expect(depthLadder).toBeVisible();
+  await expect(depthLadder).toContainText("Jump to any verified model depth");
+  await expect(depthLadder.locator("button")).toHaveCount(31);
+  const depthNeighborhood = telemetryPage.locator(".telemetry-neighborhood-card");
+  await expect(depthNeighborhood).toBeVisible();
+  await expect(depthNeighborhood).toContainText("Local mean gradient");
+  await expect(depthNeighborhood).toContainText("Selected P10–P90 span");
+  await expect(depthNeighborhood).toContainText("descriptive vertical-change diagnostic");
 
   const telemetryInitialDepth = await telemetryPage.getAttribute("data-selected-depth");
   const telemetryDepth = telemetryPage.getByLabel("Telemetry depth");
   await telemetryDepth.focus();
   await telemetryDepth.press("Home");
   await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", telemetryInitialDepth ?? "");
+
+  const firstDepthFromSlider = await telemetryPage.getAttribute("data-selected-depth");
+  await depthLadder.getByRole("button", { name: /Select telemetry depth/ }).nth(10).click();
+  await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", firstDepthFromSlider ?? "");
+  await expect(depthNeighborhood.locator("tbody tr.selected")).toHaveCount(1);
 
   await telemetryPage.getByRole("button", { name: "Salinity telemetry" }).click();
   await expect(telemetryPage).toHaveAttribute("data-variable", "so");
