@@ -217,15 +217,42 @@ jobs:
             exit 1
           fi
 
-          curl --fail --silent http://127.0.0.1:4173/ | grep -q '<div id="root"></div>'
-          curl --fail --silent http://127.0.0.1:4173/science-static/health.json | grep -q '"status":"ok"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/catalog.json | grep -q '"GLORYS12V1"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/fields/thetao/t0_d18.json | grep -q '"variable":"thetao"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/fields/so/t0_d18.json | grep -q '"variable":"so"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/currents/t0_d18.json | grep -q '"variable":"currents"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/profiles/index.json | grep -q '"profiles"'
-          curl --fail --silent http://127.0.0.1:4173/science-static/provenance.json | grep -q '"scientific_disclaimer"'
-          curl --fail --silent --output /tmp/natural-earth.jpg             http://127.0.0.1:4173/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
-          test -s /tmp/natural-earth.jpg
+          python - <<'PY'
+          import json
+          from urllib.request import urlopen
 
-          echo "Production static runtime smoke test passed."
+          base = "http://127.0.0.1:4173"
+
+          def get_bytes(path):
+              with urlopen(base + path, timeout=10) as response:
+                  assert response.status == 200, (path, response.status)
+                  return response.read()
+
+          def get_json(path):
+              return json.loads(get_bytes(path).decode("utf-8"))
+
+          index = get_bytes("/").decode("utf-8")
+          assert '<div id="root"></div>' in index
+
+          health = get_json("/science-static/health.json")
+          catalog = get_json("/science-static/catalog.json")
+          thetao = get_json("/science-static/fields/thetao/t0_d18.json")
+          salinity = get_json("/science-static/fields/so/t0_d18.json")
+          currents = get_json("/science-static/currents/t0_d18.json")
+          profiles = get_json("/science-static/profiles/index.json")
+          provenance = get_json("/science-static/provenance.json")
+          natural_earth = get_bytes(
+              "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
+          )
+
+          assert health["status"] == "ok"
+          assert "GLORYS12V1" in catalog["dataset"]["label"]
+          assert thetao["variable"] == "thetao"
+          assert salinity["variable"] == "so"
+          assert currents["variable"] == "currents"
+          assert len(profiles["profiles"]) == 2
+          assert provenance["scientific_disclaimer"]
+          assert natural_earth[:2] == b"\\xff\\xd8"
+
+          print("Production static runtime smoke test passed.")
+          PY
