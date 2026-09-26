@@ -37,6 +37,8 @@ export default function App() {
   const [scienceLoading, setScienceLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
+  const [startupError, setStartupError] = useState("");
+  const [degradedWarnings, setDegradedWarnings] = useState<string[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -45,7 +47,14 @@ export default function App() {
         if (!cancelled) setProvenance(payload);
       })
       .catch(() => {
-        if (!cancelled) setProvenance(null);
+        if (!cancelled) {
+          setProvenance(null);
+          setDegradedWarnings((current) =>
+            current.includes("Provenance metadata unavailable")
+              ? current
+              : [...current, "Provenance metadata unavailable"]
+          );
+        }
       });
     return () => {
       cancelled = true;
@@ -54,20 +63,39 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([api.health(), api.catalog(), api.profiles()])
-      .then(([, catalogPayload, profilePayload]) => {
+    Promise.allSettled([api.health(), api.catalog(), api.profiles()]).then(
+      ([healthResult, catalogResult, profilesResult]) => {
         if (cancelled) return;
+
+        if (catalogResult.status === "rejected") {
+          const reason = catalogResult.reason as Error;
+          setStartupError(reason?.message || "Scientific catalog unavailable.");
+          setScienceLoading(false);
+          return;
+        }
+
+        const catalogPayload = catalogResult.value;
         setCatalog(catalogPayload);
-        setProfiles(profilePayload.profiles);
         const safeDepth = Math.min(18, catalogPayload.coordinates.depth.length - 1);
         setDepthIndex(Math.max(0, safeDepth));
-        if (profilePayload.profiles.length > 0) {
-          setSelectedProfileId(profilePayload.profiles[0].profile_id);
+
+        if (healthResult.status === "rejected") {
+          setDegradedWarnings((current) => [...current, "Health check unavailable"]);
         }
-      })
-      .catch((reason: Error) => {
-        if (!cancelled) setError(reason.message);
-      });
+
+        if (profilesResult.status === "fulfilled") {
+          setProfiles(profilesResult.value.profiles);
+          if (profilesResult.value.profiles.length > 0) {
+            setSelectedProfileId(profilesResult.value.profiles[0].profile_id);
+          } else {
+            setDegradedWarnings((current) => [...current, "No eligible Argo comparison profiles"]);
+          }
+        } else {
+          setProfiles([]);
+          setDegradedWarnings((current) => [...current, "Argo comparison layer unavailable"]);
+        }
+      }
+    );
     return () => {
       cancelled = true;
     };
@@ -95,8 +123,15 @@ export default function App() {
       .then((payload) => {
         if (!cancelled) setProfileDetail(payload);
       })
-      .catch((reason: Error) => {
-        if (!cancelled) setError(reason.message);
+      .catch(() => {
+        if (!cancelled) {
+          setProfileDetail(null);
+          setDegradedWarnings((current) =>
+            current.includes("Selected Argo comparison unavailable")
+              ? current
+              : [...current, "Selected Argo comparison unavailable"]
+          );
+        }
       })
       .finally(() => {
         if (!cancelled) setProfileLoading(false);
@@ -159,7 +194,16 @@ export default function App() {
       <div className="boot-screen">
         <div className="brand-mark">OT</div>
         <h1>OceanTwin 3D</h1>
-        <p>{error || "Connecting to verified scientific evidence…"}</p>
+        {startupError ? (
+          <div className="boot-error-card">
+            <strong>Scientific API unavailable</strong>
+            <p>{startupError}</p>
+            <p>Local fail-safe: launch START_OCEANTWIN.cmd. The Streamlit scientific reference remains the emergency fallback.</p>
+            <button onClick={() => window.location.reload()}>Retry connection</button>
+          </div>
+        ) : (
+          <p>Connecting to verified scientific evidence…</p>
+        )}
       </div>
     );
   }
@@ -186,7 +230,9 @@ export default function App() {
           <button className="evidence-button" onClick={() => setProvenanceOpen(true)}>
             Sources & QC
           </button>
-          <span className="system-pill">● SCIENCE API READY</span>
+          <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
+            {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● SCIENCE API READY"}
+          </span>
         </div>
       </header>
 
@@ -235,7 +281,10 @@ export default function App() {
       )}
 
       <footer className="science-footer">
-        <span>Reanalysis · Cached verified · No runtime scientific-data download</span>
+        <span>
+          Reanalysis · Cached verified · No runtime scientific-data download
+          {degradedWarnings.length > 0 ? ` · Degraded: ${degradedWarnings.join(" · ")}` : ""}
+        </span>
         <span>{catalog.scientific_disclaimer}</span>
       </footer>
     </div>
