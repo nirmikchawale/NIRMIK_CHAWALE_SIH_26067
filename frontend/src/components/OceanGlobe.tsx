@@ -73,8 +73,6 @@ export function OceanGlobe({
       fullscreenButton: false,
       skyBox: false,
       skyAtmosphere: false,
-      sun: false,
-      moon: false,
       terrainProvider: new EllipsoidTerrainProvider(),
       requestRenderMode: true,
       maximumRenderTimeChange: Number.POSITIVE_INFINITY
