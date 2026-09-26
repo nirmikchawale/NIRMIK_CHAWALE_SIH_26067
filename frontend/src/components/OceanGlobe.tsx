@@ -13,6 +13,7 @@ import {
   HorizontalOrigin,
   LabelStyle,
   Material,
+  Math as CesiumMath,
   PointPrimitiveCollection,
   PolylineCollection,
   PolylineDashMaterialProperty,
@@ -140,7 +141,10 @@ export function OceanGlobe({
       .then((provider) => {
         if (viewer.isDestroyed()) return;
         viewer.imageryLayers.removeAll();
-        viewer.imageryLayers.addImageryProvider(provider);
+        const layer = viewer.imageryLayers.addImageryProvider(provider);
+        layer.brightness = 1.05;
+        layer.contrast = 1.12;
+        layer.saturation = 0.92;
         viewer.scene.requestRender();
       })
       .catch(() => {
@@ -156,8 +160,16 @@ export function OceanGlobe({
     viewer.scene.globe.translucency.backFaceAlpha = 0.20;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
 
+    // Judge-first framing: keep the verified model window central while also
+    // revealing India's west coast and enough globe curvature to read as geography,
+    // not as a floating rectangular plot.
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(68.5, 13.0, 1_350_000),
+      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+      orientation: {
+        heading: CesiumMath.toRadians(248),
+        pitch: CesiumMath.toRadians(-76),
+        roll: 0
+      },
       duration: 0
     });
 
