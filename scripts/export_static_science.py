@@ -108,8 +108,20 @@ def export_static_science(output: Path) -> dict[str, Any]:
                     ),
                 )
             )
+            for variable in ("thetao", "so"):
+                records.append(
+                    _write_json(
+                        output,
+                        f"telemetry/{variable}/t{time_index}_d{depth_index}.json",
+                        api.scalar_telemetry(
+                            variable=variable,
+                            time_index=time_index,
+                            depth_index=depth_index,
+                        ),
+                    )
+                )
 
-    expected = 4 + len(profile_items) + time_count * (2 + 2 * depth_count + depth_count)
+    expected = 4 + len(profile_items) + time_count * (2 + 5 * depth_count)
     if len(records) != expected:
         raise RuntimeError(
             f"Static science export count mismatch: expected {expected}, wrote {len(records)}."

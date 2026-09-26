@@ -100,3 +100,28 @@ def test_provenance_is_judge_safe_and_exposes_qc_without_local_paths():
     serialized = json.dumps(payload)
     assert "C:\\\\Users" not in serialized
     assert "comparison_config" not in payload
+
+
+
+def test_telemetry_uses_full_grid_and_never_synthesizes_time():
+    catalog = client.get("/api/catalog").json()
+    response = client.get(
+        "/api/telemetry",
+        params={"variable": "thetao", "time_index": 0, "depth_index": 18},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["variable"] == "thetao"
+    assert len(payload["depth_stats"]) == len(catalog["coordinates"]["depth"])
+    assert len(payload["time_stats"]) == len(catalog["coordinates"]["time"])
+    assert payload["time_series_available"] == (len(payload["time_stats"]) > 1)
+    assert payload["selected_depth_m"] == catalog["coordinates"]["depth"][18]
+    assert payload["depth_positive"] == "down"
+    assert payload["depth_stats"][18]["count"] > 0
+    assert payload["depth_stats"][18]["minimum"] <= payload["depth_stats"][18]["p10"]
+    assert payload["depth_stats"][18]["p10"] <= payload["depth_stats"][18]["p50"]
+    assert payload["depth_stats"][18]["p50"] <= payload["depth_stats"][18]["p90"]
+    assert payload["depth_stats"][18]["p90"] <= payload["depth_stats"][18]["maximum"]
+    assert payload["current_summary"]["count"] > 0
+    assert payload["current_summary"]["maximum_speed"] >= payload["current_summary"]["mean_speed"]
+    assert "No temporal or vertical samples are synthesized" in payload["statistic_definition"]

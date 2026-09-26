@@ -26,9 +26,27 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   await page.getByRole("button", { name: "Telemetry" }).click();
   await expect(page).toHaveURL(/#\/telemetry$/);
-  const telemetryPage = page.locator('.feature-page[data-page="telemetry"]');
+  const telemetryPage = page.locator('.telemetry-page[data-page="telemetry"]');
   await expect(telemetryPage).toBeVisible();
-  await expect(telemetryPage).toContainText("Telemetry workspace");
+  await expect(telemetryPage).toContainText("Depth & telemetry workspace");
+  await expect(telemetryPage).toHaveAttribute("data-depth-count", "31");
+  await expect(telemetryPage).toHaveAttribute("data-time-count", "1");
+  await expect(telemetryPage).toContainText("31");
+  await expect(telemetryPage).toContainText("genuine model depths");
+  await expect(telemetryPage).toContainText("1");
+  await expect(telemetryPage).toContainText("genuine timestamps");
+  await expect(telemetryPage).toContainText("TIME SERIES LOCKED");
+  await expect(telemetryPage.locator(".telemetry-current-card")).toContainText("Mean speed");
+
+  const telemetryInitialDepth = await telemetryPage.getAttribute("data-selected-depth");
+  const telemetryDepth = telemetryPage.getByLabel("Telemetry depth");
+  await telemetryDepth.focus();
+  await telemetryDepth.press("Home");
+  await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", telemetryInitialDepth ?? "");
+
+  await telemetryPage.getByRole("button", { name: "Salinity telemetry" }).click();
+  await expect(telemetryPage).toHaveAttribute("data-variable", "so");
+  await expect(telemetryPage.locator(".telemetry-depth-card")).toContainText("Salinity");
 
   await page.getByRole("button", { name: "Model vs Observation" }).click();
   await expect(page).toHaveURL(/#\/compare$/);

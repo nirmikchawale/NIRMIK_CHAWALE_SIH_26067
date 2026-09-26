@@ -1,0 +1,513 @@
+import { useEffect, useMemo, useState } from "react";
+
+import { api } from "../api";
+import type {
+  Catalog,
+  ProvenanceResponse,
+  TelemetryDepthStat,
+  TelemetryResponse,
+  TelemetryTimeStat
+} from "../types";
+
+interface Props {
+  catalog: Catalog;
+  provenance: ProvenanceResponse | null;
+}
+
+function linePoints(
+  stats: Array<{ depth_m: number; value: number }>,
+  width: number,
+  height: number,
+  xMin: number,
+  xMax: number,
+  depthMin: number,
+  depthMax: number
+) {
+  return stats
+    .map(({ depth_m, value }) => {
+      const x = 42 + ((value - xMin) / Math.max(xMax - xMin, 1e-12)) * (width - 72);
+      const y = 24 + ((depth_m - depthMin) / Math.max(depthMax - depthMin, 1e-12)) * (height - 58);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
+
+function DepthTelemetryChart({
+  telemetry,
+  selectedDepthM
+}: {
+  telemetry: TelemetryResponse;
+  selectedDepthM: number;
+}) {
+  const width = 720;
+  const height = 390;
+  const stats = telemetry.depth_stats;
+  const xMin = Math.min(...stats.map((item) => item.minimum));
+  const xMax = Math.max(...stats.map((item) => item.maximum));
+  const depthMin = Math.min(...stats.map((item) => item.depth_m));
+  const depthMax = Math.max(...stats.map((item) => item.depth_m));
+  const selectedY =
+    24 + ((selectedDepthM - depthMin) / Math.max(depthMax - depthMin, 1e-12)) * (height - 58);
+
+  const mean = linePoints(
+    stats.map((item) => ({ depth_m: item.depth_m, value: item.mean })),
+    width,
+    height,
+    xMin,
+    xMax,
+    depthMin,
+    depthMax
+  );
+  const p10 = linePoints(
+    stats.map((item) => ({ depth_m: item.depth_m, value: item.p10 })),
+    width,
+    height,
+    xMin,
+    xMax,
+    depthMin,
+    depthMax
+  );
+  const p90 = linePoints(
+    stats.map((item) => ({ depth_m: item.depth_m, value: item.p90 })),
+    width,
+    height,
+    xMin,
+    xMax,
+    depthMin,
+    depthMax
+  );
+
+  const band = [
+    ...stats.map((item) => ({ depth_m: item.depth_m, value: item.p10 })),
+    ...[...stats].reverse().map((item) => ({ depth_m: item.depth_m, value: item.p90 }))
+  ];
+  const bandPoints = linePoints(band, width, height, xMin, xMax, depthMin, depthMax);
+
+  return (
+    <section className="telemetry-card telemetry-depth-card">
+      <div className="telemetry-card-heading">
+        <div>
+          <span>DEPTH TELEMETRY</span>
+          <h3>{telemetry.label} through the verified water column</h3>
+        </div>
+        <strong>{stats.length} genuine depth levels</strong>
+      </div>
+      <svg
+        className="telemetry-depth-chart"
+        viewBox={`0 0 ${width} ${height}`}
+        role="img"
+        aria-label={`${telemetry.label} full-grid spatial statistics by exact model depth`}
+      >
+        <line x1="42" x2={width - 30} y1="24" y2="24" className="grid-line" />
+        <line x1="42" x2={width - 30} y1={height / 2} y2={height / 2} className="grid-line" />
+        <line x1="42" x2={width - 30} y1={height - 34} y2={height - 34} className="grid-line" />
+        <polygon points={bandPoints} className="telemetry-percentile-band" />
+        <polyline points={p10} className="telemetry-percentile-line" />
+        <polyline points={p90} className="telemetry-percentile-line" />
+        <polyline points={mean} className="telemetry-mean-line" />
+        <line
+          x1="42"
+          x2={width - 30}
+          y1={selectedY}
+          y2={selectedY}
+          className="telemetry-selected-depth-line"
+        />
+        <text x="4" y="29" className="telemetry-axis-label">{depthMin.toFixed(2)} m</text>
+        <text x="4" y={height - 30} className="telemetry-axis-label">{depthMax.toFixed(1)} m</text>
+        <text x="42" y={height - 8} className="telemetry-axis-label">{xMin.toFixed(3)}</text>
+        <text x={width - 82} y={height - 8} className="telemetry-axis-label">{xMax.toFixed(3)} {telemetry.units}</text>
+      </svg>
+      <div className="telemetry-chart-legend">
+        <span><i className="mean" /> Spatial mean</span>
+        <span><i className="band" /> 10th–90th percentile</span>
+        <span><i className="selected" /> Selected depth</span>
+      </div>
+      <p>
+        Each depth statistic uses all finite model grid cells at that exact depth for the selected
+        genuine timestamp. Depth is positive downward.
+      </p>
+    </section>
+  );
+}
+
+function SelectedDepthCard({
+  stat,
+  telemetry
+}: {
+  stat: TelemetryDepthStat;
+  telemetry: TelemetryResponse;
+}) {
+  const span = Math.max(stat.maximum - stat.minimum, 1e-12);
+  const position = (value: number) => ((value - stat.minimum) / span) * 100;
+
+  return (
+    <section className="telemetry-card telemetry-selected-card">
+      <div className="telemetry-card-heading compact">
+        <div>
+          <span>SELECTED DEPTH DISTRIBUTION</span>
+          <h3>{stat.depth_m.toFixed(2)} m</h3>
+        </div>
+        <strong>{stat.count.toLocaleString()} finite cells</strong>
+      </div>
+      <div className="telemetry-range-track" aria-label="Selected depth distribution summary">
+        <div
+          className="telemetry-range-band"
+          style={{ left: `${position(stat.p10)}%`, width: `${Math.max(1, position(stat.p90) - position(stat.p10))}%` }}
+        />
+        <i className="p50" style={{ left: `${position(stat.p50)}%` }} />
+        <i className="mean" style={{ left: `${position(stat.mean)}%` }} />
+      </div>
+      <div className="telemetry-range-labels">
+        <span>Min <strong>{stat.minimum.toFixed(3)}</strong></span>
+        <span>P10 <strong>{stat.p10.toFixed(3)}</strong></span>
+        <span>Median <strong>{stat.p50.toFixed(3)}</strong></span>
+        <span>P90 <strong>{stat.p90.toFixed(3)}</strong></span>
+        <span>Max <strong>{stat.maximum.toFixed(3)}</strong></span>
+      </div>
+      <div className="telemetry-selected-metrics">
+        <article><span>Spatial mean</span><strong>{stat.mean.toFixed(4)} {telemetry.units}</strong></article>
+        <article><span>Std. deviation</span><strong>{stat.std.toFixed(4)} {telemetry.units}</strong></article>
+      </div>
+    </section>
+  );
+}
+
+function TimeTelemetryCard({ telemetry }: { telemetry: TelemetryResponse }) {
+  const width = 620;
+  const height = 220;
+  const stats = telemetry.time_stats;
+  const means = stats.map((item) => item.mean);
+  const yMin = Math.min(...stats.map((item) => item.minimum));
+  const yMax = Math.max(...stats.map((item) => item.maximum));
+
+  const points = stats
+    .map((item, index) => {
+      const x =
+        stats.length === 1
+          ? width / 2
+          : 38 + (index / Math.max(stats.length - 1, 1)) * (width - 76);
+      const y =
+        24 + ((yMax - item.mean) / Math.max(yMax - yMin, 1e-12)) * (height - 58);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+
+  return (
+    <section className="telemetry-card telemetry-time-card">
+      <div className="telemetry-card-heading">
+        <div>
+          <span>TIME TELEMETRY</span>
+          <h3>Spatial mean at {telemetry.selected_depth_m.toFixed(2)} m</h3>
+        </div>
+        <strong>{stats.length} genuine timestamp{stats.length === 1 ? "" : "s"}</strong>
+      </div>
+      <div className="telemetry-time-plot">
+        <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Genuine model time telemetry">
+          <line x1="38" x2={width - 38} y1={height - 34} y2={height - 34} className="grid-line" />
+          {stats.length > 1 && <polyline points={points} className="telemetry-time-line" />}
+          {stats.map((item, index) => {
+            const [x, y] = points.split(" ")[index].split(",").map(Number);
+            return <circle key={item.time} cx={x} cy={y} r="5" className="telemetry-time-point" />;
+          })}
+          <text x="38" y={height - 10} className="telemetry-axis-label">
+            {stats[0]?.time.replace("T00:00:00Z", "")}
+          </text>
+          {stats.length > 1 && (
+            <text x={width - 112} y={height - 10} className="telemetry-axis-label">
+              {stats.at(-1)?.time.replace("T00:00:00Z", "")}
+            </text>
+          )}
+        </svg>
+        {!telemetry.time_series_available && (
+          <div className="telemetry-time-lock">
+            <strong>TIME SERIES LOCKED</strong>
+            <span>
+              One verified model timestamp is bundled. OceanTwin shows that real point and does not
+              synthesize a second timestamp or trend.
+            </span>
+          </div>
+        )}
+      </div>
+      {telemetry.time_series_available && (
+        <p>
+          Genuine model timestamps only. Displayed values are full-grid spatial means at the selected exact depth.
+        </p>
+      )}
+      <div className="telemetry-time-values">
+        {stats.map((item: TelemetryTimeStat) => (
+          <article key={item.time}>
+            <span>{item.time.replace("T", " ").replace("Z", " UTC")}</span>
+            <strong>{item.mean.toFixed(4)} {telemetry.units}</strong>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CurrentTelemetryCard({ telemetry }: { telemetry: TelemetryResponse }) {
+  const current = telemetry.current_summary;
+  return (
+    <section className="telemetry-card telemetry-current-card">
+      <div className="telemetry-card-heading compact">
+        <div>
+          <span>HORIZONTAL CURRENT TELEMETRY</span>
+          <h3>Full-grid u/v summary at {telemetry.selected_depth_m.toFixed(2)} m</h3>
+        </div>
+        <strong>{current ? current.count.toLocaleString() : "—"} vectors</strong>
+      </div>
+      {current ? (
+        <>
+          <div className="telemetry-current-vector">
+            <div
+              className="telemetry-current-arrow"
+              style={{
+                transform: `rotate(${Math.atan2(current.mean_v, current.mean_u) * (180 / Math.PI)}deg)`
+              }}
+              aria-hidden="true"
+            >→</div>
+            <div>
+              <span>Vector-mean components</span>
+              <strong>u {current.mean_u.toFixed(4)} · v {current.mean_v.toFixed(4)} {current.units}</strong>
+            </div>
+          </div>
+          <div className="telemetry-current-metrics">
+            <article><span>Mean speed</span><strong>{current.mean_speed.toFixed(4)} {current.units}</strong></article>
+            <article><span>Maximum speed</span><strong>{current.maximum_speed.toFixed(4)} {current.units}</strong></article>
+          </div>
+          <p>Horizontal components only. OceanTwin does not invent a vertical current component.</p>
+        </>
+      ) : (
+        <div className="telemetry-inline-warning">Verified horizontal current components are unavailable.</div>
+      )}
+    </section>
+  );
+}
+
+function downloadTelemetryCsv(telemetry: TelemetryResponse) {
+  const header = [
+    "depth_index",
+    "depth_m",
+    "count",
+    "mean",
+    "minimum",
+    "p10",
+    "median_p50",
+    "p90",
+    "maximum",
+    "std",
+    "units",
+    "time_utc"
+  ];
+  const rows = telemetry.depth_stats.map((item) => [
+    item.depth_index,
+    item.depth_m,
+    item.count,
+    item.mean,
+    item.minimum,
+    item.p10,
+    item.p50,
+    item.p90,
+    item.maximum,
+    item.std,
+    telemetry.units,
+    telemetry.time
+  ]);
+  const csv = [header, ...rows].map((row) => row.join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `OceanTwin_${telemetry.variable}_depth_telemetry_t${telemetry.time_index}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+export function TelemetryPage({ catalog, provenance }: Props) {
+  const [variable, setVariable] = useState<"thetao" | "so">("thetao");
+  const [depthIndex, setDepthIndex] = useState(() => Math.min(18, catalog.coordinates.depth.length - 1));
+  const [timeIndex, setTimeIndex] = useState(0);
+  const [telemetry, setTelemetry] = useState<TelemetryResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError("");
+    api.telemetry(variable, timeIndex, depthIndex)
+      .then((payload) => {
+        if (!cancelled) setTelemetry(payload);
+      })
+      .catch((reason: Error) => {
+        if (!cancelled) {
+          setTelemetry(null);
+          setError(reason.message);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [variable, timeIndex, depthIndex]);
+
+  const selectedStat = useMemo(() => {
+    if (!telemetry) return null;
+    return telemetry.depth_stats.find((item) => item.depth_index === depthIndex) ?? null;
+  }, [telemetry, depthIndex]);
+
+  const longitude = catalog.coordinates.longitude;
+  const latitude = catalog.coordinates.latitude;
+
+  return (
+    <main
+      className="telemetry-page"
+      data-page="telemetry"
+      data-variable={variable}
+      data-depth-count={telemetry?.depth_stats.length ?? 0}
+      data-time-count={telemetry?.time_stats.length ?? 0}
+      data-selected-depth={telemetry?.selected_depth_m.toFixed(2) ?? ""}
+    >
+      <section className="telemetry-hero">
+        <div>
+          <div className="section-kicker">OCEAN ANALYTICS</div>
+          <h2>Depth & telemetry workspace</h2>
+          <p>
+            Full-grid summaries from the cached Copernicus GLORYS12V1 evidence. Depth statistics,
+            selected-depth currents and genuine time telemetry are derived from the same canonical
+            backend used by the Explorer—without synthetic timestamps.
+          </p>
+        </div>
+        <div className="telemetry-source-card">
+          <span>VERIFIED WINDOW</span>
+          <strong>{catalog.dataset.product}</strong>
+          <small>
+            {longitude[0].toFixed(2)}–{longitude.at(-1)?.toFixed(2)}°E ·
+            {" "}{latitude[0].toFixed(2)}–{latitude.at(-1)?.toFixed(2)}°N
+          </small>
+          <small>{catalog.dataset.freshness_class} · {catalog.dataset.runtime_mode}</small>
+        </div>
+      </section>
+
+      <section className="telemetry-toolbar">
+        <div>
+          <span>Scalar telemetry</span>
+          <div className="telemetry-variable-switcher" aria-label="Telemetry variable">
+            <button
+              className={variable === "thetao" ? "active" : ""}
+              onClick={() => setVariable("thetao")}
+              aria-label="Temperature telemetry"
+            >
+              Temperature
+            </button>
+            <button
+              className={variable === "so" ? "active" : ""}
+              onClick={() => setVariable("so")}
+              aria-label="Salinity telemetry"
+            >
+              Salinity
+            </button>
+          </div>
+        </div>
+        <label>
+          <span>Telemetry depth <strong>{(catalog.coordinates.depth[depthIndex] ?? 0).toFixed(2)} m</strong></span>
+          <input
+            aria-label="Telemetry depth"
+            type="range"
+            min={0}
+            max={catalog.coordinates.depth.length - 1}
+            value={depthIndex}
+            onChange={(event) => setDepthIndex(Number(event.target.value))}
+          />
+        </label>
+        <label>
+          <span>Genuine timestamp <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "")}</strong></span>
+          <input
+            aria-label="Telemetry time"
+            type="range"
+            min={0}
+            max={Math.max(0, catalog.coordinates.time.length - 1)}
+            value={timeIndex}
+            disabled={catalog.coordinates.time.length < 2}
+            onChange={(event) => setTimeIndex(Number(event.target.value))}
+          />
+        </label>
+        <button
+          type="button"
+          className="telemetry-download"
+          disabled={!telemetry}
+          onClick={() => telemetry && downloadTelemetryCsv(telemetry)}
+        >
+          Download depth telemetry CSV
+        </button>
+      </section>
+
+      {loading && !telemetry ? (
+        <section className="telemetry-state-card">Loading full-grid telemetry…</section>
+      ) : error ? (
+        <section className="telemetry-state-card error">
+          <strong>Telemetry unavailable</strong>
+          <span>{error}</span>
+        </section>
+      ) : telemetry && selectedStat ? (
+        <>
+          <section className="telemetry-overview">
+            <article>
+              <span>Depth levels</span>
+              <strong>{telemetry.depth_stats.length}</strong>
+              <small>genuine model depths</small>
+            </article>
+            <article>
+              <span>Time steps</span>
+              <strong>{telemetry.time_stats.length}</strong>
+              <small>genuine timestamps</small>
+            </article>
+            <article>
+              <span>Grid</span>
+              <strong>{telemetry.spatial_grid.longitude_count} × {telemetry.spatial_grid.latitude_count}</strong>
+              <small>full horizontal grid</small>
+            </article>
+            <article>
+              <span>Selected depth</span>
+              <strong>{telemetry.selected_depth_m.toFixed(2)} m</strong>
+              <small>positive downward</small>
+            </article>
+            <article>
+              <span>Variable</span>
+              <strong>{telemetry.label}</strong>
+              <small>{telemetry.units}</small>
+            </article>
+          </section>
+
+          <section className="telemetry-main-grid">
+            <DepthTelemetryChart telemetry={telemetry} selectedDepthM={telemetry.selected_depth_m} />
+            <div className="telemetry-side-stack">
+              <SelectedDepthCard stat={selectedStat} telemetry={telemetry} />
+              <CurrentTelemetryCard telemetry={telemetry} />
+            </div>
+          </section>
+
+          <TimeTelemetryCard telemetry={telemetry} />
+
+          <section className="telemetry-method-card">
+            <div>
+              <span>STATISTIC DEFINITION</span>
+              <strong>Full-grid finite-cell summaries</strong>
+            </div>
+            <p>{telemetry.statistic_definition}</p>
+            <dl>
+              <div><dt>Dataset</dt><dd>{telemetry.provenance.dataset_id}</dd></div>
+              <div><dt>Product</dt><dd>{telemetry.provenance.product}</dd></div>
+              <div><dt>Runtime</dt><dd>{telemetry.provenance.runtime_mode}</dd></div>
+              <div><dt>Model DOI</dt><dd>{provenance?.model.doi ?? catalog.dataset.doi}</dd></div>
+            </dl>
+          </section>
+        </>
+      ) : null}
+    </main>
+  );
+}

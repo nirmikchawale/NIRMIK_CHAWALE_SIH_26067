@@ -179,3 +179,61 @@ export interface ProvenanceResponse {
   source_metadata_available: string[];
   scientific_disclaimer: string;
 }
+
+
+export interface TelemetryStat {
+  count: number;
+  mean: number;
+  minimum: number;
+  maximum: number;
+  std: number;
+  p10: number;
+  p50: number;
+  p90: number;
+}
+
+export interface TelemetryDepthStat extends TelemetryStat {
+  depth_index: number;
+  depth_m: number;
+}
+
+export interface TelemetryTimeStat extends TelemetryStat {
+  time_index: number;
+  time: string;
+}
+
+export interface CurrentTelemetrySummary {
+  count: number;
+  mean_speed: number;
+  maximum_speed: number;
+  mean_u: number;
+  mean_v: number;
+  units: string;
+}
+
+export interface TelemetryResponse {
+  variable: "thetao" | "so";
+  label: string;
+  units: string;
+  time_index: number;
+  time: string;
+  selected_depth_index: number;
+  selected_depth_m: number;
+  depth_positive: string;
+  depth_stats: TelemetryDepthStat[];
+  time_stats: TelemetryTimeStat[];
+  time_series_available: boolean;
+  current_summary: CurrentTelemetrySummary | null;
+  spatial_grid: {
+    longitude_count: number;
+    latitude_count: number;
+    finite_cell_statistics: string;
+  };
+  provenance: {
+    product: string;
+    dataset_id: string;
+    freshness_class: string;
+    runtime_mode: string;
+  };
+  statistic_definition: string;
+}

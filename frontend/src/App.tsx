@@ -4,6 +4,7 @@ import { api } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
+import { TelemetryPage } from "./pages/TelemetryPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
 import { ProfilePanel } from "./components/ProfilePanel";
@@ -366,6 +367,8 @@ export default function App() {
 
               <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
             </>
+          ) : page === "telemetry" ? (
+            <TelemetryPage catalog={catalog} provenance={provenance} />
           ) : page === "compare" ? (
             <ComparisonPage
               profiles={profiles}
