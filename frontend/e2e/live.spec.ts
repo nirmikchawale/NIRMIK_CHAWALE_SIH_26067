@@ -142,6 +142,16 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
   await expect(page.getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
 
+  const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
+  await expect(modeDock).toBeVisible();
+  await expect(modeDock).toContainText("DUAL 3D VISUALIZATION");
+  await expect(modeDock.getByRole("button", { name: "Cesium Globe" })).toBeVisible();
+  await expect(modeDock.getByRole("button", { name: "Water-Column 3D" })).toBeVisible();
+
+  const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
+  await page.getByRole("button", { name: "Zoom in Cesium Globe" }).click();
+  await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
+
   const playButton = page.locator(".play-button");
   await expect(playButton).toBeDisabled();
   await expect(
@@ -168,6 +178,12 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(waterColumnShell).toHaveAttribute("data-depth-count", "31");
   await expect(page.locator(".water-column-selected")).toContainText("Depth (m, positive down)");
   await expect(page.locator(".water-column-selected")).toContainText("SELECTED LAYER");
+  await expect(page.locator(".water-column-axis-key")).toContainText("Depth m ↓");
+  await expect(page.locator(".water-column-smooth-zoom")).toBeVisible();
+
+  const initialWaterZoom = Number(await waterColumnShell.getAttribute("data-zoom"));
+  await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
+  await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialWaterZoom);
 
   const opacitySlider = page.getByLabel("Point opacity");
   await opacitySlider.focus();

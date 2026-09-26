@@ -58,6 +58,7 @@ export function WaterColumn3D({
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const dragRef = useRef({ active: false, x: 0, y: 0 });
+  const zoomAnimationRef = useRef<number | null>(null);
   const projectedRef = useRef<ProjectedPoint[]>([]);
   const [orbit, setOrbit] = useState(DEFAULT_ORBIT);
   const [hover, setHover] = useState<HoverPoint | null>(null);
@@ -260,6 +261,38 @@ export function WaterColumn3D({
     };
   }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme]);
 
+  const smoothWaterZoomTo = (targetZoom: number) => {
+    if (zoomAnimationRef.current != null) {
+      window.cancelAnimationFrame(zoomAnimationRef.current);
+      zoomAnimationRef.current = null;
+    }
+
+    const startZoom = orbit.zoom;
+    const target = clamp(targetZoom, 0.62, 1.9);
+    const startedAt = performance.now();
+    const durationMs = 420;
+
+    const animate = (now: number) => {
+      const raw = Math.min(1, (now - startedAt) / durationMs);
+      const eased = 1 - Math.pow(1 - raw, 3);
+      const zoom = startZoom + (target - startZoom) * eased;
+      setOrbit((current) => ({ ...current, zoom }));
+
+      if (raw < 1) {
+        zoomAnimationRef.current = window.requestAnimationFrame(animate);
+      } else {
+        zoomAnimationRef.current = null;
+      }
+    };
+
+    zoomAnimationRef.current = window.requestAnimationFrame(animate);
+  };
+
+  const smoothWaterZoom = (direction: "in" | "out") => {
+    const factor = direction === "in" ? 1.28 : 0.78;
+    smoothWaterZoomTo(orbit.zoom * factor);
+  };
+
   const inspectNearest = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -322,10 +355,8 @@ export function WaterColumn3D({
 
   const onWheel = (event: WheelEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-    setOrbit((current) => ({
-      ...current,
-      zoom: clamp(current.zoom * (event.deltaY > 0 ? 0.92 : 1.08), 0.62, 1.9)
-    }));
+    const factor = event.deltaY > 0 ? 0.92 : 1.08;
+    smoothWaterZoomTo(orbit.zoom * factor);
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
@@ -343,13 +374,11 @@ export function WaterColumn3D({
       }));
     } else if (event.key === "+" || event.key === "=" || event.key === "-") {
       event.preventDefault();
-      setOrbit((current) => ({
-        ...current,
-        zoom: clamp(current.zoom * (event.key === "-" ? 0.9 : 1.1), 0.62, 1.9)
-      }));
+      smoothWaterZoom(event.key === "-" ? "out" : "in");
     } else if (event.key.toLowerCase() === "r") {
       event.preventDefault();
-      setOrbit(DEFAULT_ORBIT);
+      smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
+      setOrbit((current) => ({ ...current, yaw: DEFAULT_ORBIT.yaw, pitch: DEFAULT_ORBIT.pitch }));
     }
   };
 
@@ -416,13 +445,28 @@ export function WaterColumn3D({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="globe-overlay water-column-reset"
-        onClick={() => setOrbit(DEFAULT_ORBIT)}
-      >
-        Reset 3D view
-      </button>
+      <div className="globe-overlay smooth-zoom-controls water-column-smooth-zoom" aria-label="Water-Column 3D smooth zoom">
+        <span>WATER-COLUMN ZOOM</span>
+        <div>
+          <button type="button" aria-label="Zoom out Water-Column 3D" onClick={() => smoothWaterZoom("out")}>−</button>
+          <button
+            type="button"
+            aria-label="Reset Water-Column 3D view"
+            onClick={() => {
+              smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
+              setOrbit((current) => ({ ...current, yaw: DEFAULT_ORBIT.yaw, pitch: DEFAULT_ORBIT.pitch }));
+            }}
+          >◎</button>
+          <button type="button" aria-label="Zoom in Water-Column 3D" onClick={() => smoothWaterZoom("in")}>+</button>
+        </div>
+        <small>420 ms eased scientific-box zoom</small>
+      </div>
+
+      <div className="globe-overlay water-column-axis-key">
+        <span>AXES</span>
+        <strong>Longitude °E · Latitude °N · Depth m ↓</strong>
+        <small>Depth remains positive down; exaggeration changes display geometry only.</small>
+      </div>
 
       {hover && (
         <div className="globe-overlay water-column-hover">
@@ -434,7 +478,7 @@ export function WaterColumn3D({
       )}
 
       <div className="globe-overlay interaction-hint water-column-hint">
-        Drag to orbit · wheel to zoom · arrows / +/- for keyboard · R reset
+        Drag to orbit · smooth wheel/buttons to zoom · arrows / +/- · R reset
       </div>
 
       <div className="globe-overlay volume-note water-column-note">

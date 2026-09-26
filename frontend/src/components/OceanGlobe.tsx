@@ -81,11 +81,13 @@ export function OceanGlobe({
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
   const depthAnimationRef = useRef<number | null>(null);
+  const zoomAnimationRef = useRef<number | null>(null);
   const sliceHeightRef = useRef(0);
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [rendererError, setRendererError] = useState("");
   const [renderScale, setRenderScale] = useState(1);
   const [antialiasing, setAntialiasing] = useState("initializing");
+  const [cameraHeight, setCameraHeight] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
@@ -197,6 +199,7 @@ export function OceanGlobe({
       },
       duration: 0
     });
+    setCameraHeight(viewer.camera.positionCartographic.height);
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -231,6 +234,10 @@ export function OceanGlobe({
     return () => {
       removeRenderErrorListener();
       window.removeEventListener("resize", syncRenderQuality);
+      if (zoomAnimationRef.current != null) {
+        window.cancelAnimationFrame(zoomAnimationRef.current);
+        zoomAnimationRef.current = null;
+      }
       clickHandlerRef.current?.destroy();
       clickHandlerRef.current = null;
       viewer.destroy();
@@ -594,12 +601,77 @@ export function OceanGlobe({
   const legendUnits = scalar?.units ?? currents?.units;
   const legendLabel = scalar?.label ?? (currents ? "Current speed" : "Ocean field");
 
+
+  const smoothGlobeZoom = (direction: "in" | "out") => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+
+    if (zoomAnimationRef.current != null) {
+      window.cancelAnimationFrame(zoomAnimationRef.current);
+      zoomAnimationRef.current = null;
+    }
+
+    const initialHeight = viewer.camera.positionCartographic.height;
+    const minimumHeight = 115_000;
+    const totalDistance =
+      direction === "in"
+        ? Math.max(0, Math.min(initialHeight * 0.32, initialHeight - minimumHeight))
+        : Math.max(90_000, initialHeight * 0.34);
+
+    if (totalDistance <= 0) return;
+
+    const startedAt = performance.now();
+    const durationMs = 420;
+    let previousEased = 0;
+
+    const animate = (now: number) => {
+      if (viewer.isDestroyed()) return;
+      const raw = Math.min(1, (now - startedAt) / durationMs);
+      const eased = 1 - Math.pow(1 - raw, 3);
+      const delta = totalDistance * (eased - previousEased);
+      previousEased = eased;
+
+      if (direction === "in") viewer.camera.zoomIn(delta);
+      else viewer.camera.zoomOut(delta);
+      setCameraHeight(viewer.camera.positionCartographic.height);
+      viewer.scene.requestRender();
+
+      if (raw < 1) {
+        zoomAnimationRef.current = window.requestAnimationFrame(animate);
+      } else {
+        zoomAnimationRef.current = null;
+      }
+    };
+
+    zoomAnimationRef.current = window.requestAnimationFrame(animate);
+  };
+
+  const resetGlobeView = () => {
+    const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+    if (zoomAnimationRef.current != null) {
+      window.cancelAnimationFrame(zoomAnimationRef.current);
+      zoomAnimationRef.current = null;
+    }
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+      orientation: {
+        heading: CesiumMath.toRadians(248),
+        pitch: CesiumMath.toRadians(-76),
+        roll: 0
+      },
+      duration: 0.75,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  };
+
   return (
     <main
       className="globe-shell"
       data-render-scale={renderScale.toFixed(2)}
       data-antialiasing={antialiasing}
       data-render-quality="high"
+      data-camera-height={cameraHeight.toFixed(0)}
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
@@ -658,8 +730,18 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
+      <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom" aria-label="Cesium Globe smooth zoom">
+        <span>GLOBE ZOOM</span>
+        <div>
+          <button type="button" aria-label="Zoom out Cesium Globe" onClick={() => smoothGlobeZoom("out")}>−</button>
+          <button type="button" aria-label="Reset Cesium Globe view" onClick={resetGlobeView}>◎</button>
+          <button type="button" aria-label="Zoom in Cesium Globe" onClick={() => smoothGlobeZoom("in")}>+</button>
+        </div>
+        <small>420 ms eased camera motion</small>
+      </div>
+
       <div className="globe-overlay interaction-hint">
-        Drag to orbit · scroll to zoom · click Argo or model cells to inspect
+        Drag to orbit · scroll to zoom · use smooth zoom buttons · click evidence to inspect
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
