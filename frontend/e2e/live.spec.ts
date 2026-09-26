@@ -16,8 +16,9 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   await page.getByRole("button", { name: "Telemetry" }).click();
   await expect(page).toHaveURL(/#\/telemetry$/);
-  await expect(page.locator('.feature-page[data-page="telemetry"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Telemetry workspace" })).toBeVisible();
+  const telemetryPage = page.locator('.feature-page[data-page="telemetry"]');
+  await expect(telemetryPage).toBeVisible();
+  await expect(telemetryPage).toContainText("Telemetry workspace");
 
   await page.getByRole("button", { name: "3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
