@@ -13,10 +13,26 @@ export default defineConfig({
     react(),
     viteStaticCopy({
       targets: [
-        { src: `${cesiumSource}/ThirdParty`, dest: cesiumBaseUrl },
-        { src: `${cesiumSource}/Workers`, dest: cesiumBaseUrl },
-        { src: `${cesiumSource}/Assets`, dest: cesiumBaseUrl },
-        { src: `${cesiumSource}/Widgets`, dest: cesiumBaseUrl }
+        {
+          src: `${cesiumSource}/ThirdParty/**/*`,
+          dest: `${cesiumBaseUrl}/ThirdParty`,
+          rename: { stripBase: 5 }
+        },
+        {
+          src: `${cesiumSource}/Workers/**/*`,
+          dest: `${cesiumBaseUrl}/Workers`,
+          rename: { stripBase: 5 }
+        },
+        {
+          src: `${cesiumSource}/Assets/**/*`,
+          dest: `${cesiumBaseUrl}/Assets`,
+          rename: { stripBase: 5 }
+        },
+        {
+          src: `${cesiumSource}/Widgets/**/*`,
+          dest: `${cesiumBaseUrl}/Widgets`,
+          rename: { stripBase: 5 }
+        }
       ]
     })
   ],
