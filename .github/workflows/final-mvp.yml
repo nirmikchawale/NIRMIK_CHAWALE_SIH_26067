@@ -1,0 +1,100 @@
+name: final-mvp
+
+on:
+  push:
+    branches:
+      - final-mvp-react-cesium-fastapi
+      - main
+  pull_request:
+
+jobs:
+  science-api-and-fallback:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install frozen reference and API dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install -r backend/requirements.txt
+
+      - name: Run frozen Streamlit regression suite
+        run: python -m pytest -q tests
+
+      - name: Run FastAPI scientific contract suite
+        run: python -m pytest -q backend/tests
+
+      - name: Compile Python application surfaces
+        run: python -m compileall -q app.py config.py oceantwin src backend tests
+
+      - name: FastAPI startup and evidence smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 > fastapi-ci.log 2>&1 &
+          API_PID=$!
+          trap 'kill $API_PID 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8000/api/health >/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ]; then
+            cat fastapi-ci.log
+            exit 1
+          fi
+          curl --fail --silent http://127.0.0.1:8000/api/catalog >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=thetao&depth_index=0' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=so&depth_index=0' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/currents?depth_index=0' >/dev/null
+          curl --fail --silent http://127.0.0.1:8000/api/profiles >/dev/null
+
+      - name: Frozen Streamlit fallback startup smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m streamlit run app.py --server.headless true --server.port 8501 > streamlit-ci.log 2>&1 &
+          APP_PID=$!
+          trap 'kill $APP_PID 2>/dev/null || true' EXIT
+          healthy=0
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:8501/_stcore/health >/dev/null; then
+              healthy=1
+              break
+            fi
+            sleep 1
+          done
+          if [ "$healthy" -ne 1 ]; then
+            cat streamlit-ci.log
+            exit 1
+          fi
+
+  react-cesium:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm install
+
+      - name: Typecheck React and Cesium integration
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build production frontend
+        working-directory: frontend
+        run: npm run build
