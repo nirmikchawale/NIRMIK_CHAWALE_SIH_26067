@@ -269,6 +269,10 @@ export function WaterColumn3D({
 
     const startZoom = orbit.zoom;
     const target = clamp(targetZoom, 0.62, 1.9);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setOrbit((current) => ({ ...current, zoom: target }));
+      return;
+    }
     const startedAt = performance.now();
     const durationMs = 420;
 
