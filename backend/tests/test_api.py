@@ -125,3 +125,28 @@ def test_telemetry_uses_full_grid_and_never_synthesizes_time():
     assert payload["current_summary"]["count"] > 0
     assert payload["current_summary"]["maximum_speed"] >= payload["current_summary"]["mean_speed"]
     assert "No temporal or vertical samples are synthesized" in payload["statistic_definition"]
+
+
+
+def test_anomaly_screen_is_robust_explainable_and_never_invents_temporal_evidence():
+    catalog = client.get("/api/catalog").json()
+    response = client.get(
+        "/api/anomalies",
+        params={"variable": "thetao", "time_index": 0, "depth_index": 18},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+
+    assert payload["method"]["absolute_threshold"] == 3.5
+    assert payload["method"]["formula"] == "0.67448975 × (x − median) / MAD"
+    assert payload["spatial_screen"]["sample_count"] > 0
+    assert payload["residual_screen"]["profiles_screened"] == 2
+    assert payload["residual_screen"]["temperature_only"] is True
+    assert payload["residual_screen"]["flagged_count"] > 0
+    assert all(abs(item["robust_z"]) >= 3.5 for item in payload["residual_screen"]["flags"])
+
+    assert payload["temporal_screen"]["available"] is False
+    assert payload["temporal_screen"]["status"] == "locked"
+    assert payload["temporal_screen"]["genuine_time_count"] == len(catalog["coordinates"]["time"])
+    assert "genuine timestamp" in payload["temporal_screen"]["reason"]
+    assert "not proof of an ocean event" in payload["interpretation"]
