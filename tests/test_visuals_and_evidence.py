@@ -138,7 +138,16 @@ def test_bundled_scientific_files_match_data_manifest_hashes():
         "data/comparison/comparison_provenance.json",
     ]:
         path = ROOT / rel
-        assert sha256(path.read_bytes()).hexdigest() == manifest[rel]
+        raw = path.read_bytes()
+        candidate_hashes = {sha256(raw).hexdigest()}
+        if path.suffix.lower() in {".csv", ".json", ".md", ".txt"}:
+            # Git may normalize tracked text evidence between LF and CRLF.
+            # Accept only those byte-for-byte line-ending variants; content must otherwise match.
+            lf = raw.replace(b"\r\n", b"\n")
+            crlf = lf.replace(b"\n", b"\r\n")
+            candidate_hashes.add(sha256(lf).hexdigest())
+            candidate_hashes.add(sha256(crlf).hexdigest())
+        assert manifest[rel] in candidate_hashes
 
 
 def test_original_comparison_provenance_records_raw_inputs_unchanged():
