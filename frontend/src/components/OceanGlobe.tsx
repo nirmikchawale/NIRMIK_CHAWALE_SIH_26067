@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import {
+  Cartesian2,
   Cartesian3,
   Color,
   EllipsoidTerrainProvider,
