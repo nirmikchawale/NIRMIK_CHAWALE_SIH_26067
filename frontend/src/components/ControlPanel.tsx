@@ -14,7 +14,6 @@ interface Props {
   playing: boolean;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
-  onVisualizationModeChange: (value: VisualizationMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
   onDepthChange: (value: number) => void;
   onTimeChange: (value: number) => void;
@@ -37,7 +36,6 @@ export function ControlPanel({
   playing,
   onVariableChange,
   onViewModeChange,
-  onVisualizationModeChange,
   onWaterColumnOpacityChange,
   onDepthChange,
   onTimeChange,
@@ -78,21 +76,15 @@ export function ControlPanel({
           </p>
         )}
 
-        <div className="section-kicker visualization-kicker">3D visualization</div>
-        <div className="segmented visualization-selector" aria-label="3D visualization">
-          <button
-            className={visualizationMode === "globe" ? "active" : ""}
-            onClick={() => onVisualizationModeChange("globe")}
-          >
-            Cesium Globe
-          </button>
-          <button
-            className={visualizationMode === "water-column" ? "active" : ""}
-            disabled={!scalar}
-            onClick={() => onVisualizationModeChange("water-column")}
-          >
-            Water-column 3D
-          </button>
+        <div className="section-kicker visualization-kicker">Active 3D mode</div>
+        <div className="active-3d-mode-card">
+          <strong>{visualizationMode === "globe" ? "Cesium Globe" : "Water-Column 3D"}</strong>
+          <span>
+            {visualizationMode === "globe"
+              ? "Geospatial context with depth-aware scientific overlays."
+              : "Scientific lon/lat/depth box using canonical model volume values."}
+          </span>
+          <small>Switch modes from the persistent DUAL 3D VISUALIZATION dock.</small>
         </div>
 
         {visualizationMode === "globe" && (
