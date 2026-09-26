@@ -157,7 +157,7 @@ function DepthLadder({
         Each button is one genuine GLORYS12V1 model depth. Bar length shows the full-grid spatial
         mean at that level; selecting a level updates all telemetry cards together.
       </p>
-      <div className="telemetry-depth-ladder-grid" role="list" aria-label="Verified telemetry depths">
+      <div className="telemetry-depth-ladder-grid" role="group" aria-label="Verified telemetry depths">
         {telemetry.depth_stats.map((item) => {
           const width = 14 + 86 * ((item.mean - minMean) / span);
           const selected = item.depth_index === selectedDepthIndex;
@@ -165,7 +165,6 @@ function DepthLadder({
             <button
               key={item.depth_index}
               type="button"
-              role="listitem"
               className={selected ? "active" : ""}
               aria-pressed={selected}
               aria-label={`Select telemetry depth ${item.depth_m.toFixed(2)} m`}
