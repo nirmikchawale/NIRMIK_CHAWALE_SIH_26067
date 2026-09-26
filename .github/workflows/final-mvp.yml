@@ -128,6 +128,10 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+      - name: Validate live browser acceptance suite
+        working-directory: frontend
+        run: npm run e2e:live -- --list
+
 
   static-hosted-failsafe:
     runs-on: ubuntu-latest
