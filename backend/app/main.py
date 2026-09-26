@@ -363,6 +363,7 @@ def provenance() -> dict[str, Any]:
     except EvidenceError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     metadata = load_optional_metadata(COMPARISON_DIR)
+    metadata_keys = sorted(metadata.keys()) if isinstance(metadata, dict) else []
     return {
         "model": {
             "label": MODEL_LABEL,
@@ -377,8 +378,28 @@ def provenance() -> dict[str, Any]:
             "provider": ARGO_PROVIDER,
             "doi": ARGO_DOI,
         },
-        "comparison_config": config,
-        "comparison_provenance": comparison_provenance,
-        "source_metadata": metadata,
+        "quality_control": {
+            "accepted_provider_qc": config.get("accepted_provider_qc", []),
+            "max_cell_distance_km": config.get("max_cell_distance_km"),
+            "matched_profiles": len(_comparison_bundle()[2]),
+            "no_extrapolation": True,
+            "metrics_weighting": config.get("metrics_weighting"),
+        },
+        "methodology": {
+            "horizontal": config.get("horizontal_policy"),
+            "depth": config.get("depth_policy"),
+            "time": config.get("time_policy"),
+            "temperature": config.get("temperature_policy"),
+        },
+        "integrity": {
+            "created_utc": comparison_provenance.get("created_utc"),
+            "source_checksums_unchanged": comparison_provenance.get("raw_unchanged"),
+            "configuration_sha256": comparison_provenance.get("configuration_sha256"),
+            "engine_sha256": comparison_provenance.get("engine_sha256"),
+            "no_synthetic_measurements_in_outputs": comparison_provenance.get(
+                "no_synthetic_measurements_in_outputs"
+            ),
+        },
+        "source_metadata_available": metadata_keys,
         "scientific_disclaimer": DISCLAIMER,
     }
