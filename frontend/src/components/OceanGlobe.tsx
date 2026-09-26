@@ -444,6 +444,12 @@ export function OceanGlobe({
 
     const startHeight = sliceHeightRef.current;
     const targetHeight = -depth * verticalExaggeration;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      plane.rectangle.height = new ConstantProperty(targetHeight);
+      sliceHeightRef.current = targetHeight;
+      viewer.scene.requestRender();
+      return;
+    }
     const startedAt = performance.now();
     const durationMs = 320;
 
@@ -678,6 +684,14 @@ export function OceanGlobe({
 
     if (totalDistance <= 0) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      if (direction === "in") viewer.camera.zoomIn(totalDistance);
+      else viewer.camera.zoomOut(totalDistance);
+      setCameraHeight(viewer.camera.positionCartographic.height);
+      viewer.scene.requestRender();
+      return;
+    }
+
     const startedAt = performance.now();
     const durationMs = 420;
     let previousEased = 0;
@@ -718,7 +732,7 @@ export function OceanGlobe({
         pitch: CesiumMath.toRadians(-76),
         roll: 0
       },
-      duration: 0.75,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.75,
       complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
