@@ -33,6 +33,17 @@ from src.comparison_loader import (
 from src.ocean_dataset import load_ocean_dataset
 
 
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+RUNTIME_MODE = os.environ.get("OCEANTWIN_RUNTIME_MODE", "cached_verified")
+SCIENCE_NETWORK_REQUIRED = _env_flag("OCEANTWIN_SCIENCE_NETWORK_REQUIRED", False)
+
+
 app = FastAPI(
     title="OceanTwin 3D API",
     version="1.0.0-mvp",
@@ -104,7 +115,8 @@ def health() -> dict[str, Any]:
         "time_steps": len(dataset["time"]),
         "depth_levels": len(dataset["depth"]),
         "eligible_profiles": len(profiles),
-        "scientific_data_network_required": False,
+        "scientific_data_network_required": SCIENCE_NETWORK_REQUIRED,
+        "runtime_mode": RUNTIME_MODE,
         "streamlit_reference_preserved": True,
     }
 
@@ -160,7 +172,7 @@ def catalog() -> dict[str, Any]:
             "region": DEMO_REGION,
             "demo_date": DEMO_DATE,
             "freshness_class": "reanalysis",
-            "runtime_mode": "cached_verified",
+            "runtime_mode": RUNTIME_MODE,
         },
         "coordinates": {
             "longitude": dataset["longitude"].tolist(),
@@ -221,7 +233,7 @@ def scalar_field(
             "product": PRODUCT_LABEL,
             "dataset_id": DATASET_ID,
             "freshness_class": "reanalysis",
-            "runtime_mode": "cached_verified",
+            "runtime_mode": RUNTIME_MODE,
         },
     }
 
