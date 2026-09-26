@@ -53,7 +53,7 @@ export function VisualizationDock({
       data-visualization-mode={mode}
     >
       <div className="visualization-dock-copy">
-        <span>SCIENTIFIC VIEW</span>
+        <span>DUAL 3D VISUALIZATION</span>
         <strong>Choose geographic or water-column context</strong>
         <small>{variableLabel} · {depthM.toFixed(2)} m · depth positive down</small>
       </div>
