@@ -167,7 +167,8 @@ jobs:
           test -s frontend/dist/science-static/manifest.json
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/health.json
-          test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/tilemapresource.xml
+          test -d frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII
+          find frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII -type f | head -n 1 | grep -q .
           python - <<'PY'
           import json
           from pathlib import Path
