@@ -19,6 +19,20 @@ import type {
   VolumeResponse
 } from "./types";
 
+type ThemeMode = "dark" | "light";
+
+const THEME_STORAGE_KEY = "oceantwin-theme";
+
+function initialTheme(): ThemeMode {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {
+    // Storage can be unavailable in hardened/private browsing contexts.
+  }
+  return "dark";
+}
+
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
@@ -27,6 +41,7 @@ export default function App() {
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
@@ -44,6 +59,16 @@ export default function App() {
   const [error, setError] = useState("");
   const [startupError, setStartupError] = useState("");
   const [degradedWarnings, setDegradedWarnings] = useState<string[]>([]);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Theme remains usable for the session even if persistence is blocked.
+    }
+  }, [theme]);
 
   useEffect(() => {
     const syncRoute = () => {
@@ -218,7 +243,7 @@ export default function App() {
 
   if (!catalog) {
     return (
-      <div className="boot-screen">
+      <div className="boot-screen" data-theme={theme}>
         <div className="brand-mark">OT</div>
         <h1>OceanTwin 3D</h1>
         {startupError ? (
@@ -236,7 +261,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${focusMode ? "focus-mode" : ""}`}>
+    <div className={`app-shell ${focusMode ? "focus-mode" : ""}`} data-theme={theme}>
       <header className="app-header">
         <div className="brand">
           <div className="brand-mark small">OT</div>
@@ -262,6 +287,17 @@ export default function App() {
           <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
             {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● SCIENCE API READY"}
           </span>
+          <button
+            className="theme-toggle"
+            type="button"
+            aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+            aria-pressed={theme === "light"}
+            title={theme === "dark" ? "Use light appearance" : "Use dark appearance"}
+            onClick={() => setTheme((current) => (current === "dark" ? "light" : "dark"))}
+          >
+            <span aria-hidden="true" className="theme-toggle-dot" />
+            {theme === "dark" ? "LIGHT" : "DARK"}
+          </button>
         </div>
       </header>
 
