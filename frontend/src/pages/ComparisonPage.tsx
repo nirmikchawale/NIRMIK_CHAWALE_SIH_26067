@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from "react";
+
 import type {
   ComparisonLevel,
   ProfileDetail,
@@ -105,6 +107,86 @@ function linePoints(
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })
     .join(" ");
+}
+
+function quantile(values: number[], q: number): number {
+  if (values.length === 0) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const position = (sorted.length - 1) * q;
+  const lower = Math.floor(position);
+  const upper = Math.ceil(position);
+  if (lower === upper) return sorted[lower];
+  const weight = position - lower;
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+
+function comparisonDiagnostics(levels: ComparisonLevel[]) {
+  const biases = levels.map((level) => level.signed_bias_celsius);
+  const absoluteErrors = levels.map((level) => level.absolute_error_celsius);
+  const meanBias = biases.reduce((sum, value) => sum + value, 0) / Math.max(biases.length, 1);
+  const medianAbsoluteError = quantile(absoluteErrors, 0.5);
+  const p90AbsoluteError = quantile(absoluteErrors, 0.9);
+  const maxLevel = levels.reduce(
+    (current, level) =>
+      level.absolute_error_celsius > current.absolute_error_celsius ? level : current,
+    levels[0]
+  );
+  return {
+    meanBias,
+    medianAbsoluteError,
+    p90AbsoluteError,
+    maxLevel,
+    maxAbsBias: Math.max(0.05, ...biases.map((value) => Math.abs(value))),
+    warmerCount: biases.filter((value) => value > 0).length,
+    coolerCount: biases.filter((value) => value < 0).length,
+    equalCount: biases.filter((value) => value === 0).length
+  };
+}
+
+function ComparisonCollocationMiniMap({ summary }: { summary: ProfileSummary }) {
+  const obsLon = summary.observation_longitude;
+  const obsLat = summary.observation_latitude;
+  const modelLon = summary.model_cell_longitude;
+  const modelLat = summary.model_cell_latitude;
+  const lonPad = Math.max(Math.abs(obsLon - modelLon) * 2.5, 0.035);
+  const latPad = Math.max(Math.abs(obsLat - modelLat) * 2.5, 0.035);
+  const lonMid = (obsLon + modelLon) / 2;
+  const latMid = (obsLat + modelLat) / 2;
+  const lonMin = lonMid - lonPad;
+  const lonMax = lonMid + lonPad;
+  const latMin = latMid - latPad;
+  const latMax = latMid + latPad;
+  const x = (lon: number) => 26 + ((lon - lonMin) / Math.max(lonMax - lonMin, 1e-9)) * 308;
+  const y = (lat: number) => 174 - ((lat - latMin) / Math.max(latMax - latMin, 1e-9)) * 138;
+
+  return (
+    <div className="comparison-collocation-map">
+      <svg viewBox="0 0 360 200" role="img" aria-label="Argo observation to nearest Copernicus model-cell collocation">
+        <line x1="26" x2="334" y1="52" y2="52" className="collocation-grid-line" />
+        <line x1="26" x2="334" y1="105" y2="105" className="collocation-grid-line" />
+        <line x1="26" x2="334" y1="158" y2="158" className="collocation-grid-line" />
+        <line x1="92" x2="92" y1="26" y2="174" className="collocation-grid-line" />
+        <line x1="180" x2="180" y1="26" y2="174" className="collocation-grid-line" />
+        <line x1="268" x2="268" y1="26" y2="174" className="collocation-grid-line" />
+        <line
+          x1={x(obsLon)}
+          y1={y(obsLat)}
+          x2={x(modelLon)}
+          y2={y(modelLat)}
+          className="collocation-link"
+        />
+        <circle cx={x(modelLon)} cy={y(modelLat)} r="7" className="collocation-model-point" />
+        <circle cx={x(obsLon)} cy={y(obsLat)} r="7" className="collocation-argo-point" />
+        <text x={x(obsLon) + 10} y={y(obsLat) - 8} className="collocation-argo-label">Argo</text>
+        <text x={x(modelLon) + 10} y={y(modelLat) + 17} className="collocation-model-label">Model cell</text>
+      </svg>
+      <div className="comparison-collocation-legend">
+        <span><i className="legend-dot observation-dot" /> Argo observation</span>
+        <span><i className="legend-dot model-dot" /> nearest valid model water cell</span>
+        <strong>{summary.spatial_distance_km.toFixed(3)} km separation</strong>
+      </div>
+    </div>
+  );
 }
 
 function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
@@ -220,6 +302,19 @@ export function ComparisonPage({
   onProfileChange
 }: Props) {
   const summary = detail?.summary;
+  const [selectedLevelIndex, setSelectedLevelIndex] = useState(0);
+
+  useEffect(() => {
+    setSelectedLevelIndex(0);
+  }, [summary?.profile_id]);
+
+  const diagnostics = useMemo(
+    () => detail && detail.levels.length > 0 ? comparisonDiagnostics(detail.levels) : null,
+    [detail]
+  );
+  const selectedLevel = detail?.levels[
+    Math.min(selectedLevelIndex, Math.max((detail?.levels.length ?? 1) - 1, 0))
+  ] ?? null;
 
   return (
     <main className="comparison-page" data-page="compare">
@@ -298,6 +393,72 @@ export function ComparisonPage({
             </article>
           </section>
 
+          {selectedLevel && diagnostics && (
+            <section className="comparison-interactive-grid">
+              <article className="comparison-depth-inspector">
+                <div className="comparison-card-heading">
+                  <div>
+                    <span>INTERACTIVE MATCHED DEPTH</span>
+                    <h3>Depth-resolved inspector</h3>
+                  </div>
+                  <strong>{selectedLevel.observation_depth_m.toFixed(2)} m</strong>
+                </div>
+                <p>
+                  Move through the exact QC-accepted matched-level table used by the profile,
+                  bias chart, metrics and downloads.
+                </p>
+                <input
+                  aria-label="Matched comparison depth"
+                  type="range"
+                  min={0}
+                  max={Math.max(0, detail.levels.length - 1)}
+                  value={Math.min(selectedLevelIndex, Math.max(detail.levels.length - 1, 0))}
+                  onChange={(event) => setSelectedLevelIndex(Number(event.target.value))}
+                />
+                <div className="comparison-depth-values">
+                  <div><span>Argo observed</span><strong>{selectedLevel.observed_temperature.toFixed(4)} °C</strong></div>
+                  <div><span>Model interpolated</span><strong>{selectedLevel.model_temperature_interpolated.toFixed(4)} °C</strong></div>
+                  <div><span>Bias M−O</span><strong className={selectedLevel.signed_bias_celsius >= 0 ? "positive-bias" : "negative-bias"}>
+                    {selectedLevel.signed_bias_celsius >= 0 ? "+" : ""}{selectedLevel.signed_bias_celsius.toFixed(4)} °C
+                  </strong></div>
+                  <div><span>|Error|</span><strong>{selectedLevel.absolute_error_celsius.toFixed(4)} °C</strong></div>
+                </div>
+                <div className="comparison-bias-meter" aria-label="Selected-depth signed bias position">
+                  <span className="cooler-label">MODEL COOLER</span>
+                  <i className="bias-meter-zero" />
+                  <i
+                    className="bias-meter-point"
+                    style={{
+                      left: `${50 + 50 * selectedLevel.signed_bias_celsius / diagnostics.maxAbsBias}%`
+                    }}
+                  />
+                  <span className="warmer-label">MODEL WARMER</span>
+                </div>
+              </article>
+
+              <article className="comparison-diagnostic-summary">
+                <div className="comparison-card-heading">
+                  <div>
+                    <span>PROFILE RESIDUAL SUMMARY</span>
+                    <h3>What the matched evidence says</h3>
+                  </div>
+                  <strong>{detail.levels.length} levels</strong>
+                </div>
+                <div className="comparison-diagnostic-grid">
+                  <div><span>Mean signed bias</span><strong>{diagnostics.meanBias >= 0 ? "+" : ""}{diagnostics.meanBias.toFixed(4)} °C</strong></div>
+                  <div><span>Median |error|</span><strong>{diagnostics.medianAbsoluteError.toFixed(4)} °C</strong></div>
+                  <div><span>P90 |error|</span><strong>{diagnostics.p90AbsoluteError.toFixed(4)} °C</strong></div>
+                  <div><span>Largest |error|</span><strong>{diagnostics.maxLevel.absolute_error_celsius.toFixed(4)} °C</strong><small>at {diagnostics.maxLevel.observation_depth_m.toFixed(1)} m</small></div>
+                </div>
+                <div className="comparison-warm-cool-split">
+                  <span>Warm / cool split</span>
+                  <strong>{diagnostics.warmerCount} warmer · {diagnostics.coolerCount} cooler · {diagnostics.equalCount} exact-zero</strong>
+                  <small>Counts describe signed Model − Observation residuals in this selected profile only.</small>
+                </div>
+              </article>
+            </section>
+          )}
+
           <div className="comparison-chart-grid">
             <ComparisonProfileChart detail={detail} />
             <ComparisonBiasChart detail={detail} />
@@ -329,6 +490,19 @@ export function ComparisonPage({
                   <dd>{detail.comparison_semantics.interpretation}</dd>
                 </div>
               </dl>
+              <div className="comparison-method-pipeline" aria-label="Comparison method pipeline">
+                <span>Provider QC</span>
+                <i>→</i>
+                <span>Positive-down depth</span>
+                <i>→</i>
+                <span>Nearest valid water cell</span>
+                <i>→</i>
+                <span>Linear depth interpolation</span>
+                <i>→</i>
+                <span>No extrapolation</span>
+                <i>→</i>
+                <span>Bias = Model − Observation</span>
+              </div>
             </article>
 
             <article className="comparison-location-card">
@@ -338,6 +512,7 @@ export function ComparisonPage({
                   <h3>Observation and model-cell context</h3>
                 </div>
               </div>
+              <ComparisonCollocationMiniMap summary={summary} />
               <dl>
                 <div>
                   <dt>Argo observation</dt>
