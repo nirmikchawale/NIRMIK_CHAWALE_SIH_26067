@@ -1,0 +1,241 @@
+/* OceanTwin refinement layer.
+   Kept separate from the verified baseline stylesheet so each visual increment
+   can be reverted without touching scientific rendering logic. */
+
+.visualization-dock {
+  position: absolute !important;
+  top: 14px !important;
+  left: 50% !important;
+  z-index: 18 !important;
+  width: min(620px, calc(100% - 720px)) !important;
+  min-width: 430px;
+  transform: translateX(-50%);
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px !important;
+  border: 1px solid rgba(89, 219, 244, 0.55) !important;
+  border-radius: 14px !important;
+  background: rgba(3, 17, 27, 0.94) !important;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 14px 38px rgba(0, 0, 0, 0.32), inset 0 0 0 1px rgba(92, 222, 244, 0.08);
+}
+
+.visualization-dock-copy {
+  display: grid;
+  gap: 2px;
+  min-width: 145px;
+}
+
+.visualization-dock-copy > span {
+  color: #6fe4f6;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+}
+
+.visualization-dock-copy > strong {
+  color: #f1fbff;
+  font-size: 11px;
+}
+
+.visualization-dock-copy > small {
+  color: #7899aa;
+  font-size: 7px;
+  white-space: nowrap;
+}
+
+.visualization-dock-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.visualization-dock-modes button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid #28546a;
+  border-radius: 10px;
+  color: #95b6c7;
+  background: rgba(7, 32, 46, 0.94);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.visualization-dock-modes button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #4ecce7;
+  background: #0c3548;
+}
+
+.visualization-dock-modes button.active {
+  border-color: #64ddf3;
+  color: #effcff;
+  background: linear-gradient(180deg, rgba(17, 67, 87, 0.98), rgba(8, 40, 55, 0.98));
+  box-shadow: inset 0 0 0 1px rgba(100, 221, 243, 0.18), 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.visualization-dock-modes button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+
+.mode-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(99, 205, 227, 0.28);
+  border-radius: 8px;
+  background: rgba(22, 74, 93, 0.38);
+}
+
+.mode-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.45;
+}
+
+.mode-label {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mode-label strong {
+  color: inherit;
+  font-size: 9px;
+}
+
+.mode-label small {
+  color: #7899aa;
+  font-size: 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visualization-dock-modes button.active .mode-label small {
+  color: #9bddec;
+}
+
+.mode-number {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  color: #4b8399;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.dual3d-proof {
+  position: absolute;
+  left: 50%;
+  bottom: 13px;
+  z-index: 7;
+  transform: translateX(-50%);
+  padding: 6px 9px;
+  border: 1px solid rgba(57, 150, 177, 0.42);
+  border-radius: 999px;
+  color: #84b9c9;
+  background: rgba(2, 17, 26, 0.78);
+  font-size: 7px;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+:root[data-theme="light"] .visualization-dock {
+  border-color: rgba(41, 151, 178, 0.46) !important;
+  background: rgba(250, 253, 254, 0.96) !important;
+  box-shadow: 0 14px 32px rgba(31, 72, 91, 0.14), inset 0 0 0 1px rgba(41, 151, 178, 0.07);
+}
+
+:root[data-theme="light"] .visualization-dock-copy > span {
+  color: #117d98;
+}
+
+:root[data-theme="light"] .visualization-dock-copy > strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .visualization-dock-copy > small,
+:root[data-theme="light"] .mode-label small {
+  color: #5c7888;
+}
+
+:root[data-theme="light"] .visualization-dock-modes button {
+  border-color: #b8d0d9;
+  color: #476e80;
+  background: #f8fbfc;
+}
+
+:root[data-theme="light"] .visualization-dock-modes button.active {
+  border-color: #2a9eb9;
+  color: #154457;
+  background: linear-gradient(180deg, #e7f7fa, #dceff4);
+}
+
+:root[data-theme="light"] .mode-icon {
+  border-color: #bbd8e0;
+  background: #edf7f9;
+}
+
+:root[data-theme="light"] .dual3d-proof {
+  border-color: #b2d2db;
+  color: #527787;
+  background: rgba(248, 252, 253, 0.92);
+}
+
+.focus-mode .visualization-dock {
+  width: min(680px, calc(100% - 340px)) !important;
+}
+
+@media (max-width: 1200px) and (min-width: 761px) {
+  .visualization-dock {
+    top: 76px !important;
+    width: min(520px, calc(100% - 580px)) !important;
+    min-width: 390px;
+  }
+}
+
+@media (max-width: 980px) and (min-width: 761px) {
+  .visualization-dock {
+    top: 14px !important;
+    width: min(500px, calc(100% - 40px)) !important;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .visualization-dock {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    order: 0;
+    width: 100% !important;
+    min-width: 0;
+    transform: none;
+    grid-template-columns: 1fr;
+    border-radius: 0 !important;
+  }
+
+  .visualization-dock-copy {
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: 6px 10px;
+  }
+
+  .visualization-dock-copy > small {
+    grid-column: 1 / -1;
+  }
+}

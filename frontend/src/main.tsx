@@ -4,6 +4,7 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 
 import App from "./App";
 import "./styles.css";
+import "./feature-upgrades.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
