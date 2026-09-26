@@ -4,12 +4,14 @@ import { api } from "./api";
 import { ControlPanel } from "./components/ControlPanel";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { ProfilePanel } from "./components/ProfilePanel";
+import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import type {
   Catalog,
   CurrentsResponse,
   FieldResponse,
   ProfileDetail,
   ProfileSummary,
+  ProvenanceResponse,
   ViewMode,
   VolumeResponse
 } from "./types";
@@ -19,6 +21,8 @@ export default function App() {
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState("");
   const [profileDetail, setProfileDetail] = useState<ProfileDetail | null>(null);
+  const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
+  const [provenanceOpen, setProvenanceOpen] = useState(false);
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -33,6 +37,20 @@ export default function App() {
   const [scienceLoading, setScienceLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    api.provenance()
+      .then((payload) => {
+        if (!cancelled) setProvenance(payload);
+      })
+      .catch(() => {
+        if (!cancelled) setProvenance(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,6 +183,9 @@ export default function App() {
             <span>MODEL</span>
             <strong>GLORYS12V1</strong>
           </div>
+          <button className="evidence-button" onClick={() => setProvenanceOpen(true)}>
+            Sources & QC
+          </button>
           <span className="system-pill">● SCIENCE API READY</span>
         </div>
       </header>
@@ -200,6 +221,11 @@ export default function App() {
         />
 
         <ProfilePanel detail={profileDetail} loading={profileLoading} />
+        <ProvenanceDrawer
+          open={provenanceOpen}
+          provenance={provenance}
+          onClose={() => setProvenanceOpen(false)}
+        />
       </div>
 
       {(scienceLoading || error) && (
