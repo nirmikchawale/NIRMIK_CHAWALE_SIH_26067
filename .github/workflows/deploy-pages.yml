@@ -1,4 +1,5 @@
 name: deploy-oceantwin-pages
+# Pages is enabled; this workflow publishes the verified static fail-safe build.
 
 on:
   push:
