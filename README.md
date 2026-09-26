@@ -2,11 +2,11 @@
 
 **SIH26067 · The Optimizers**
 
-A local, offline-capable Streamlit + Plotly scientific diagnostic MVP that connects a cached Copernicus Marine model subset with QC-screened Argo profile evidence. It is designed for a reliable SIH live demonstration, not as a complete Digital Twin Ocean, forecast system or independent validation platform.
+OceanTwin 3D is an offline-capable Streamlit + Plotly scientific diagnostic application built around a cached Copernicus Marine temperature subset and QC-screened Argo profile evidence. The application is structured as a professional web application shell around a preserved scientific core.
 
 > **Scientific framing:** This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations. This prototype covers one region, one day and a small set of profiles, and is not a complete Digital Twin Ocean or operational forecasting system.
 
-## Verified scope
+## Verified scientific scope
 
 - Copernicus Marine `GLOBAL_MULTIYEAR_PHY_001_030` / GLORYS12V1.
 - Cached dataset `cmems_mod_glo_phy_my_0.083deg_P1D-m`, version `202311`.
@@ -14,85 +14,65 @@ A local, offline-capable Streamlit + Plotly scientific diagnostic MVP that conne
 - Actual `thetao` cube: 31 depths × 25 latitudes × 37 longitudes; ~0.49–454 m.
 - 26 Argo profiles represented in ingestion provenance; 2 eligible comparison profiles.
 - 99 valid matched temperature levels total.
-- Default demo: profile `20240102_indian_ocean_prof:23`, float 5907092, cycle 13 descending, 50 levels, 3.851 km, MAE 0.2254 °C, RMSE 0.3188 °C.
+- Verified default demo: `20240102_indian_ocean_prof:23`, float 5907092, cycle 13 descending, 50 matched levels.
 - Spatial collocation: nearest valid model water cell.
-- Vertical matching: linear interpolation between adjacent valid model depths, no extrapolation.
-- Bias: Model − Observation.
+- Vertical matching: linear interpolation between adjacent valid model depths; no extrapolation.
+- Bias convention: Model − Observation.
 
-Roadmap only: salinity comparison, current-vector validation, glider comparison, bilinear spatial sensitivity, wider Indian EEZ coverage, scheduled refresh and cloud deployment.
+## Judge-facing product experience
 
-## Features
-
-- Resettable judge-ready default state.
-- Genuine Plotly 3D model-temperature point cloud from the cached `thetao` array.
-- Actual 2D model depth-slice fallback.
-- Offline collocation map with domain, Argo point, model cell and separation.
-- Argo-vs-model temperature profile and Model − Observation bias-by-depth.
-- Evidence-driven KPI cards using the same selected matched-level record as the plots.
-- Compact provenance/QC/method/limitations panels.
-- Downloads for real profile CSV/JSON, comparison summary, method configuration, provenance and verification results.
+- Compact product header with explicit local/offline status.
+- Selected-profile identity chip and six responsive evidence metrics.
+- Genuine Plotly 3D `thetao` model context with actual-depth 2D fallback.
+- Enlarged offline collocation map showing Argo position, nearest valid model cell, connecting line and distance.
+- Argo-vs-Copernicus temperature profile directly in the primary dashboard flow.
+- Model − Observation bias-by-depth directly beside the profile chart.
+- Cyan Copernicus / amber Argo semantic series colours.
+- Zero-centred cool-to-warm bias presentation.
+- Compact provenance and method inspection.
+- Visible diagnostic-not-validation limitations.
+- Readable selected-profile CSV/JSON and provenance/config/verification downloads.
+- One-click **Reset to verified demo** recovery.
+- Friendly failure states; raw Python diagnostics are hidden unless explicitly enabled.
 - No required runtime scientific-data network request.
 
-## Windows PowerShell setup
-
-Open PowerShell in this project directory.
-
-If `.venv` already exists, skip environment creation. Otherwise use an installed Python interpreter:
-
-```powershell
-& "C:\path\to\python.exe" -m venv .venv
-```
-
-Install dependencies:
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-```
-
-Run the final MVP tests:
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Expected final package result: **25 passed**.
-
-The preserved original comparison-engine artefact separately records **25 passed** tests for the scientific comparison engine. To re-run that historical engine suite in a fresh environment, install the optional extras in `requirements-test.txt`; they are not required by the Streamlit runtime.
-
-Run the app:
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py
-```
-
-Expected browser URL:
+## Professional application hierarchy
 
 ```text
-http://localhost:8501
-```
-
-## Offline demo
-
-The scientific loaders use only bundled local files. Before judging, start the app, disconnect Wi-Fi, refresh once, press **Reset to verified demo**, and verify the default profile metrics. If browser/GPU WebGL 3D is unreliable, enable **Use 2D compatibility fallback**; it uses the same actual model array at the selected depth.
-
-## Project tree
-
-```text
-oceantwin_mvp_final/
-├── app.py
-├── config.py
-├── requirements.txt
-├── pytest.ini
-├── data_manifest.json
-├── BUILD_VALIDATION.txt
-├── SIH_DEMO_AND_PPT_GUIDE.md
-├── data/
-│   ├── glorys12_20240102_67E70E_12N14N_0m500m.nc
-│   └── comparison/
-├── src/
+NIRMIK_CHAWALE_SIH_26067/
+├── app.py                         # thin Streamlit entry point
+├── config.py                      # scientific/runtime constants + chart presentation tokens
+├── .streamlit/
+│   └── config.toml                # native Streamlit theme
+├── oceantwin/
+│   ├── __init__.py
+│   ├── application.py             # orchestration and sidebar composition
+│   ├── state.py                   # verified demo state/reset logic
+│   ├── ui/
+│   │   ├── tokens.py              # versioned semantic UI tokens
+│   │   ├── theme.py               # offline CSS design system
+│   │   ├── components.py          # reusable product UI components
+│   │   └── plotly_theme.py        # presentation-only Plotly normalization
+│   └── views/
+│       ├── dashboard.py           # model/map + profile/bias rows
+│       └── evidence.py            # provenance, limitations and downloads
+├── src/                           # preserved validated scientific core
+│   ├── comparison_loader.py
+│   ├── data_loader.py
+│   ├── map_view.py
+│   ├── profile_charts.py
+│   ├── provenance_view.py
+│   └── volume_view.py
+├── data/                          # bundled verified scientific evidence
 ├── tests/
+│   ├── test_comparison_loader.py
+│   ├── test_data_loader.py
+│   ├── test_visuals_and_evidence.py
+│   └── test_ui_product_contract.py
 └── docs/
+    ├── BACKLOG_IMPLEMENTATION_MATRIX.md
+    ├── UI_DESIGN_SYSTEM.md
+    ├── VISUAL_DEMO_CHECKLIST.md
     ├── FINAL_AUDIT.md
     ├── SCIENTIFIC_METHOD.md
     ├── DATA_DICTIONARY.md
@@ -101,23 +81,75 @@ oceantwin_mvp_final/
     └── PPT_CONTENT.md
 ```
 
-## Documentation
+## Windows PowerShell setup
 
-- `docs/FINAL_AUDIT.md` — repository/scientific audit and risk register.
-- `docs/SCIENTIFIC_METHOD.md` — exact comparison method and limitations.
-- `docs/DATA_DICTIONARY.md` — model and matched-evidence variables.
-- `docs/DEMO_RUNBOOK.md` — pre-demo checklist and 90 s / 2 min / 3 min flows.
-- `docs/TROUBLESHOOTING.md` — Windows/runtime recovery steps.
-- `docs/PPT_CONTENT.md` — 10-slide text/native-visual plan and 20 judge Q&A items; no Streamlit screenshots.
+From the repository root:
 
-## Sources
+```powershell
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
-- Copernicus Marine Global Ocean Physics Reanalysis: https://data.marine.copernicus.eu/product/GLOBAL_MULTIYEAR_PHY_001_030/description
-- Copernicus DOI: https://doi.org/10.48670/moi-00021
-- Argo data-use/QC guidance: https://argo.ucsd.edu/data/how-to-use-argo-files/
-- Argo acknowledgement and DOI guidance: https://argo.ucsd.edu/data/acknowledging-argo/
-- Argo DOI: https://doi.org/10.17882/42182
+Run regression tests:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+Run the application:
+
+```powershell
+.\.venv\Scripts\python.exe -m streamlit run app.py
+```
+
+Expected local URL:
+
+```text
+http://localhost:8501
+```
+
+## CI quality gates
+
+GitHub Actions now runs:
+
+1. full pytest regression suite;
+2. Python compilation for `app.py`, `config.py`, `oceantwin/`, `src/` and `tests/`;
+3. headless Streamlit startup health check.
+
+The preserved historical comparison-engine artefact in `data/comparison/test_results.txt` separately records **25 passed** scientific-engine tests.
+
+## Offline demonstration
+
+Before judging:
+
+1. start from a fresh terminal;
+2. run the regression suite;
+3. start Streamlit;
+4. press **Reset to verified demo**;
+5. disconnect Wi-Fi;
+6. refresh once;
+7. verify the default profile, metrics, model/map row, profile/bias row and evidence downloads;
+8. if WebGL 3D is unreliable, enable the 2D compatibility fallback.
+
+The runtime scientific data path is local. The 2D fallback uses the same actual model array at the selected depth.
+
+## Planning implementation
+
+- `docs/BACKLOG_IMPLEMENTATION_MATRIX.md` maps the 12 macro finalisation features and all five chunks of the 250-feature backlog to the application files.
+- `docs/UI_DESIGN_SYSTEM.md` documents semantic colours, typography, spacing, responsive behaviour and judge-safe error rules.
+- `docs/VISUAL_DEMO_CHECKLIST.md` provides 1366×768 and 1920×1080 manual verification.
+
+## Explicitly deferred scientific/product scope
+
+Roadmap labels may be visible, but this release does not implement salinity comparison, current validation, glider comparison, bilinear sensitivity analysis, Docker, FastAPI, React, Cesium, authentication, a database, ML, operational forecasting or hazard prediction.
+
+## Scientific sources
+
+- Copernicus Marine Global Ocean Physics Reanalysis — `GLOBAL_MULTIYEAR_PHY_001_030`
+- Copernicus DOI — `10.48670/moi-00021`
+- Ifremer Argo GDAC
+- Argo DOI — `10.17882/42182`
 
 ## Presentation rule
 
-Do **not** place Streamlit UI screenshots in the SIH PPT. Use native diagrams, architecture/methodology flowcharts, tables, metric callouts and scientific charts recreated directly from the verified evidence where permitted. Demonstrate the application live on localhost.
+Do not place Streamlit UI screenshots in the SIH PPT. Use native diagrams, architecture/methodology flowcharts, tables, metric callouts and scientific charts recreated directly from verified evidence where permitted. Demonstrate the application live.
