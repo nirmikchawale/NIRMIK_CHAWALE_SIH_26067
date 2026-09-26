@@ -31,7 +31,15 @@ jobs:
         run: python -m pytest -q backend/tests
 
       - name: Compile Python application surfaces
-        run: python -m compileall -q app.py config.py oceantwin src backend tests
+        run: python -m compileall -q app.py config.py oceantwin src backend api tests
+
+      - name: Validate hosted API entrypoint against bundled local evidence
+        run: |
+          python - <<'PY'
+          from api.index import app
+          assert app.title.startswith("OceanTwin 3D API")
+          print(app.title)
+          PY
 
       - name: FastAPI startup and evidence smoke test
         shell: bash
