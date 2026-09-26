@@ -6,6 +6,9 @@ const cesiumSource = "node_modules/cesium/Build/Cesium";
 const cesiumBaseUrl = "cesiumStatic";
 
 export default defineConfig({
+  // Relative asset URLs keep the same build portable across localhost,
+  // Vercel and repository-scoped GitHub Pages hosting.
+  base: "./",
   plugins: [
     react(),
     viteStaticCopy({
@@ -18,7 +21,7 @@ export default defineConfig({
     })
   ],
   define: {
-    CESIUM_BASE_URL: JSON.stringify(`/${cesiumBaseUrl}`)
+    CESIUM_BASE_URL: JSON.stringify(`./${cesiumBaseUrl}`)
   },
   server: {
     port: 5173,
