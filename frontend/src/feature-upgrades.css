@@ -1516,3 +1516,171 @@
   .comparison-diagnostic-grid { grid-template-columns: 1fr; }
   .comparison-method-pipeline i { display: none; }
 }
+
+
+/* Telemetry v3 — interactive water-column depth explorer. */
+.telemetry-depth-ladder {
+  margin: 12px 0;
+  padding: 16px;
+}
+
+.telemetry-depth-ladder > p,
+.telemetry-neighborhood-note {
+  margin: 6px 0 12px;
+  color: #789aaa;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.telemetry-depth-ladder-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.telemetry-depth-ladder-grid button {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr) 54px;
+  gap: 7px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid rgba(50, 98, 118, .56);
+  border-radius: 9px;
+  color: #83a7b6;
+  background: rgba(5, 24, 35, .78);
+  cursor: pointer;
+  text-align: left;
+}
+
+.telemetry-depth-ladder-grid button:hover,
+.telemetry-depth-ladder-grid button.active {
+  border-color: #58cee2;
+  color: #e2f9fd;
+  background: rgba(10, 53, 69, .92);
+}
+
+.telemetry-depth-ladder-grid button span,
+.telemetry-depth-ladder-grid button strong {
+  font-size: 8px;
+}
+
+.telemetry-depth-ladder-grid button strong {
+  text-align: right;
+}
+
+.telemetry-depth-ladder-grid button > i {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #061821;
+}
+
+.telemetry-depth-ladder-grid button > i > b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #257d95, #66dceb);
+}
+
+.telemetry-neighborhood-card {
+  margin: 12px 0;
+  padding: 16px;
+}
+
+.telemetry-neighborhood-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 0 12px;
+}
+
+.telemetry-neighborhood-metrics article {
+  display: grid;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid rgba(49, 98, 118, .55);
+  border-radius: 9px;
+  background: rgba(4, 20, 30, .7);
+}
+
+.telemetry-neighborhood-metrics span {
+  color: #66899a;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.telemetry-neighborhood-metrics strong {
+  color: #d8f1f6;
+  font-size: 10px;
+}
+
+.telemetry-neighborhood-metrics small {
+  color: #6c8e9d;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+.telemetry-neighborhood-table-wrap {
+  overflow-x: auto;
+}
+
+.telemetry-neighborhood-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 8px;
+}
+
+.telemetry-neighborhood-table th,
+.telemetry-neighborhood-table td {
+  padding: 8px 9px;
+  border-bottom: 1px solid rgba(51, 96, 115, .5);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.telemetry-neighborhood-table th {
+  color: #66899a;
+  font-size: 7px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.telemetry-neighborhood-table td {
+  color: #9dbdca;
+}
+
+.telemetry-neighborhood-table tr.selected td {
+  color: #e1faff;
+  background: rgba(31, 112, 138, .18);
+}
+
+:root[data-theme="light"] .telemetry-depth-ladder-grid button,
+:root[data-theme="light"] .telemetry-neighborhood-metrics article {
+  border-color: #cadce3;
+  color: #557584;
+  background: #f8fbfc;
+}
+
+:root[data-theme="light"] .telemetry-depth-ladder-grid button:hover,
+:root[data-theme="light"] .telemetry-depth-ladder-grid button.active {
+  border-color: #3da6bd;
+  color: #174e61;
+  background: #eaf7fa;
+}
+
+:root[data-theme="light"] .telemetry-neighborhood-metrics strong,
+:root[data-theme="light"] .telemetry-neighborhood-table tr.selected td {
+  color: #234b5e;
+}
+
+@media (max-width: 1100px) {
+  .telemetry-depth-ladder-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .telemetry-depth-ladder-grid,
+  .telemetry-neighborhood-metrics { grid-template-columns: 1fr; }
+}
