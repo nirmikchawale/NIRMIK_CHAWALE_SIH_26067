@@ -355,6 +355,9 @@ export default function App() {
                   profiles={profiles}
                   selectedProfileId={selectedProfileId}
                   verticalExaggeration={verticalExaggeration}
+                  visualizationMode={visualizationMode}
+                  scalarAvailable={variable !== "currents"}
+                  onVisualizationModeChange={setVisualizationMode}
                   onSelectProfile={setSelectedProfileId}
                 />
               ) : (
@@ -364,6 +367,8 @@ export default function App() {
                   verticalExaggeration={verticalExaggeration}
                   opacity={waterColumnOpacity / 100}
                   theme={theme}
+                  visualizationMode={visualizationMode}
+                  onVisualizationModeChange={setVisualizationMode}
                 />
               )}
 
