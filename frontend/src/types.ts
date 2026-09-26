@@ -1,5 +1,6 @@
 export type VariableKind = "scalar" | "vector";
 export type ViewMode = "slice" | "volume";
+export type VisualizationMode = "globe" | "water-column";
 
 export interface VariableCard {
   id: "thetao" | "so" | "currents";

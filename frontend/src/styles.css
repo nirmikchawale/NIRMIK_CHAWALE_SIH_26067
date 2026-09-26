@@ -1821,3 +1821,247 @@ input:focus-visible {
   }
 }
 
+
+
+/* Feature 3 — alternative scientific water-column 3D renderer. */
+.visualization-kicker {
+  margin-top: 13px;
+}
+
+.visualization-selector {
+  margin-bottom: 6px;
+}
+
+.field-mode-selector {
+  margin-top: 6px;
+}
+
+.opacity-control {
+  margin-top: 10px;
+}
+
+.water-column-shell {
+  isolation: isolate;
+}
+
+.water-column-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+  cursor: grab;
+}
+
+.water-column-canvas:active {
+  cursor: grabbing;
+}
+
+.water-column-canvas:focus-visible {
+  outline: 2px solid #67d9ee;
+  outline-offset: -4px;
+}
+
+.water-column-summary > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.water-column-summary > span,
+.water-column-summary > small {
+  color: #82a5b8;
+  font-size: 8px;
+}
+
+.water-column-summary > small {
+  color: #b8e8f2;
+}
+
+.water-column-selected {
+  top: 14px;
+  right: 356px;
+  display: grid;
+  gap: 3px;
+  min-width: 170px;
+  padding: 9px 11px;
+}
+
+.water-column-selected span {
+  color: #6f95a9;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.water-column-selected strong {
+  color: #dff8ff;
+  font-size: 13px;
+}
+
+.water-column-selected small {
+  color: #7898aa;
+  font-size: 8px;
+}
+
+.water-column-legend {
+  right: 354px;
+  bottom: 16px;
+  width: 210px;
+  padding: 9px 10px;
+  font-size: 9px;
+}
+
+.water-column-legend > span {
+  display: block;
+  margin-bottom: 6px;
+  color: #a9c0cf;
+}
+
+.water-column-reset {
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 10px;
+  border-color: rgba(53, 91, 113, 0.68);
+  color: #a9d8e4;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.water-column-hover {
+  right: 356px;
+  top: 92px;
+  display: grid;
+  gap: 3px;
+  width: 218px;
+  padding: 9px 10px;
+  font-size: 8px;
+  pointer-events: none;
+}
+
+.water-column-hover strong {
+  color: #bff3ff;
+  font-size: 9px;
+}
+
+.water-column-hover span {
+  color: #88aabc;
+}
+
+.water-column-loading {
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 42%, rgba(39, 130, 160, 0.18), transparent 34%),
+    #01070c;
+}
+
+.water-column-loading-card {
+  display: grid;
+  gap: 7px;
+  max-width: 360px;
+  padding: 18px 20px;
+  border: 1px solid #244b60;
+  border-radius: 12px;
+  color: #d9f1f7;
+  background: rgba(5, 24, 36, 0.92);
+  text-align: center;
+}
+
+.water-column-loading-card span {
+  color: #7799aa;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.focus-mode .water-column-selected,
+.focus-mode .water-column-hover,
+.focus-mode .water-column-legend {
+  right: 14px;
+}
+
+.focus-mode .water-column-note {
+  left: 14px;
+}
+
+:root[data-theme="light"] .water-column-canvas:focus-visible {
+  outline-color: #167b98;
+}
+
+:root[data-theme="light"] .water-column-summary > span,
+:root[data-theme="light"] .water-column-summary > small,
+:root[data-theme="light"] .water-column-selected span,
+:root[data-theme="light"] .water-column-selected small,
+:root[data-theme="light"] .water-column-legend > span,
+:root[data-theme="light"] .water-column-hover span {
+  color: #4f7082;
+}
+
+:root[data-theme="light"] .water-column-summary > small,
+:root[data-theme="light"] .water-column-selected strong,
+:root[data-theme="light"] .water-column-hover strong {
+  color: #164c60;
+}
+
+:root[data-theme="light"] .water-column-reset {
+  border-color: rgba(106, 142, 159, 0.68);
+  color: #1b6178;
+}
+
+:root[data-theme="light"] .water-column-loading {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(48, 145, 175, 0.12), transparent 34%),
+    #e7f0f4;
+}
+
+:root[data-theme="light"] .water-column-loading-card {
+  border-color: #b3cbd5;
+  color: #173849;
+  background: rgba(249, 252, 253, 0.96);
+}
+
+:root[data-theme="light"] .water-column-loading-card span {
+  color: #587487;
+}
+
+@media (max-width: 1150px) {
+  .water-column-selected,
+  .water-column-hover,
+  .water-column-legend {
+    right: 328px;
+  }
+}
+
+@media (max-width: 760px) {
+  .water-column-selected {
+    top: 72px;
+    right: 14px;
+    min-width: 140px;
+  }
+
+  .water-column-hover {
+    display: none;
+  }
+
+  .water-column-legend {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  .water-column-reset {
+    top: 14px;
+    left: auto;
+    right: 14px;
+    transform: none;
+  }
+
+  .water-column-note {
+    display: none;
+  }
+
+  .water-column-hint {
+    display: none;
+  }
+}
