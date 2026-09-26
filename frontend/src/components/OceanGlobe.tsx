@@ -151,7 +151,7 @@ export function OceanGlobe({
     viewer.scene.backgroundColor = Color.fromCssColorString("#010913");
     viewer.scene.globe.baseColor = Color.fromCssColorString("#062438");
     viewer.scene.globe.depthTestAgainstTerrain = false;
-    viewer.scene.globe.maximumScreenSpaceError = 1.0;
+    viewer.scene.globe.maximumScreenSpaceError = 0.8;
     viewer.scene.fog.enabled = false;
     viewer.scene.globe.translucency.enabled = true;
     viewer.scene.globe.translucency.frontFaceAlpha = 0.95;
@@ -280,9 +280,10 @@ export function OceanGlobe({
 
         viewer.imageryLayers.removeAll();
         const layer = viewer.imageryLayers.addImageryProvider(provider);
-        layer.brightness = 0.98;
-        layer.contrast = 1.06;
-        layer.saturation = 0.92;
+        layer.brightness = 1.03;
+        layer.contrast = 1.12;
+        layer.saturation = 1.04;
+        layer.gamma = 0.96;
         setImageryStatus("online");
         viewer.scene.requestRender();
       } catch {
@@ -731,6 +732,7 @@ export function OceanGlobe({
       data-camera-height={cameraHeight.toFixed(0)}
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
+      data-imagery-failsafe="online-hd+offline-natural-earth"
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
@@ -743,12 +745,12 @@ export function OceanGlobe({
         </div>
       )}
       <div className="globe-overlay imagery-control" data-status={imageryStatus}>
-        <span>MAP IMAGERY</span>
+        <span>HIGH-QUALITY BASEMAP</span>
         <strong>
           {imageryStatus === "online"
-            ? "World Imagery · online"
+            ? "ArcGIS World Imagery · HD online"
             : imageryStatus === "offline"
-              ? "Natural Earth II · offline"
+              ? "Natural Earth II · offline fail-safe"
               : imageryStatus === "grid"
                 ? "Scientific grid fallback"
                 : "Resolving best available layer…"}
@@ -771,7 +773,7 @@ export function OceanGlobe({
             Offline
           </button>
         </div>
-        <small>Basemap only · scientific coordinates and values are unchanged.</small>
+        <small>Preferred online HD → automatic offline fallback · basemap only; scientific coordinates and values never change.</small>
       </div>
       <div className="globe-overlay top-left judge-summary">
         <div>
