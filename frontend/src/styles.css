@@ -144,6 +144,65 @@ select {
   letter-spacing: 0.08em !important;
 }
 
+.system-pill.degraded {
+  border-color: #806124;
+  color: #f0c56b !important;
+  background: #2d230b;
+}
+
+.boot-error-card {
+  display: grid;
+  gap: 8px;
+  width: min(520px, calc(100vw - 36px));
+  padding: 16px;
+  border: 1px solid #7a4141;
+  border-radius: 10px;
+  color: #dbe9ef;
+  background: rgba(49, 14, 16, 0.9);
+}
+
+.boot-error-card strong {
+  color: #ffd2cc;
+}
+
+.boot-error-card p {
+  line-height: 1.5;
+}
+
+.boot-error-card button {
+  width: fit-content;
+  padding: 8px 11px;
+  border: 1px solid #586f7d;
+  border-radius: 7px;
+  color: #e7f5fa;
+  background: #102631;
+  cursor: pointer;
+}
+
+.renderer-fallback-card {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 25;
+  display: grid;
+  gap: 7px;
+  width: min(440px, calc(100% - 80px));
+  transform: translate(-50%, -50%);
+  padding: 16px;
+  border: 1px solid #8a4d4d;
+  border-radius: 10px;
+  color: #f2f8fb;
+  background: rgba(42, 11, 14, 0.94);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+
+.renderer-fallback-card span,
+.renderer-fallback-card small {
+  color: #d0a7a4;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
 .workspace {
   position: relative;
   min-height: 0;
