@@ -57,6 +57,23 @@ jobs:
           print("INCOIS operational evidence verified:", payload["record_count"], "records")
           PY
 
+      - name: Fetch verified Glider CTD BGC observation breadth pack
+        run: |
+          rm -rf /tmp/oceantwin-observations
+          python scripts/fetch_verified_observation_breadth.py --output /tmp/oceantwin-observations/verified-profiles.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/oceantwin-observations/verified-profiles.json").read_text())
+          assert payload["schema"] == "oceantwin-verified-observation-pack-v1"
+          assert payload["integrity"]["synthetic_measurements"] is False
+          assert payload["integrity"]["synthetic_timestamps"] is False
+          assert set(payload["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
+          assert all(payload["integrity"]["sensor_record_counts"][key] > 0 for key in ("glider", "ctd", "bgc"))
+          assert payload["record_count"] > 30
+          print("Multi-sensor observation evidence verified:", payload["integrity"]["sensor_record_counts"])
+          PY
+
       - name: Export immutable static science fail-safe
         run: |
           rm -rf /tmp/oceantwin-static-science
@@ -181,6 +198,9 @@ jobs:
       - name: Fetch verified INCOIS operational snapshot for hosted build
         run: python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json
 
+      - name: Fetch verified Glider CTD BGC profiles for hosted build
+        run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -211,6 +231,7 @@ jobs:
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/health.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
+          test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
           python - <<'PY'
           import json
@@ -219,11 +240,15 @@ jobs:
           health = json.loads((root / "health.json").read_text())
           catalog = json.loads((root / "catalog.json").read_text())
           manifest = json.loads((root / "manifest.json").read_text())
+          observations = json.loads(Path("frontend/dist/observations/verified-profiles.json").read_text())
           assert health["status"] == "ok"
           assert sorted(health["variables"]) == ["so", "thetao", "uo", "vo"]
           assert catalog["capabilities"]["current_vectors"] is True
           assert catalog["capabilities"]["argo_profiles"] is True
           assert manifest["scientific_data_network_required_at_runtime"] is False
+          assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
+          assert observations["integrity"]["synthetic_measurements"] is False
+          assert observations["record_count"] > 30
           assert (root / "fields/thetao/t0_d18.json").is_file()
           assert (root / "fields/so/t0_d18.json").is_file()
           assert (root / "currents/t0_d18.json").is_file()
@@ -281,6 +306,7 @@ jobs:
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
           operational = get_json("/operational/incois-argo-10d-vam.json")
+          observations = get_json("/observations/verified-profiles.json")
           natural_earth = get_bytes(
               "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
           )
@@ -302,6 +328,9 @@ jobs:
           assert operational["source"]["provider"] == "INCOIS"
           assert operational["integrity"]["genuine_time_count"] >= 2
           assert operational["integrity"]["genuine_depth_count"] >= 2
+          assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
+          assert observations["integrity"]["synthetic_measurements"] is False
+          assert observations["integrity"]["runtime_network_required"] is False
           assert natural_earth[:2] == b"\xff\xd8"
 
           print("Production static runtime smoke test passed.")
