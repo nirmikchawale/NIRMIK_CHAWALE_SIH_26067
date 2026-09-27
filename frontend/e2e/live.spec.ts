@@ -427,7 +427,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".profile-panel")).toContainText("Argo");
   await expect(page.locator(".profile-panel")).toContainText("Matched levels");
   await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
-  await expect(page.getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
+  await expect(page.locator(".profile-panel").getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
   await expect(page.locator(".qc-pill")).toHaveText("QC ACCEPTED");
 
   await page.getByRole("button", { name: "Sources & QC" }).click();
