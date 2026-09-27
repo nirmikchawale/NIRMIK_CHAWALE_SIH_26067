@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
 import type { AnomalyResponse, Catalog, ResidualAnomalyFlag, SpatialAnomalyFlag } from "../types";
+import { displayUnits } from "../units";
 
 interface Props { catalog: Catalog; }
 
@@ -176,10 +177,10 @@ export function AnomalyPage({ catalog }: Props) {
 
                 {focusScreen === "spatial" && strongestSpatial ? (
                   <dl className="anomaly-why-grid">
-                    <div><dt>Actual value</dt><dd>{strongestSpatial.value.toFixed(4)} {payload.units}</dd></div>
-                    <div><dt>Layer median</dt><dd>{payload.spatial_screen.median.toFixed(4)} {payload.units}</dd></div>
-                    <div><dt>Layer MAD</dt><dd>{payload.spatial_screen.mad.toFixed(4)} {payload.units}</dd></div>
-                    <div><dt>Signed difference</dt><dd>{(strongestSpatial.value - payload.spatial_screen.median).toFixed(4)} {payload.units}</dd></div>
+                    <div><dt>Actual value</dt><dd>{strongestSpatial.value.toFixed(4)} {displayUnits(payload.units)}</dd></div>
+                    <div><dt>Layer median</dt><dd>{payload.spatial_screen.median.toFixed(4)} {displayUnits(payload.units)}</dd></div>
+                    <div><dt>Layer MAD</dt><dd>{payload.spatial_screen.mad.toFixed(4)} {displayUnits(payload.units)}</dd></div>
+                    <div><dt>Signed difference</dt><dd>{(strongestSpatial.value - payload.spatial_screen.median).toFixed(4)} {displayUnits(payload.units)}</dd></div>
                     <div><dt>Longitude</dt><dd>{strongestSpatial.longitude.toFixed(3)}°E</dd></div>
                     <div><dt>Latitude</dt><dd>{strongestSpatial.latitude.toFixed(3)}°N</dd></div>
                   </dl>
@@ -251,13 +252,13 @@ export function AnomalyPage({ catalog }: Props) {
             <div className="anomaly-card-heading"><div><span>MODEL SPACE</span>
               <h3>{payload.label} spatial statistical extremes</h3></div><strong>{payload.depth_m.toFixed(2)} m</strong></div>
             <p className="anomaly-scope">{payload.spatial_screen.scope}</p>
-            <div className="anomaly-baseline"><span>Median <strong>{payload.spatial_screen.median.toFixed(4)} {payload.units}</strong></span>
-              <span>MAD <strong>{payload.spatial_screen.mad.toFixed(4)} {payload.units}</strong></span></div>
+            <div className="anomaly-baseline"><span>Median <strong>{payload.spatial_screen.median.toFixed(4)} {displayUnits(payload.units)}</strong></span>
+              <span>MAD <strong>{payload.spatial_screen.mad.toFixed(4)} {displayUnits(payload.units)}</strong></span></div>
             {spatial.length === 0 ? <div className="anomaly-empty">No model cell crosses the fixed |robust z| ≥ 3.5 threshold here.</div> :
               <div className="anomaly-table-wrap"><table className="anomaly-spatial-table"><thead><tr>
                 <th>Lon</th><th>Lat</th><th>Value</th><th>Robust z</th></tr></thead><tbody>
                 {spatial.map((flag, i) => <tr key={i}><td>{flag.longitude.toFixed(3)}°E</td>
-                  <td>{flag.latitude.toFixed(3)}°N</td><td>{flag.value.toFixed(4)} {payload.units}</td>
+                  <td>{flag.latitude.toFixed(3)}°N</td><td>{flag.value.toFixed(4)} {displayUnits(payload.units)}</td>
                   <td className={flag.robust_z >= 0 ? "positive" : "negative"}>{flag.robust_z.toFixed(2)}</td></tr>)}
               </tbody></table></div>}
           </article>

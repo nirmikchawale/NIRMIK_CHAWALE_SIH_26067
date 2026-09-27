@@ -1,4 +1,5 @@
 import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import { displayUnits } from "../units";
 
 const DEPTH_TRACK_MAX = 1000;
 const EPipelagic_END_M = 200;
@@ -222,7 +223,7 @@ export function ControlPanel({
               onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
             >
               <span>{item.label}</span>
-              <small>{item.units}</small>
+              <small>{displayUnits(item.units)}</small>
             </button>
           ))}
         </div>
@@ -234,7 +235,7 @@ export function ControlPanel({
               {" – "}
               {catalog.variables.find((item) => item.id === variable)?.maximum.toFixed(3)}
               {" "}
-              {catalog.variables.find((item) => item.id === variable)?.units}
+              {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}
             </strong>
           </p>
         )}
@@ -370,7 +371,7 @@ export function ControlPanel({
                   <label>
                     <span className="label-row">
                       <span>Iso value</span>
-                      <strong>{isoValue.toFixed(3)} {catalog.variables.find((item) => item.id === variable)?.units}</strong>
+                      <strong>{isoValue.toFixed(3)} {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}</strong>
                     </span>
                     <input
                       type="range"

@@ -25,7 +25,9 @@
 .ocean-workbench .brand h1 { font-size: 22px; }
 .ocean-workbench .header-status { gap: 10px; }
 .ocean-workbench .header-status > div:not(.header-workspace-actions) { display: none; }
-.header-workspace-actions { display: flex; align-items: center; gap: 6px; }
+/* Scoped under .header-status so it outranks `.header-status > div { display: grid }` in styles.css,
+   which otherwise stacks these buttons vertically and clips them out of the 72px header. */
+.header-status > .header-workspace-actions { display: flex; align-items: center; gap: 6px; }
 .header-action-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--wb-line); border-radius: 6px; background: var(--wb-panel); color: var(--wb-text); font-size: 12px; cursor: pointer; }
 .header-action-button:hover,.header-action-button:focus-visible { border-color: var(--wb-accent); color: var(--wb-accent); background: var(--wb-raised); }
 .ocean-workbench .system-pill { font-size: 11px; letter-spacing: .04em; color: var(--wb-accent); background: var(--wb-panel); }
@@ -420,7 +422,7 @@
   .ocean-workbench .brand h1 { font-size: 17px; }
   .ocean-workbench .brand-mark { display: none; }
   .ocean-workbench .header-status { gap: 6px; }
-  .header-workspace-actions { display: none; }
+  .header-status > .header-workspace-actions { display: none; }
   .ocean-workbench .present-button { min-height: 36px; font-size: 12px; padding: 7px 9px; }
   .ocean-workbench .theme-toggle { min-width: 48px; min-height: 36px; padding: 6px; font-size: 10px; }
   .ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr); overflow: hidden; }
@@ -482,4 +484,44 @@
     left: 10px;
   }
   .evidence-status-pill { top: 204px; }
+}
+
+/* Explorer overlap fixes for laptop/projector sizes (1280x720, ~1400x600).
+   Display-only: moves overlays so they stop covering the view toggle, UTC time,
+   zoom controls and the Argo marker. No scientific values are affected. */
+@media (min-width: 761px) {
+  /* Keep the Geographic View / Water Column toggle and UTC time clear of the open controls panel. */
+  .ocean-workbench:not(.focus-mode)[data-control-dock="open"] .visualization-dock {
+    padding-left: calc(var(--wb-control-width) + 28px) !important;
+  }
+  /* Multi-sensor profile chips: one compact row at the top of the map, between the
+     imagery switch and the study-region card, instead of a tall band over the map centre. */
+  .ocean-workbench .visualization-stage .imported-observation-chips {
+    top: 14px;
+    right: 224px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+    left: calc(var(--wb-control-width) + 28px + 190px + 12px);
+  }
+  .ocean-workbench[data-control-dock="closed"] .visualization-stage .imported-observation-chips,
+  .ocean-workbench.focus-mode .visualization-stage .imported-observation-chips {
+    left: calc(14px + 190px + 12px);
+  }
+  .ocean-workbench .visualization-stage .imported-observation-chips > span { flex: 0 0 auto; white-space: nowrap; }
+  .ocean-workbench .visualization-stage .imported-observation-chips > div {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .ocean-workbench .visualization-stage .imported-observation-chips button { flex: 0 0 auto; }
+}
+@media (max-width: 760px) {
+  /* Evidence pill sat on top of the "Verified study region" card on phones. */
+  .ocean-workbench .evidence-status-pill { top: 222px; }
 }
