@@ -2,7 +2,7 @@
 
 PROJECT: OceanTwin 3D
 BRANCH: sih26067-full-compliance-upgrade
-BASE_MAIN: 65c871ac666597f8d5e950b74cb38afc60857c30
+BASE_MAIN: 0da2ebb49297811ce5a75b7f6bd19ca03aad44f2
 STATUS: ACTIVE
 MERGE_POLICY: Never merge until every active slice is green and final public verification is green.
 
@@ -53,6 +53,6 @@ S9. Full responsive/browser/science regression + public deployment verification.
 ## Recovery rule
 At any restart: read this file, inspect branch HEAD, PR state and exact CI runs. Repository evidence overrides stale chat memory. Continue only the first unfinished slice.
 
-CURRENT_SLICE: S0
-LAST_GREEN_SHA: 65c871ac666597f8d5e950b74cb38afc60857c30
-NEXT_EXACT_ACTION: fix live Playwright globe selector so connected Geographic/Water Column DOM does not make public verification fail.
+CURRENT_SLICE: S3 — generic multi-sensor observation integration
+LAST_GREEN_SHA: 1a85541dc2724a717b862915f503b8e36e85166c
+LAST_COMPLETED_ACTION: Validated generic Glider/CTD/BGC/Argo sensor plugin registry and Data Lab -> 3D Explorer profile path. tests #566 PASS; final-mvp #231 PASS.\nNEXT_EXACT_ACTION: merge validated sensor-plugin slice, verify public deployment, then add genuine provider-sourced Glider/BGC/CTD evidence packs and real standards capability probes.
