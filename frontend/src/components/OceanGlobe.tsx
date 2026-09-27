@@ -1044,6 +1044,25 @@ export function OceanGlobe({
           HD canvas ×{renderScale.toFixed(2)} · {antialiasing}
         </small>
       </div>
+      {importedProfiles.length > 0 && (
+        <div className="globe-overlay imported-observation-chips" aria-label="Imported instrument profiles">
+          <span>SESSION INSTRUMENTS</span>
+          <div>
+            {importedProfiles.map((profile) => (
+              <button
+                type="button"
+                key={profile.id}
+                className={profile.id === selectedImportedProfileId ? "active" : ""}
+                aria-pressed={profile.id === selectedImportedProfileId}
+                onClick={() => onSelectImportedProfile(profile.id)}
+              >
+                <strong>{profile.sensor_type.toUpperCase()}</strong>
+                <span>{profile.platform_id}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {inspection && (
         <div className="globe-overlay inspection-card">
           <div className="inspection-title">
