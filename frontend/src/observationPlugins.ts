@@ -1,6 +1,6 @@
 import { api } from "./api";
 
-export type ObservationSensor = "Argo" | "Glider" | "CTD" | "BGC";
+export type ObservationSensor = "Argo" | "Glider" | "CTD" | "BGC" | "Imported";
 
 export interface ObservationVariable {
   id: string;
