@@ -438,7 +438,9 @@ export default function App() {
     if (sourceMode === "incois") {
       try {
         if (!operationalSnapshot) throw new Error("INCOIS operational snapshot is unavailable.");
-        if (variable === "currents") throw new Error("Currents are not available in the selected INCOIS snapshot.");
+        if (variable !== "thetao" && variable !== "so") {
+          throw new Error("INCOIS multi-time analysis exposes temperature and salinity only.");
+        }
         if (visualizationMode === "water-column" || viewMode === "volume") {
           setVolume(buildIncoisVolume(operationalSnapshot, variable, timeIndex));
         } else {
@@ -449,6 +451,12 @@ export default function App() {
       } finally {
         setScienceLoading(false);
       }
+      return;
+    }
+
+    if (variable === "chlorophyll") {
+      setError("Chlorophyll is available only from the INCOIS ocean-colour source.");
+      setScienceLoading(false);
       return;
     }
 
