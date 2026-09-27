@@ -37,6 +37,7 @@ import type {
   ProfileSummary,
   VolumeResponse
 } from "../types";
+import { displayUnits } from "../units";
 
 interface Inspection {
   kind: "scalar" | "current";
@@ -65,6 +66,7 @@ interface Props {
   colorScale: ColorScaleMode;
   colorMinimum: number;
   colorMaximum: number;
+  presentationActive: boolean;
   onSelectProfile: (profileId: string) => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
@@ -111,6 +113,7 @@ export function OceanGlobe({
   colorScale,
   colorMinimum,
   colorMaximum,
+  presentationActive,
   onSelectProfile,
   onSelectImportedProfile,
   onEnterWaterColumn,
@@ -344,6 +347,16 @@ export function OceanGlobe({
       viewerRef.current = null;
     };
   }, [onSelectProfile, onSelectImportedProfile]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!presentationActive || !viewer || viewer.isDestroyed()) return;
+
+    regionEntryArmedRef.current = true;
+    setRegionEntryArmed(true);
+    setInspection(null);
+    journeyRef.current();
+  }, [presentationActive]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -955,6 +968,7 @@ export function OceanGlobe({
       data-antialiasing={antialiasing}
       data-render-quality="high"
       data-camera-height={cameraHeight.toFixed(0)}
+      data-presentation-active={presentationActive ? "true" : "false"}
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
       data-imagery-failsafe="online-hd+offline-natural-earth"
@@ -1079,12 +1093,12 @@ export function OceanGlobe({
             <span>Depth</span><strong>{inspection.depth_m.toFixed(2)} m</strong>
             {inspection.kind === "scalar" ? (
               <>
-                <span>Value</span><strong>{inspection.value?.toFixed(4)} {inspection.units}</strong>
+                <span>Value</span><strong>{inspection.value?.toFixed(4)} {displayUnits(inspection.units)}</strong>
               </>
             ) : (
               <>
-                <span>u / v</span><strong>{inspection.u?.toFixed(4)} / {inspection.v?.toFixed(4)} {inspection.units}</strong>
-                <span>Speed</span><strong>{inspection.speed?.toFixed(4)} {inspection.units}</strong>
+                <span>u / v</span><strong>{inspection.u?.toFixed(4)} / {inspection.v?.toFixed(4)} {displayUnits(inspection.units)}</strong>
+                <span>Speed</span><strong>{inspection.speed?.toFixed(4)} {displayUnits(inspection.units)}</strong>
               </>
             )}
           </div>
@@ -1131,7 +1145,7 @@ export function OceanGlobe({
         <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
           <span>{legendMin?.toFixed(3) ?? "—"}</span>
-          <span>{legendUnits ?? ""}</span>
+          <span>{displayUnits(legendUnits)}</span>
           <span>{legendMax?.toFixed(3) ?? "—"}</span>
         </div>
       </div>

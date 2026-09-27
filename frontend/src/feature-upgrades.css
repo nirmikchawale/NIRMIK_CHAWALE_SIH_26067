@@ -727,7 +727,7 @@
 
 /* Feature 6 — Data Lab official-data launchpad. */
 .data-source-launchpad {
-  margin: 0 0 16px;
+  margin: 0 auto 16px;
   padding: 18px;
   border: 1px solid rgba(63, 132, 156, .58);
   border-radius: 16px;
@@ -947,7 +947,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(340px, .92fr);
   gap: 12px;
-  margin: 0 0 14px;
+  margin: 0 auto 14px;
 }
 
 .anomaly-focus-card,
@@ -1253,7 +1253,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(320px, .88fr);
   gap: 12px;
-  margin: 0 0 12px;
+  margin: 0 auto 12px;
 }
 
 .comparison-depth-inspector,
@@ -1520,7 +1520,7 @@
 
 /* Telemetry v3 — interactive water-column depth explorer. */
 .telemetry-depth-ladder {
-  margin: 12px 0;
+  margin: 12px auto;
   padding: 16px;
 }
 
@@ -1584,7 +1584,7 @@
 }
 
 .telemetry-neighborhood-card {
-  margin: 12px 0;
+  margin: 12px auto;
   padding: 16px;
 }
 
@@ -3008,7 +3008,7 @@
 .interoperability-panel {
   display: grid;
   gap: 16px;
-  margin: 18px 0;
+  margin: 18px auto;
   padding: 18px;
   border: 1px solid rgba(51, 112, 137, .7);
   border-radius: 14px;

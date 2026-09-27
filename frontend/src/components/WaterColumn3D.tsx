@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import type { ColorPalette, ColorScaleMode, CurrentsVolumeResponse, VolumeResponse } from "../types";
+import { displayUnits } from "../units";
 
 interface Props {
   volume: VolumeResponse | null;
@@ -209,7 +210,7 @@ export function WaterColumn3D({
   );
 
   const dataLabel = volume?.label ?? (currentsVolume ? "Current speed" : "Ocean field");
-  const dataUnits = volume?.units ?? currentsVolume?.units ?? "";
+  const dataUnits = displayUnits(volume?.units ?? currentsVolume?.units);
   const dataTime = volume?.time ?? currentsVolume?.time ?? "";
 
   const isoTriangles = useMemo(

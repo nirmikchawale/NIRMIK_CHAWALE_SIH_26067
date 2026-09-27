@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { fetchIncoisOperational } from "../api";
 import type { IncoisOperationalSnapshot } from "../types";
+import { displayUnits } from "../units";
 
 type OperationalVariable = "temperature" | "salinity";
 
@@ -234,7 +235,7 @@ export function IncoisOperationalPanel() {
           </svg>
           <div className="incois-time-labels">
             <span>{timeSeries[0]?.time.replace("T00:00:00Z", "")}</span>
-            <strong>{stats ? `${stats.mean.toFixed(3)} ${stats.units}` : "—"}</strong>
+            <strong>{stats ? `${stats.mean.toFixed(3)} ${displayUnits(stats.units)}` : "—"}</strong>
             <span>{timeSeries.at(-1)?.time.replace("T00:00:00Z", "")}</span>
           </div>
         </article>
@@ -249,7 +250,7 @@ export function IncoisOperationalPanel() {
           </div>
           {stats && (
             <div className="incois-stat-grid">
-              <div><span>Mean</span><strong>{stats.mean.toFixed(3)} {stats.units}</strong></div>
+              <div><span>Mean</span><strong>{stats.mean.toFixed(3)} {displayUnits(stats.units)}</strong></div>
               <div><span>Min</span><strong>{stats.minimum.toFixed(3)}</strong></div>
               <div><span>Max</span><strong>{stats.maximum.toFixed(3)}</strong></div>
               <div><span>Timestamp</span><strong>{time.replace("T00:00:00Z", "")}</strong></div>

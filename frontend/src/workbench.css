@@ -7,8 +7,8 @@
   --wb-text: #f2eee4;
   --wb-muted: #acbfca;
   --wb-accent: #a9d5e5;
-  --wb-left: 274px;
-  --wb-right: 264px;
+  --wb-control-width: 300px;
+  --wb-evidence-width: 320px;
 }
 :root[data-theme="light"] {
   --wb-bg: #eae7df;
@@ -20,19 +20,29 @@
   --wb-accent: #076b80;
 }
 .ocean-workbench { grid-template-rows: 72px minmax(0,1fr) 36px; background: var(--wb-bg); color: var(--wb-text); }
-.ocean-workbench .app-header { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 24px; }
+.ocean-workbench .app-header { position: relative; z-index: 50; background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 24px; }
 .ocean-workbench .brand p { color: var(--wb-muted); font-size: 12px; }
 .ocean-workbench .brand h1 { font-size: 22px; }
-.ocean-workbench .header-status { gap: 16px; }
-.ocean-workbench .header-status > div { display: none; }
+.ocean-workbench .header-status { gap: 10px; }
+.ocean-workbench .header-status > div:not(.header-workspace-actions):not(.workspace-mode-switcher) { display: none; }
+/* Scoped under .header-status so these outrank `.header-status > div { display: grid }` in styles.css,
+   which otherwise stacks the buttons vertically and clips them out of the 72px header. */
+.header-status > .header-workspace-actions { display: flex; align-items: center; gap: 6px; }
+.header-status > .workspace-mode-switcher,
+.workspace-mode-switcher { display: flex; align-items: center; gap: 3px; padding: 3px; border: 1px solid var(--wb-line); border-radius: 8px; background: var(--wb-panel); }
+.workspace-mode-switcher button { min-height: 30px; padding: 5px 8px; border: 1px solid transparent; border-radius: 5px; color: var(--wb-muted); background: transparent; font-size: 10px; font-weight: 650; cursor: pointer; }
+.workspace-mode-switcher button:hover,.workspace-mode-switcher button:focus-visible { color: var(--wb-text); background: var(--wb-raised); }
+.workspace-mode-switcher button.active { border-color: var(--wb-accent); color: var(--wb-accent); background: color-mix(in srgb,var(--wb-accent) 10%,var(--wb-panel)); }
+.header-action-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--wb-line); border-radius: 6px; background: var(--wb-panel); color: var(--wb-text); font-size: 12px; cursor: pointer; }
+.header-action-button:hover,.header-action-button:focus-visible { border-color: var(--wb-accent); color: var(--wb-accent); background: var(--wb-raised); }
 .ocean-workbench .system-pill { font-size: 11px; letter-spacing: .04em; color: var(--wb-accent); background: var(--wb-panel); }
 .ocean-workbench .theme-toggle { font-size: 12px; background: var(--wb-panel); color: var(--wb-text); }
 .present-button { border: 1px solid var(--wb-accent); border-radius: 7px; min-height: 40px; padding: 8px 16px; color: var(--wb-bg); background: var(--wb-accent); font-size: 14px; font-weight: 650; cursor: pointer; }
-.ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-rows: 56px minmax(0,1fr); background: var(--wb-bg); overflow: hidden; }
-.ocean-workbench .workspace-frame > .workspace { grid-column: 1 / -1; grid-row: 2; min-height: 0; position: relative; padding: 0; overflow: hidden; }
+.ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 56px minmax(0,1fr); background: var(--wb-bg); overflow: hidden; }
+.ocean-workbench .workspace-frame > .workspace { grid-column: 1; grid-row: 2; min-height: 0; position: relative; padding: 0; overflow: hidden; }
 .ocean-workbench .feature-rail { position: static; flex-direction: row; align-items: center; padding: 6px 14px; gap: 5px; border: 0; border-bottom: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-bg); overflow-x: auto; }
 .ocean-workbench .feature-rail-left { grid-column: 1; grid-row: 1; width: auto; }
-.ocean-workbench .feature-rail-right { display: flex; grid-column: 2; grid-row: 1; }
+.ocean-workbench .feature-rail-right { display: none !important; }
 .ocean-workbench .rail-title,.ocean-workbench .rail-group-label { display: none; }
 .ocean-workbench .rail-group { display: contents; }
 .ocean-workbench .feature-rail button { display: flex; gap: 8px; min-width: max-content; min-height: 40px; padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; color: var(--wb-muted); background: transparent; box-shadow: none; transform: none; }
@@ -40,7 +50,28 @@
 .ocean-workbench .feature-rail button strong { display: none; }
 .ocean-workbench .feature-rail button.active { color: var(--wb-accent); border-color: var(--wb-line); background: var(--wb-raised); box-shadow: inset 0 -2px var(--wb-accent); }
 .ocean-workbench .feature-rail button:hover:not(:disabled) { color: var(--wb-text); background: var(--wb-raised); }
-.ocean-workbench .control-panel { top: 0; bottom: 0; left: 0; width: var(--wb-left); padding: 22px 18px; border: 0; border-right: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-panel); box-shadow: none; backdrop-filter: none; }
+.ocean-workbench .control-panel {
+  position: absolute;
+  z-index: 25;
+  top: 14px;
+  bottom: 14px;
+  left: 14px;
+  width: min(var(--wb-control-width), calc(100% - 28px));
+  padding: 20px 18px;
+  border: 1px solid color-mix(in srgb, var(--wb-line) 82%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--wb-panel) 88%, transparent);
+  box-shadow: 0 18px 48px rgba(0,0,0,.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 200ms ease, opacity 180ms ease, visibility 180ms ease;
+}
+.ocean-workbench[data-control-dock="closed"] .control-panel {
+  transform: translateX(calc(-100% - 28px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
 .ocean-workbench .control-panel section { padding: 20px 0; border-color: var(--wb-line); }
 .ocean-workbench .control-panel section:first-of-type { padding-top: 0; }
 .ocean-workbench .section-kicker { font-size: 12px; color: var(--wb-muted); letter-spacing: .09em; }
@@ -55,8 +86,101 @@
 .ocean-workbench .advanced-control-group { background: var(--wb-bg); border-color: var(--wb-line); border-radius: 6px; }
 .ocean-workbench .advanced-control-group summary { padding: 12px; }
 .ocean-workbench .advanced-control-body { padding: 14px 10px; }
-.ocean-workbench .visualization-stage { left: var(--wb-left); right: var(--wb-right); top: 116px; bottom: 0; background: var(--wb-bg); }
-.ocean-workbench .visualization-dock { top: 0 !important; left: var(--wb-left) !important; right: var(--wb-right) !important; width: auto !important; min-width: 0; height: 116px; transform: none; padding: 10px 20px !important; display: grid !important; grid-template-columns: minmax(0,1fr); gap: 6px; border: 0 !important; border-bottom: 1px solid var(--wb-line) !important; border-radius: 0 !important; background: var(--wb-panel) !important; box-shadow: none; backdrop-filter: none; }
+
+.ocean-workbench .bathymetric-depth-controller { display: grid; gap: 10px; }
+.ocean-workbench .depth-zone-track {
+  display: grid;
+  grid-template-columns: 40fr 35fr 25fr;
+  gap: 4px;
+}
+.ocean-workbench .depth-zone-track button {
+  min-width: 0;
+  min-height: 46px;
+  padding: 7px 6px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  cursor: pointer;
+  text-align: left;
+}
+.ocean-workbench .depth-zone-track button strong {
+  overflow: hidden;
+  color: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ocean-workbench .depth-zone-track button span {
+  color: var(--wb-muted);
+  font-size: 9px;
+  line-height: 1.15;
+}
+.ocean-workbench .depth-zone-track button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+  background: color-mix(in srgb, var(--wb-accent) 11%, var(--wb-panel));
+  box-shadow: inset 0 -2px var(--wb-accent);
+}
+.ocean-workbench .depth-zone-track button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  border-style: dashed;
+}
+.ocean-workbench .nonlinear-depth-slider-shell {
+  position: relative;
+  display: grid;
+  align-items: center;
+  min-height: 30px;
+}
+.ocean-workbench .nonlinear-depth-slider-shell input[type="range"] {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+  background: transparent;
+}
+.ocean-workbench .depth-track-allocation {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  top: 50%;
+  display: grid;
+  grid-template-columns: 40fr 35fr 25fr;
+  gap: 2px;
+  height: 5px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.ocean-workbench .depth-track-allocation span { border-radius: 999px; opacity: .7; }
+.ocean-workbench .depth-track-allocation .epipelagic { background: color-mix(in srgb, var(--wb-accent) 85%, #ffffff); }
+.ocean-workbench .depth-track-allocation .mesopelagic { background: color-mix(in srgb, var(--wb-accent) 52%, var(--wb-line)); }
+.ocean-workbench .depth-track-allocation .bathypelagic { background: color-mix(in srgb, var(--wb-accent) 25%, var(--wb-line)); }
+.ocean-workbench .depth-controller-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--wb-muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+.ocean-workbench .depth-controller-meta span:last-child { text-align: right; }
+.ocean-workbench .depth-availability-note {
+  margin: 0;
+  padding: 7px 8px;
+  border-left: 2px solid var(--wb-line);
+  color: var(--wb-muted);
+  background: color-mix(in srgb, var(--wb-raised) 72%, transparent);
+  font-size: 10px;
+  line-height: 1.4;
+}
+.ocean-workbench .visualization-stage { left: 0; right: 0; top: 116px; bottom: 0; background: var(--wb-bg); }
+.ocean-workbench .visualization-dock { top: 0 !important; left: 0 !important; right: 0 !important; width: auto !important; min-width: 0; height: 116px; transform: none; padding: 10px 20px !important; display: grid !important; grid-template-columns: minmax(0,1fr); gap: 6px; border: 0 !important; border-bottom: 1px solid var(--wb-line) !important; border-radius: 0 !important; background: color-mix(in srgb, var(--wb-panel) 94%, transparent) !important; box-shadow: none; backdrop-filter: blur(8px); }
 .ocean-workbench .visualization-dock-copy { display: none; }
 .ocean-workbench .visualization-dock-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
 .ocean-workbench .visualization-dock-modes button { min-width: 0; width: auto; height: 48px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: var(--wb-muted); background: var(--wb-bg); border: 1px solid var(--wb-line); border-radius: 6px; box-shadow: none; transform: none; }
@@ -71,7 +195,130 @@
 .ocean-workbench .visualization-context-row > div:nth-child(n+3) { display: none; }
 .ocean-workbench .visualization-context-row span { font-size: 10px; color: var(--wb-muted); }
 .ocean-workbench .visualization-context-row strong { font-size: 12px; color: var(--wb-text); }
-.evidence-rail { position: absolute; right: 0; top: 0; bottom: 0; width: var(--wb-right); padding: 24px 20px; overflow-y: auto; scrollbar-width: thin; background: var(--wb-panel); border-left: 1px solid var(--wb-line); }
+.evidence-rail {
+  position: absolute;
+  z-index: 26;
+  right: 14px;
+  top: 14px;
+  bottom: 14px;
+  width: min(var(--wb-evidence-width), calc(100% - 28px));
+  padding: 18px 18px 22px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  background: color-mix(in srgb, var(--wb-panel) 94%, transparent);
+  border: 1px solid var(--wb-line);
+  border-radius: 10px;
+  box-shadow: 0 18px 54px rgba(0,0,0,.34);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: transform 220ms ease, opacity 180ms ease, visibility 180ms ease;
+}
+.evidence-rail[data-open="false"] {
+  transform: translateX(calc(100% + 28px));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.evidence-inspector-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--wb-line); }
+.evidence-inspector-bar > span { color: var(--wb-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.evidence-inspector-bar button { width: auto; min-height: 32px; margin: 0; padding: 6px 9px; }
+.evidence-status-pill {
+  position: absolute;
+  z-index: 24;
+  top: 204px;
+  right: 14px;
+  display: grid;
+  gap: 2px;
+  min-height: 36px;
+  max-width: min(260px, calc(100% - 28px));
+  padding: 6px 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: 999px;
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-panel) 90%, transparent);
+  box-shadow: 0 10px 28px rgba(0,0,0,.24);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  text-align: left;
+}
+.evidence-status-pill span { color: var(--wb-accent); font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.evidence-status-pill strong { overflow: hidden; color: var(--wb-text); font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.evidence-status-pill:hover,.evidence-status-pill:focus-visible { border-color: var(--wb-accent); background: var(--wb-raised); }
+
+.analysis-split-panel { display: none; }
+.ocean-workbench[data-workspace-mode="analysis"] .analysis-split-panel {
+  position: absolute;
+  z-index: 20;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: block;
+  width: 50%;
+  padding: 22px;
+  overflow-y: auto;
+  border-left: 1px solid var(--wb-line);
+  background: var(--wb-panel);
+}
+.ocean-workbench[data-workspace-mode="analysis"] .visualization-stage { right: 50%; }
+.ocean-workbench[data-workspace-mode="analysis"] .visualization-dock { right: 50% !important; }
+.ocean-workbench[data-workspace-mode="analysis"] .evidence-status-pill { display: none; }
+.analysis-split-heading { padding-bottom: 18px; border-bottom: 1px solid var(--wb-line); }
+.analysis-split-heading h2 { margin: 6px 0; font-size: 22px; letter-spacing: -.025em; }
+.analysis-split-heading p { margin: 0; color: var(--wb-muted); font-size: 12px; line-height: 1.55; }
+.analysis-context-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+.analysis-context-grid > div { min-width: 0; padding: 11px; border: 1px solid var(--wb-line); border-radius: 7px; background: var(--wb-bg); }
+.analysis-context-grid span,.analysis-context-grid small { display: block; color: var(--wb-muted); font-size: 10px; line-height: 1.35; }
+.analysis-context-grid strong { display: block; margin: 4px 0 2px; overflow-wrap: anywhere; color: var(--wb-text); font-size: 13px; }
+.analysis-profile-card { padding: 16px; border: 1px solid var(--wb-line); border-radius: 8px; background: var(--wb-bg); }
+.analysis-profile-card.empty { color: var(--wb-muted); }
+.analysis-profile-card.empty h3 { color: var(--wb-text); }
+.analysis-profile-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.analysis-profile-title h3 { margin: 5px 0 0; font-size: 17px; }
+.analysis-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; margin: 14px 0; }
+.analysis-metrics > div { padding: 9px; border: 1px solid var(--wb-line); border-radius: 6px; background: var(--wb-panel); }
+.analysis-metrics span { display: block; color: var(--wb-muted); font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.analysis-metrics strong { display: block; margin-top: 4px; color: var(--wb-text); font-size: 14px; font-variant-numeric: tabular-nums; }
+.analysis-profile-chart { padding: 10px; border: 1px solid var(--wb-line); border-radius: 7px; background: color-mix(in srgb,var(--wb-panel) 88%,transparent); }
+.analysis-chart-header { display: flex; justify-content: space-between; gap: 8px; color: var(--wb-muted); font-size: 10px; }
+.analysis-profile-chart svg { display: block; width: 100%; max-height: 260px; margin-top: 8px; }
+.analysis-grid-line { stroke: var(--wb-line); stroke-width: 1; }
+.analysis-model-line { fill: none; stroke: var(--wb-accent); stroke-width: 2.4; }
+.analysis-observation-line { fill: none; stroke: #efbf79; stroke-width: 2; stroke-dasharray: 4 3; }
+:root[data-theme="light"] .analysis-observation-line { stroke: #86510a; }
+.analysis-chart-legend { display: flex; gap: 12px; flex-wrap: wrap; color: var(--wb-muted); font-size: 10px; }
+.analysis-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.analysis-chart-legend i { width: 14px; height: 2px; background: var(--wb-accent); }
+.analysis-chart-legend i.observation { background: #efbf79; }
+:root[data-theme="light"] .analysis-chart-legend i.observation { background: #86510a; }
+.analysis-limit-note { margin: 10px 0 0; color: var(--wb-muted); font-size: 10px; line-height: 1.45; }
+
+.presentation-mode-exit {
+  position: absolute;
+  z-index: 90;
+  top: 14px;
+  right: 14px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in srgb,var(--wb-accent) 65%,transparent);
+  border-radius: 999px;
+  color: var(--wb-text);
+  background: color-mix(in srgb,var(--wb-panel) 78%,transparent);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+}
+.ocean-workbench[data-workspace-mode="presentation"] { grid-template-rows: 0 minmax(0,1fr) 0; }
+.ocean-workbench[data-workspace-mode="presentation"] .app-header,
+.ocean-workbench[data-workspace-mode="presentation"] .science-footer { display: none; }
+.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame { grid-template-rows: 0 minmax(0,1fr); }
+.ocean-workbench[data-workspace-mode="presentation"] .feature-rail,
+.ocean-workbench[data-workspace-mode="presentation"] .visualization-dock,
+.ocean-workbench[data-workspace-mode="presentation"] .control-panel,
+.ocean-workbench[data-workspace-mode="presentation"] .evidence-rail,
+.ocean-workbench[data-workspace-mode="presentation"] .evidence-status-pill,
+.ocean-workbench[data-workspace-mode="presentation"] .profile-panel,
+.ocean-workbench[data-workspace-mode="presentation"] .mobile-explore-tray,
+.ocean-workbench[data-workspace-mode="presentation"] .analysis-split-panel { display: none !important; }
+.ocean-workbench[data-workspace-mode="presentation"] .visualization-stage { top: 0 !important; right: 0; bottom: 0 !important; left: 0; }
 .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--wb-accent); font-weight: 700; }
 .evidence-heading h2 { margin: 8px 0 12px; font-size: 21px; letter-spacing: -.035em; }
 .snapshot-badge { display: inline-flex; font-size: 11px; padding: 5px 8px; border: 1px solid var(--wb-line); border-radius: 4px; color: var(--wb-muted); }
@@ -100,6 +347,17 @@
 .ocean-workbench .top-left { top: 14px !important; bottom: auto; left: 14px; right: auto; width: auto; max-width: calc(100% - 28px); }
 .ocean-workbench .judge-summary,.ocean-workbench .depth-indicator,.ocean-workbench .render-quality-line { display: none; }
 .ocean-workbench .imagery-control { display: grid; left: 14px; right: auto; top: 14px !important; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
+.ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-smooth-zoom,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover {
+  left: calc(var(--wb-control-width) + 28px);
+}
+.ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+  left: calc(var(--wb-control-width) + 28px);
+}
+
 .ocean-workbench .imagery-control > span,.ocean-workbench .imagery-control > small { display: none; }
 .ocean-workbench .imagery-control > strong { font-size: 11px; }
 .ocean-workbench .imagery-control button { min-height: 32px; font-size: 11px; }
@@ -126,7 +384,97 @@
 .ocean-workbench .water-column-legend { bottom: 106px; }
 .ocean-workbench .water-column-note { left: 14px; right: 14px; bottom: 0; width: auto; max-width: none; transform: none; font-size: 9px; }
 .ocean-workbench .inspection-card,.ocean-workbench .water-column-hover { left: 14px; right: auto; top: 110px; bottom: auto; width: 220px; max-width: calc(100% - 28px); }
-.ocean-workbench .imported-observation-chips { left: 14px; right: 14px; top: 94px; bottom: auto; max-width: none; }
+.ocean-workbench .imported-observation-chips {
+  left: 14px;
+  right: 14px;
+  top: 94px;
+  bottom: auto;
+  max-width: none;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--wb-line);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--wb-panel) 94%, transparent);
+  box-shadow: none;
+}
+
+.ocean-workbench .imported-observation-chips > span {
+  display: block;
+  color: var(--wb-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .12em;
+}
+
+.ocean-workbench .imported-observation-chips > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ocean-workbench .imported-observation-chips button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 9px;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.ocean-workbench .imported-observation-chips button strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--wb-accent);
+  background: color-mix(in srgb, var(--wb-accent) 10%, var(--wb-panel));
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.ocean-workbench .imported-observation-chips button span {
+  min-width: 0;
+  color: var(--wb-text);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.ocean-workbench .imported-observation-chips button:hover,
+.ocean-workbench .imported-observation-chips button:focus-visible {
+  border-color: var(--wb-accent);
+  background: var(--wb-raised);
+}
+
+.ocean-workbench .imported-observation-chips button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-accent) 10%, var(--wb-panel));
+}
+
+@media (max-width: 760px) {
+  .ocean-workbench .imported-observation-chips {
+    padding: 10px;
+  }
+
+  .ocean-workbench .imported-observation-chips > div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ocean-workbench .imported-observation-chips button {
+    width: 100%;
+  }
+}
 .ocean-workbench .science-footer { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 16px; gap: 20px; color: var(--wb-muted); font-size: 11px; }
 .ocean-workbench .science-footer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { background: var(--wb-bg); color: var(--wb-text); padding: 32px clamp(20px,4vw,64px) 64px; }
@@ -139,16 +487,14 @@
 .guide-actions button { min-height: 40px; border: 1px solid var(--wb-line); border-radius: 5px; color: var(--wb-text); background: var(--wb-raised); padding: 8px 12px; font-size: 13px; cursor: pointer; }
 .guide-actions button:disabled { opacity: .4; cursor: default; }
 .ocean-workbench.focus-mode .workspace-frame { grid-template-columns: 1fr; grid-template-rows: 0 minmax(0,1fr); }
-.ocean-workbench.focus-mode .feature-rail,.ocean-workbench.focus-mode .control-panel,.ocean-workbench.focus-mode .evidence-rail { visibility: hidden; }
+.ocean-workbench.focus-mode .feature-rail,.ocean-workbench.focus-mode .control-panel,.ocean-workbench.focus-mode .evidence-rail,.ocean-workbench.focus-mode .evidence-status-pill { visibility: hidden; }
 .ocean-workbench.focus-mode .visualization-stage { left: 0; right: 0; }
 .ocean-workbench.focus-mode .visualization-dock { left: 0 !important; right: 0 !important; }
 .ocean-workbench button { transition: background-color 180ms ease,border-color 180ms ease,color 180ms ease; }
 @media (max-width: 1150px) {
-  :root { --wb-left: 250px; --wb-right: 0px; }
-  .evidence-rail { display: none; }
+  :root { --wb-control-width: 286px; --wb-evidence-width: 310px; }
   .ocean-workbench .feature-rail button { padding-inline: 9px; }
   .ocean-workbench .feature-rail button span { font-size: 12px; }
-  .ocean-workbench .feature-rail-right { padding-left: 0; }
 }
 @media (max-width: 760px) {
   .ocean-workbench { display: grid; height: 100dvh; min-height: 0; grid-template-rows: 64px minmax(0,1fr) 28px; }
@@ -156,6 +502,8 @@
   .ocean-workbench .brand h1 { font-size: 17px; }
   .ocean-workbench .brand-mark { display: none; }
   .ocean-workbench .header-status { gap: 6px; }
+  .header-status > .header-workspace-actions { display: none; }
+  .header-status > .workspace-mode-switcher { display: none; }
   .ocean-workbench .present-button { min-height: 36px; font-size: 12px; padding: 7px 9px; }
   .ocean-workbench .theme-toggle { min-width: 48px; min-height: 36px; padding: 6px; font-size: 10px; }
   .ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr); overflow: hidden; }
@@ -167,11 +515,18 @@
   .ocean-workbench .visualization-dock-modes button { padding: 6px; gap: 5px; height: 42px; }
   .ocean-workbench .mode-label strong { font-size: 12px; }
   .ocean-workbench .visualization-stage { position: absolute; left: 0; right: 0; top: 125px; bottom: 72px; height: auto; min-height: 0; width: 100%; }
-  .ocean-workbench .control-panel { position: fixed !important; display: block; top: 64px; bottom: 0; left: 0; width: min(360px,100%); max-height: calc(100dvh - 64px); z-index: 60; transform: translateX(-105%); visibility: hidden; }
+  .ocean-workbench .control-panel { position: fixed !important; display: block; top: 64px; bottom: 0; left: 0; width: min(360px,100%); max-height: calc(100dvh - 64px); z-index: 60; border-radius: 0 10px 10px 0; transform: translateX(-105%); opacity: 1; visibility: hidden; }
+  .ocean-workbench[data-control-dock="closed"] .control-panel { transform: translateX(-105%); opacity: 1; visibility: hidden; }
   .ocean-workbench .control-panel[data-mobile-open="true"] { transform: none; visibility: visible; }
   .ocean-workbench .profile-panel { position: fixed !important; inset: 64px 0 0 auto; max-height: calc(100dvh - 64px); width: min(360px,100%); z-index: 60; }
+  .evidence-rail { position: fixed; z-index: 61; top: 64px; right: 0; bottom: 0; width: min(360px,100%); border-radius: 10px 0 0 10px; }
+  .evidence-status-pill { top: 136px; right: 10px; max-width: calc(100% - 20px); }
   .ocean-workbench .mobile-sheet-header { display: flex; gap: 12px; margin-bottom: 16px; }
   .ocean-workbench .mobile-sheet-header button { min-height: 40px; font-size: 13px; }
+  .ocean-workbench .depth-zone-track button strong { font-size: 9px; }
+  .ocean-workbench .depth-zone-track button span { font-size: 8px; }
+  .ocean-workbench .depth-controller-meta { display: grid; gap: 2px; }
+  .ocean-workbench .depth-controller-meta span:last-child { text-align: left; }
   .ocean-workbench .mobile-explore-tray { position: absolute; left: 0; right: 0; bottom: 0; min-height: 72px; padding: 6px; border-radius: 0; background: var(--wb-panel); border-color: var(--wb-line); z-index: 23; }
   .ocean-workbench .mobile-explore-tray span { font-size: 10px; }
   .ocean-workbench .mobile-explore-tray strong { font-size: 11px; }
@@ -196,15 +551,100 @@
   .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { position: absolute; inset: 0; min-height: 0; overflow-y: auto; padding: 24px 16px 48px; }
   .presentation-guide { max-height: calc(100% - 24px); overflow-y: auto; }
 }
+@media (max-width: 760px) {
+  .ocean-workbench[data-workspace-mode="analysis"] .visualization-dock { right: 0 !important; }
+  .ocean-workbench[data-workspace-mode="analysis"] .visualization-stage { top: 125px; right: 0; bottom: 46%; }
+  .ocean-workbench[data-workspace-mode="analysis"] .analysis-split-panel {
+    top: 54%;
+    right: 0;
+    bottom: 72px;
+    width: 100%;
+    padding: 12px;
+    border-left: 0;
+    border-top: 1px solid var(--wb-line);
+  }
+  .ocean-workbench[data-workspace-mode="presentation"] .workspace-frame { grid-template-rows: 0 minmax(0,1fr); }
+  .ocean-workbench[data-workspace-mode="presentation"] .visualization-stage { top: 0 !important; bottom: 0 !important; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .ocean-workbench *, .ocean-workbench *::before, .ocean-workbench *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
 
+@media (max-width: 760px) {
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-smooth-zoom,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+    left: 10px;
+  }
+  .evidence-status-pill { top: 204px; }
+}
+
+/* Explorer overlap fixes for laptop/projector sizes (1280x720, ~1400x600).
+   Display-only: moves overlays so they stop covering the view toggle, UTC time,
+   zoom controls and the Argo marker. No scientific values are affected. */
+@media (min-width: 761px) {
+  /* Keep the Geographic View / Water Column toggle and UTC time clear of the open controls panel. */
+  .ocean-workbench:not(.focus-mode)[data-control-dock="open"] .visualization-dock {
+    padding-left: calc(var(--wb-control-width) + 28px) !important;
+  }
+  /* Multi-sensor profile chips: one compact row at the top of the map, between the
+     imagery switch and the study-region card, instead of a tall band over the map centre. */
+  .ocean-workbench .visualization-stage .imported-observation-chips {
+    top: 14px;
+    right: 224px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+    left: calc(var(--wb-control-width) + 28px + 190px + 12px);
+  }
+  .ocean-workbench[data-control-dock="closed"] .visualization-stage .imported-observation-chips,
+  .ocean-workbench.focus-mode .visualization-stage .imported-observation-chips {
+    left: calc(14px + 190px + 12px);
+  }
+  .ocean-workbench .visualization-stage .imported-observation-chips > span { flex: 0 0 auto; white-space: nowrap; }
+  .ocean-workbench .visualization-stage .imported-observation-chips > div {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+  .ocean-workbench .visualization-stage .imported-observation-chips button { flex: 0 0 auto; }
+}
+@media (max-width: 760px) {
+  /* Evidence pill sat on top of the "Verified study region" card on phones. */
+  .ocean-workbench .evidence-status-pill { top: 222px; }
+}
+
+/* Header fit at laptop/projector widths now that the workspace-mode switcher shares the row:
+   keep every header control on one line and let the brand subtitle truncate instead. */
+@media (min-width: 761px) {
+  .ocean-workbench .app-header .brand { min-width: 0; flex: 1 1 auto; }
+  .ocean-workbench .app-header .brand > div { min-width: 0; }
+  .ocean-workbench .app-header .brand h1 { white-space: nowrap; }
+  .ocean-workbench .app-header .brand p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ocean-workbench .header-status { flex: 0 0 auto; }
+  .ocean-workbench .header-status button,
+  .ocean-workbench .header-status .system-pill { white-space: nowrap; }
+}
+@media (min-width: 761px) and (max-width: 1360px) {
+  .ocean-workbench .present-button { padding-inline: 12px; }
+  .ocean-workbench .header-action-button { padding-inline: 8px; }
+  .ocean-workbench .system-pill { display: none; }
+}
+
 /* Coastal field journal: interface colours never replace scientific scales. */
-.evidence-heading h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 29px; letter-spacing: -.035em; }
+.evidence-heading h2 { font-family: "Segoe UI", sans-serif; font-weight: 400; font-size: 29px; letter-spacing: -.035em; }
 .field-story { padding: 22px 0 16px; border-bottom: 1px solid var(--wb-line); }
 .field-chapter { font-size: 10px; letter-spacing: .1em; color: var(--wb-accent); }
-.field-story h3 { font-family: Georgia, "Times New Roman", serif; font-size: 23px; line-height: 1.2; font-weight: 400; margin: 12px 0; }
+.field-story h3 { font-family: "Segoe UI", sans-serif; font-size: 23px; line-height: 1.2; font-weight: 400; margin: 12px 0; }
 .field-reading { margin: 14px 0; padding: 12px 0; border-bottom: 1px solid var(--wb-line); }
 .field-reading summary { cursor: pointer; color: var(--wb-accent); font-size: 13px; min-height: 30px; }
 .evidence-rail .evidence-mobile-toggle { display: none; }
@@ -214,7 +654,7 @@
 .journey-stops i { font-style: normal; opacity: .6; }
 .ocean-journey button,.field-inspect-toggle { background: var(--wb-panel); color: var(--wb-text); border: 1px solid var(--wb-line); border-radius: 6px; min-height: 36px; padding: 7px 12px; cursor: pointer; font-size: 12px; }
 .ocean-workbench .globe-intro-status { top: 32%; left: 50%; right: auto; transform: translateX(-50%); width: min(360px,calc(100% - 32px)); background: var(--wb-panel); border-color: var(--wb-line); pointer-events: none; }
-.ocean-workbench .globe-intro-status strong { font: 30px/1.15 Georgia,serif; color: var(--wb-text); }
+.ocean-workbench .globe-intro-status strong { font: 600 30px/1.15 "Segoe UI",sans-serif; color: var(--wb-text); }
 .field-entry-actions { position: absolute; top: 112px; right: 14px; width: 190px; z-index: 11; display: grid; gap: 6px; }
 .ocean-workbench .field-entry-actions .study-region-entry { position: static; width: 100%; min-height: 92px; text-align: left; background: var(--wb-panel); border-color: var(--wb-accent); color: var(--wb-text); }
 .ocean-workbench .field-entry-actions .study-region-entry small { display: block; font-size: 11px; line-height: 1.5; color: var(--wb-muted); margin-top: 8px; }
@@ -223,27 +663,18 @@
 .ocean-workbench .visualization-stage { animation: field-reveal 420ms ease-out; }
 @keyframes field-reveal { from { opacity: .4; } to { opacity: 1; } }
 .ocean-workbench button:focus-visible,.field-reading summary:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 3px; }
-@media (max-width:1150px) {
-  .ocean-workbench .evidence-rail { display: block; position: absolute; left: calc(var(--wb-left) + 10px); right: 10px; top: auto; bottom: 10px; width: auto; padding: 0; z-index: 30; border: 1px solid var(--wb-line); border-radius: 10px; max-height: min(70vh,620px); }
-  .evidence-rail .evidence-mobile-toggle { display: flex; margin: 0; min-height: 42px; border: 0; background: var(--wb-panel); }
-  .evidence-content { display: none; padding: 20px; }
-  .evidence-expanded .evidence-content { display: block; }
+
+.ocean-workbench .evidence-rail p { font-size: 14px; }
+.ocean-workbench .field-entry-actions { top: 180px; }
+.ocean-workbench[data-workspace-mode="analysis"] .field-entry-actions { display:none; }
+@media(max-width:760px) {
+ .ocean-journey { top:8px; }
+ .journey-stops { font-size:10px; padding:8px 10px; gap:7px; }
+ .ocean-workbench .field-entry-actions { top:160px; width:150px; }
+ .ocean-workbench .field-entry-actions .study-region-entry small { display:none; }
+ .ocean-workbench .globe-intro-status strong { font-size:24px; }
 }
-@media (max-width:760px) {
-  .ocean-workbench .evidence-rail { left: 10px; bottom: 74px; }
-  .ocean-workbench .evidence-rail.evidence-expanded { top: 8px; bottom: 74px; max-height: none; }
-  .ocean-journey { top: 8px; }
-  .journey-stops { font-size: 10px; padding: 7px 10px; gap: 7px; }
-  .ocean-journey button { min-height: 32px; font-size: 11px; }
-  .field-entry-actions { top: 82px; right: 10px; width: 145px; }
-  .ocean-workbench .field-entry-actions .study-region-entry { min-height: 72px; }
-  .ocean-workbench .field-entry-actions .study-region-entry small { display: none; }
-  .field-inspect-toggle { font-size: 10px; min-height: 34px; }
-  .ocean-workbench .cesium-smooth-zoom.camera-control-stack { bottom: 58px; }
-  .ocean-workbench .water-column-smooth-zoom { bottom: 100px; }
-  .ocean-workbench .globe-intro-status strong { font-size: 24px; }
-}
-@media (prefers-reduced-motion:reduce) {
-  .ocean-workbench .visualization-stage { animation: none; }
-  .ocean-workbench button { transition: none; }
+@media(prefers-reduced-motion:reduce) {
+ .ocean-workbench .visualization-stage { animation:none; }
+ .ocean-workbench button { transition:none; }
 }

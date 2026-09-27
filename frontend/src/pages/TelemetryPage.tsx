@@ -9,6 +9,7 @@ import type {
   TelemetryResponse,
   TelemetryTimeStat
 } from "../types";
+import { displayUnits } from "../units";
 
 interface Props {
   catalog: Catalog;
@@ -116,7 +117,7 @@ function DepthTelemetryChart({
         <text x="4" y="29" className="telemetry-axis-label">{depthMin.toFixed(2)} m</text>
         <text x="4" y={height - 30} className="telemetry-axis-label">{depthMax.toFixed(1)} m</text>
         <text x="42" y={height - 8} className="telemetry-axis-label">{xMin.toFixed(3)}</text>
-        <text x={width - 82} y={height - 8} className="telemetry-axis-label">{xMax.toFixed(3)} {telemetry.units}</text>
+        <text x={width - 82} y={height - 8} className="telemetry-axis-label">{xMax.toFixed(3)} {displayUnits(telemetry.units)}</text>
       </svg>
       <div className="telemetry-chart-legend">
         <span><i className="mean" /> Spatial mean</span>
@@ -226,12 +227,12 @@ function DepthNeighborhood({
       <div className="telemetry-neighborhood-metrics">
         <article>
           <span>Local mean gradient</span>
-          <strong>{gradient == null ? "—" : `${gradient >= 0 ? "+" : ""}${gradient.toExponential(3)} ${telemetry.units}/m`}</strong>
+          <strong>{gradient == null ? "—" : `${gradient >= 0 ? "+" : ""}${gradient.toExponential(3)} ${displayUnits(telemetry.units)}/m`}</strong>
           <small>{gradientSpan || "Insufficient neighbouring level"}</small>
         </article>
         <article>
           <span>Selected P10–P90 span</span>
-          <strong>{(current.p90 - current.p10).toFixed(4)} {telemetry.units}</strong>
+          <strong>{(current.p90 - current.p10).toFixed(4)} {displayUnits(telemetry.units)}</strong>
           <small>spatial percentile spread at this exact depth</small>
         </article>
         <article>
@@ -258,7 +259,7 @@ function DepthNeighborhood({
               <tr key={item.depth_index} className={item.depth_index === current.depth_index ? "selected" : ""}>
                 <td>{item.depth_index === current.depth_index ? "SELECTED" : item.depth_m < current.depth_m ? "ABOVE" : "BELOW"}</td>
                 <td>{item.depth_m.toFixed(2)} m</td>
-                <td>{item.mean.toFixed(4)} {telemetry.units}</td>
+                <td>{item.mean.toFixed(4)} {displayUnits(telemetry.units)}</td>
                 <td>{item.p10.toFixed(4)}–{item.p90.toFixed(4)}</td>
                 <td>{item.std.toFixed(4)}</td>
                 <td>{item.count.toLocaleString()}</td>
@@ -310,8 +311,8 @@ function SelectedDepthCard({
         <span>Max <strong>{stat.maximum.toFixed(3)}</strong></span>
       </div>
       <div className="telemetry-selected-metrics">
-        <article><span>Spatial mean</span><strong>{stat.mean.toFixed(4)} {telemetry.units}</strong></article>
-        <article><span>Std. deviation</span><strong>{stat.std.toFixed(4)} {telemetry.units}</strong></article>
+        <article><span>Spatial mean</span><strong>{stat.mean.toFixed(4)} {displayUnits(telemetry.units)}</strong></article>
+        <article><span>Std. deviation</span><strong>{stat.std.toFixed(4)} {displayUnits(telemetry.units)}</strong></article>
       </div>
     </section>
   );
@@ -382,7 +383,7 @@ function TimeTelemetryCard({ telemetry }: { telemetry: TelemetryResponse }) {
         {stats.map((item: TelemetryTimeStat) => (
           <article key={item.time}>
             <span>{item.time.replace("T", " ").replace("Z", " UTC")}</span>
-            <strong>{item.mean.toFixed(4)} {telemetry.units}</strong>
+            <strong>{item.mean.toFixed(4)} {displayUnits(telemetry.units)}</strong>
           </article>
         ))}
       </div>
@@ -626,7 +627,7 @@ export function TelemetryPage({ catalog, provenance }: Props) {
             <article>
               <span>Variable</span>
               <strong>{telemetry.label}</strong>
-              <small>{telemetry.units}</small>
+              <small>{displayUnits(telemetry.units)}</small>
             </article>
           </section>
 

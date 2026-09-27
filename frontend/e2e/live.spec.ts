@@ -250,8 +250,25 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(infoPage).toContainText("No synthetic timestamps");
   await expect(infoPage).toContainText("RECOMMENDED DEMO FLOW");
 
-  await page.getByRole("button", { name: "3D Explorer" }).click();
-  await expect(page).toHaveURL(/#\/explore$/);
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const documentRoot = page.locator("html");
+  await expect(documentRoot).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(documentRoot).toHaveAttribute("data-theme", "light");
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-page", "explore");
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
   const globeShell = page.locator(".globe-shell:not(.water-column-shell)");
@@ -261,7 +278,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".render-quality-line")).toContainText("HD canvas");
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
-  await expect(page.locator(".profile-panel")).toHaveCount(0);
+  await expect(page.locator(".profile-panel")).toHaveAttribute("data-context-open", "false");
 
   const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
   await expect(modeDock).toBeVisible();
@@ -300,10 +317,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".visualization-dock")).toContainText("INCOIS satellite ocean-colour chlorophyll");
   await expect(page.getByRole("button", { name: /Chlorophyll-a/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".legend-card")).toContainText("Chlorophyll-a");
-  await expect(page.locator(".legend-card")).toContainText("mg/m^3");
+  await expect(page.locator(".legend-card")).toContainText(/mg\/m(\^3|³)/);
   await expect(page.locator(".surface-only-control")).toContainText("Surface field only");
   await expect(page.locator(".evidence-readout")).toContainText("SURFACE");
-  const chlorophyllWaterColumn = page.getByRole("button", { name: /Water Column 3D/ });
+  const chlorophyllWaterColumn = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(chlorophyllWaterColumn).toBeDisabled();
   const chlorophyllTime = page.getByLabel("Explore genuine timestamp");
   await expect(chlorophyllTime).toBeVisible();
@@ -325,7 +342,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  const currentWaterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
+  const currentWaterColumnButton = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(currentWaterColumnButton).toBeEnabled();
   await currentWaterColumnButton.click();
   const currentWaterColumnShell = page.locator(".water-column-shell");
@@ -335,7 +352,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Geographic View/ }).click();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
-  const waterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
+  const waterColumnButton = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(waterColumnButton).toBeEnabled();
   await waterColumnButton.click();
 
@@ -390,6 +407,14 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const depthSlider = page.getByLabel("Model depth");
   await expect(depthSlider).toBeVisible();
 
+  const bathymetricController = page.locator(".bathymetric-depth-controller");
+  await expect(bathymetricController).toBeVisible();
+  await expect(bathymetricController).toHaveAttribute("data-track-allocation", "40-35-25");
+  await expect(page.locator(".depth-zone-track button")).toHaveCount(3);
+  await expect(page.getByRole("button", { name: "Epipelagic zone 0 to 200 metres" })).toBeEnabled();
+  await page.getByRole("button", { name: "Epipelagic zone 0 to 200 metres" }).click();
+  await expect(bathymetricController).toHaveAttribute("data-depth-zone", "epipelagic");
+
   await depthSlider.focus();
   await depthSlider.press("End");
   await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
@@ -398,6 +423,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(profileSelect).toBeVisible();
   await profileSelect.selectOption({ index: 1 });
   await expect(page.locator(".profile-panel")).toBeVisible();
+  await expect(page.locator(".evidence-rail")).toHaveAttribute("data-open", "false");
   await expect(page.locator(".profile-panel")).toContainText("Argo");
   await expect(page.locator(".profile-panel")).toContainText("Matched levels");
   await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
@@ -425,6 +451,94 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("oceantwin-theme"))).toBe("dark");
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const appShell = page.locator(".app-shell");
+  await expect(page.locator(".feature-rail-right")).toHaveCount(0);
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+  await expect(page.getByRole("button", { name: "Open evidence inspector" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.getByRole("button", { name: "Open evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "open");
+  await expect(page.locator(".profile-panel")).toHaveAttribute("data-context-open", "false");
+  await expect(page.locator(".evidence-rail")).toBeVisible();
+  await page.getByRole("button", { name: "Close evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+
+  const imageryGlobeShell = page.locator(".globe-shell").first();
+  await page.getByRole("button", { name: "Offline", exact: true }).click();
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
+  await page.getByRole("button", { name: "High-res auto" }).click();
+
+  await page.getByRole("button", { name: "Water Column 3D", exact: true }).click();
+  const waterColumnShell = page.locator(".water-column-shell");
+  await expect(waterColumnShell).toBeVisible();
+  const initialZoom = Number(await waterColumnShell.getAttribute("data-zoom"));
+  await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
+  await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialZoom);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const appShell = page.locator(".app-shell");
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(page.getByRole("button", { name: "Explorer workspace" })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await expect(page.locator(".analysis-split-panel")).toBeVisible();
+  await expect(page.locator(".analysis-split-panel")).toContainText("Analysis Split");
+  await expect(page.locator(".cesium-host canvas")).toBeVisible();
+
+  await page.getByRole("button", { name: "Explorer workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.getByRole("button", { name: "Presentation workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "presentation");
+  await expect(page.locator(".app-header")).toBeHidden();
+  await expect(page.locator(".globe-shell").first()).toHaveAttribute("data-presentation-active", "true");
+  await expect(page.getByRole("button", { name: "Exit presentation workspace" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Exit presentation workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(page.locator(".app-header")).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });
