@@ -2879,3 +2879,46 @@
   }
 }
 
+
+
+/* Post-merge correction — one verified timestamp is metadata, not a disabled playback UI. */
+.static-time-row {
+  min-height: 54px;
+  padding: 10px 11px;
+  border: 1px solid rgba(55, 127, 151, .52);
+  border-radius: 9px;
+  background: rgba(7, 31, 44, .72);
+}
+
+.static-time-row::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #5fe5ae;
+  box-shadow: 0 0 10px rgba(95, 229, 174, .42);
+}
+
+.static-time-row strong {
+  color: #eafaff;
+  font-size: 12px;
+}
+
+.static-time-row span {
+  color: #79a4b5;
+  font-size: 9px;
+}
+
+:root[data-theme="light"] .static-time-row {
+  border-color: #b9d4dd;
+  background: #f3f9fb;
+}
+
+:root[data-theme="light"] .static-time-row strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .static-time-row span {
+  color: #587b8d;
+}
