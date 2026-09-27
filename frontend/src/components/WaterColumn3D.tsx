@@ -10,6 +10,7 @@ import {
 
 import type { ColorPalette, ColorScaleMode, CurrentsVolumeResponse, VolumeResponse } from "../types";
 import { displayUnits } from "../units";
+import { CameraOrientationHud, type CameraPreset } from "./CameraOrientationHud";
 
 interface Props {
   volume: VolumeResponse | null;
@@ -193,6 +194,7 @@ export function WaterColumn3D({
   const zoomAnimationRef = useRef<number | null>(null);
   const projectedRef = useRef<ProjectedPoint[]>([]);
   const [orbit, setOrbit] = useState(DEFAULT_ORBIT);
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>("perspective");
   const [hover, setHover] = useState<HoverPoint | null>(null);
 
   const depthLevels = useMemo(() => {
@@ -514,6 +516,36 @@ export function WaterColumn3D({
     smoothWaterZoomTo(orbit.zoom * factor);
   };
 
+  const applyCameraPreset = (preset: CameraPreset) => {
+    setCameraPreset(preset);
+
+    if (preset === "north") {
+      setOrbit((current) => ({ ...current, yaw: 0 }));
+      return;
+    }
+
+    if (preset === "nadir") {
+      smoothWaterZoomTo(0.92);
+      setOrbit((current) => ({ ...current, yaw: 0, pitch: -1.1 }));
+      return;
+    }
+
+    if (preset === "perspective") {
+      smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
+      setOrbit((current) => ({ ...current, yaw: DEFAULT_ORBIT.yaw, pitch: DEFAULT_ORBIT.pitch }));
+      return;
+    }
+
+    if (preset === "cross-section") {
+      smoothWaterZoomTo(1.05);
+      setOrbit((current) => ({ ...current, yaw: 0, pitch: -0.06 }));
+      return;
+    }
+
+    smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
+    setOrbit({ ...DEFAULT_ORBIT });
+  };
+
   const inspectNearest = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -625,8 +657,7 @@ export function WaterColumn3D({
       smoothWaterZoom(event.key === "-" ? "out" : "in");
     } else if (event.key.toLowerCase() === "r") {
       event.preventDefault();
-      smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
-      setOrbit((current) => ({ ...current, yaw: DEFAULT_ORBIT.yaw, pitch: DEFAULT_ORBIT.pitch }));
+      applyCameraPreset("perspective");
     }
   };
 
@@ -648,6 +679,7 @@ export function WaterColumn3D({
       data-opacity={opacity.toFixed(2)}
       data-yaw={orbit.yaw.toFixed(3)}
       data-zoom={orbit.zoom.toFixed(3)}
+      data-camera-preset={cameraPreset}
       data-color-palette={colorPalette}
       data-color-scale={colorScale}
       data-iso-enabled={isoSurfaceEnabled ? "true" : "false"}
@@ -700,6 +732,12 @@ export function WaterColumn3D({
         </div>
       </div>
 
+      <CameraOrientationHud
+        context="water-column"
+        activePreset={cameraPreset}
+        onPreset={applyCameraPreset}
+      />
+
       <div className="globe-overlay smooth-zoom-controls water-column-smooth-zoom" aria-label="Water-Column 3D smooth zoom">
         <span>WATER-COLUMN ZOOM</span>
         <div>
@@ -707,10 +745,7 @@ export function WaterColumn3D({
           <button
             type="button"
             aria-label="Reset Water-Column 3D view"
-            onClick={() => {
-              smoothWaterZoomTo(DEFAULT_ORBIT.zoom);
-              setOrbit((current) => ({ ...current, yaw: DEFAULT_ORBIT.yaw, pitch: DEFAULT_ORBIT.pitch }));
-            }}
+            onClick={() => applyCameraPreset("perspective")}
           >◎</button>
           <button type="button" aria-label="Zoom in Water-Column 3D" onClick={() => smoothWaterZoom("in")}>+</button>
         </div>
