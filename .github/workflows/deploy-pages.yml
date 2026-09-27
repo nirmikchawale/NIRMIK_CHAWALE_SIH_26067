@@ -44,6 +44,9 @@ jobs:
       - name: Fetch verified Glider CTD BGC observation profiles
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
+      - name: Create browser NetCDF ingestion test fixture
+        run: python scripts/create_netcdf_browser_fixture.py --output frontend/public/samples/cf-profile-fixture.nc
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -73,6 +76,8 @@ jobs:
           test -s frontend/dist/science-static/anomalies/so/t0_d18.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/observations/verified-profiles.json
+          test -s frontend/dist/samples/cf-profile-fixture.nc
+          test -s frontend/dist/netcdf4-wasm.wasm
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
 
       - name: Configure GitHub Pages
