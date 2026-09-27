@@ -16,14 +16,24 @@ def test_registry_has_unique_real_adapters_and_incois_open_standards():
     standards = {standard for item in incois for standard in item["standards"]}
     assert "OPeNDAP" in standards
     assert "OGC WMS" in standards
-    assert "OGC WCS" in standards
+    # INCOIS ERDDAP currently advertises OPeNDAP and WMS, not WCS.
+    assert "OGC WCS" not in standards
 
     grid = next(item for item in incois if item["id"] == "incois-argo-10d-vam")
     assert grid["opendap_url"].startswith("https://erddap.incois.gov.in/")
     assert grid["wms_url"].startswith("https://erddap.incois.gov.in/")
-    assert grid["wcs_url"].startswith("https://erddap.incois.gov.in/")
+    assert grid["wcs_url"] is None
     assert grid["time_count"] > 1
     assert grid["depth_count"] > 1
+
+    ocean_twin_wcs = next(item for item in connectors if item["id"] == "oceantwin-wcs")
+    assert ocean_twin_wcs["provider"] == "OceanTwin"
+    assert "OGC WCS 2.0.1 compatibility profile" in ocean_twin_wcs["standards"]
+    assert ocean_twin_wcs["wcs_url"] == "/ogc/wcs"
+
+    ocean_twin_wms = next(item for item in connectors if item["id"] == "oceantwin-wms")
+    assert "OGC WMS 1.3.0" in ocean_twin_wms["standards"]
+    assert ocean_twin_wms["wms_url"] == "/ogc/wms"
 
 
     adapters = {item["adapter"] for item in connectors}
