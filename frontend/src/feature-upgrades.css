@@ -3002,3 +3002,203 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* SIH26067 Phase 2 — source/plugin registry and open-standards interoperability. */
+.interoperability-panel {
+  display: grid;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid rgba(51, 112, 137, .7);
+  border-radius: 14px;
+  background: rgba(5, 24, 36, .78);
+}
+
+.registry-status {
+  align-self: start;
+  padding: 6px 9px;
+  border: 1px solid rgba(83, 190, 211, .48);
+  border-radius: 999px;
+  color: #8ee7f5;
+  background: rgba(9, 43, 57, .82);
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.connector-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.connector-card {
+  display: grid;
+  gap: 9px;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(43, 91, 115, .78);
+  border-radius: 11px;
+  background: rgba(5, 27, 40, .88);
+}
+
+.connector-card[data-runtime="remote-optional"] {
+  border-color: rgba(46, 133, 158, .68);
+}
+
+.connector-card-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.connector-card-heading > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.connector-card-heading span {
+  color: #62cfe7;
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+
+.connector-card-heading strong {
+  color: #e8f7fb;
+  font-size: 11px;
+}
+
+.connector-card-heading code {
+  align-self: start;
+  padding: 3px 5px;
+  border-radius: 5px;
+  color: #9bc4d2;
+  background: #082331;
+  font-size: 7px;
+}
+
+.connector-card p {
+  margin: 0;
+  color: #7898aa;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.connector-card > small {
+  color: #8bb0bf;
+  font-size: 8px;
+}
+
+.connector-badges,
+.connector-links,
+.connector-dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.connector-badges span,
+.connector-dimensions span {
+  padding: 3px 5px;
+  border: 1px solid #2c566a;
+  border-radius: 999px;
+  color: #9ec3d1;
+  background: #092331;
+  font-size: 7px;
+  font-weight: 750;
+}
+
+.connector-badges.standards span {
+  border-color: #326952;
+  color: #86d6b5;
+  background: #0a2b22;
+}
+
+.connector-links a {
+  padding: 5px 7px;
+  border: 1px solid #2d6479;
+  border-radius: 7px;
+  color: #a9e8f4;
+  background: #0a2a39;
+  font-size: 8px;
+  text-decoration: none;
+}
+
+.connector-links a:hover {
+  border-color: #58cfe6;
+  color: #ecfbff;
+}
+
+.plugin-contract-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.plugin-contract-grid article {
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border-left: 2px solid #3fbdd8;
+  background: rgba(7, 29, 42, .72);
+}
+
+.plugin-contract-grid code {
+  color: #6fe1f3;
+  font-size: 8px;
+}
+
+.plugin-contract-grid strong {
+  color: #dceff5;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.plugin-contract-grid span,
+.interoperability-principle {
+  color: #7596a8;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.interoperability-principle {
+  margin: 0;
+  padding: 9px 11px;
+  border-left: 2px solid #5fd6a8;
+  background: rgba(8, 34, 29, .5);
+}
+
+:root[data-theme="light"] .interoperability-panel {
+  border-color: #bdd2da;
+  background: rgba(247, 251, 252, .96);
+}
+
+:root[data-theme="light"] .connector-card,
+:root[data-theme="light"] .plugin-contract-grid article {
+  border-color: #c5d8df;
+  background: #fff;
+}
+
+:root[data-theme="light"] .connector-card-heading strong,
+:root[data-theme="light"] .plugin-contract-grid strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .connector-card p,
+:root[data-theme="light"] .connector-card > small,
+:root[data-theme="light"] .plugin-contract-grid span,
+:root[data-theme="light"] .interoperability-principle {
+  color: #587487;
+}
+
+@media (max-width: 900px) {
+  .connector-grid,
+  .plugin-contract-grid {
+    grid-template-columns: 1fr;
+  }
+}
