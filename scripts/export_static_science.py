@@ -146,7 +146,7 @@ def export_static_science(output: Path) -> dict[str, Any]:
                     )
                 )
 
-    expected = 5 + len(profile_items) + time_count * (2 + 7 * depth_count)
+    expected = 5 + len(profile_items) + time_count * (3 + 7 * depth_count)
     if len(records) != expected:
         raise RuntimeError(
             f"Static science export count mismatch: expected {expected}, wrote {len(records)}."
