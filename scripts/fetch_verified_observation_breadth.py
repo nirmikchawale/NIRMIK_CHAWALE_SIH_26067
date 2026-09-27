@@ -118,23 +118,46 @@ def _record(
 
 def _candidate_aoml_profiles() -> list[dict[str, str]]:
     fields = "trajectory,profile_id,profile_time,profile_lon,profile_lat"
-    query = (
-        f"{fields}&profile_time>={AOML_TIME_START}&profile_time<={AOML_TIME_END}&distinct()"
+    windows = [
+        ("2025-12-01T00:00:00Z", "2025-12-06T00:00:00Z"),
+        ("2025-11-01T00:00:00Z", "2025-12-01T00:00:00Z"),
+        ("2025-09-01T00:00:00Z", "2025-10-01T00:00:00Z"),
+        (AOML_TIME_START, "2025-07-15T00:00:00Z"),
+    ]
+    unique: dict[tuple[str, str], dict[str, str]] = {}
+    discovery_errors: list[str] = []
+    for start, end in windows:
+        query = f"{fields}&time>={start}&time<={end}"
+        url = _erddap_url(AOML_BASE, query)
+        try:
+            source_rows = _csv_rows(url)
+        except Exception as exc:
+            discovery_errors.append(f"{start}..{end}: {exc}")
+            continue
+        for row in source_rows:
+            trajectory = str(row.get("trajectory") or "").strip()
+            profile_id = str(row.get("profile_id") or "").strip()
+            if (
+                trajectory
+                and profile_id
+                and _iso(row.get("profile_time"))
+                and _finite(row.get("profile_lon")) is not None
+                and _finite(row.get("profile_lat")) is not None
+            ):
+                unique[(trajectory, profile_id)] = row
+        if len(unique) >= 24:
+            break
+
+    rows = sorted(
+        unique.values(),
+        key=lambda row: str(row.get("profile_time") or ""),
+        reverse=True,
     )
-    url = _erddap_url(AOML_BASE, query)
-    rows: list[dict[str, str]] = []
-    for row in _csv_rows(url):
-        if (
-            str(row.get("trajectory") or "").strip()
-            and str(row.get("profile_id") or "").strip()
-            and _iso(row.get("profile_time"))
-            and _finite(row.get("profile_lon")) is not None
-            and _finite(row.get("profile_lat")) is not None
-        ):
-            rows.append(row)
-    rows.sort(key=lambda row: str(row.get("profile_time") or ""), reverse=True)
     if not rows:
-        raise RuntimeError("AOML profile discovery returned no valid glider profiles.")
+        raise RuntimeError(
+            "AOML profile discovery returned no valid glider profiles. "
+            + " | ".join(discovery_errors)
+        )
     return rows[:24]
 
 
