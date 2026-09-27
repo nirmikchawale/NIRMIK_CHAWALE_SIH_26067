@@ -4444,3 +4444,50 @@ select:hover,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* SIH26067 completion — surface-only INCOIS chlorophyll source. */
+.explore-source-selector {
+  flex-wrap: wrap;
+}
+
+.explore-source-selector > button {
+  min-width: 0;
+  flex: 1 1 92px;
+}
+
+.surface-only-control {
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border: 1px solid rgba(87, 183, 207, .38);
+  border-radius: 8px;
+  background: rgba(5, 28, 40, .62);
+}
+
+.surface-only-control > span {
+  color: #6f9aad;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .09em;
+}
+
+.surface-only-control > strong {
+  color: #e7f8fc;
+  font-size: 11px;
+}
+
+.surface-only-control > small {
+  color: #829fad;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+:root[data-theme="light"] .surface-only-control {
+  border-color: #c4dbe2;
+  background: #f6fbfc;
+}
+
+:root[data-theme="light"] .surface-only-control > strong {
+  color: #173d4c;
+}
