@@ -188,7 +188,7 @@ export function ControlPanel({
               </div>
             )}
 
-            {visualizationMode === "water-column" && scalar && (
+            {visualizationMode === "water-column" && (
               <label className="opacity-control">
                 <span className="label-row">
                   <span>Point opacity</span>
@@ -218,8 +218,7 @@ export function ControlPanel({
               />
             </label>
 
-            {scalar && (
-              <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
+            <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
                 <div className="section-kicker visualization-kicker">Colorbar</div>
                 <label>
                   Palette
@@ -268,7 +267,7 @@ export function ControlPanel({
                     Log
                   </button>
                 </div>
-                <label className="iso-toggle">
+                {scalar && <label className="iso-toggle">
                   <span className="label-row">
                     <span>Isosurface</span>
                     <input
@@ -277,8 +276,8 @@ export function ControlPanel({
                       onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
                     />
                   </span>
-                </label>
-                {isoSurfaceEnabled && (
+                </label>}
+                {scalar && isoSurfaceEnabled && (
                   <label>
                     <span className="label-row">
                       <span>Iso value</span>
@@ -299,15 +298,13 @@ export function ControlPanel({
                   </label>
                 )}
                 <p className="microcopy">
-                  Palette, range and scale affect rendering only. Isosurface geometry is extracted from the genuine scalar water-column values.
+                  Palette, range and scale affect rendering only. {scalar ? "Isosurface geometry is extracted from the genuine scalar water-column values." : "Current colour represents genuine horizontal speed magnitude."}
                 </p>
               </div>
-            )}
 
             {!scalar ? (
-              <p className="microcopy warning">
-                Water-column 3D is scalar-only. Currents stay on the globe because the bundled
-                evidence contains horizontal u/v only—no vertical current is invented.
+              <p className="microcopy">
+                Water-column currents show genuine horizontal u/v vectors at their model depths. No vertical current is inferred; vertical exaggeration changes display geometry only.
               </p>
             ) : (
               <p className="microcopy">
