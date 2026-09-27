@@ -27,6 +27,7 @@ import type {
 } from "./types";
 
 type ThemeMode = "dark" | "light";
+type MobileSheet = "none" | "controls" | "observation";
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
 
@@ -50,6 +51,7 @@ export default function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
+  const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -83,7 +85,10 @@ export default function App() {
     const syncRoute = () => {
       const next = routeFromHash(window.location.hash);
       setPage(next);
-      if (next !== "explore") setFocusMode(false);
+      if (next !== "explore") {
+        setFocusMode(false);
+        setMobileSheet("none");
+      }
     };
     window.addEventListener("hashchange", syncRoute);
     syncRoute();
@@ -97,7 +102,18 @@ export default function App() {
     } else {
       window.location.hash = target;
     }
-    if (next !== "explore") setFocusMode(false);
+    if (next !== "explore") {
+      setFocusMode(false);
+      setMobileSheet("none");
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileSheet("none");
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, []);
 
   useEffect(() => {
@@ -236,6 +252,13 @@ export default function App() {
     };
   }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
+  const handleProfileSelection = useCallback((profileId: string) => {
+    setSelectedProfileId(profileId);
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setMobileSheet("observation");
+    }
+  }, []);
+
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents") => {
       setVariable(value);
@@ -329,6 +352,15 @@ export default function App() {
         <div className="workspace">
           {page === "explore" ? (
             <>
+              {mobileSheet !== "none" && (
+                <button
+                  type="button"
+                  className="mobile-sheet-backdrop"
+                  aria-label="Close mobile panel"
+                  onClick={() => setMobileSheet("none")}
+                />
+              )}
+
               <ControlPanel
                 catalog={catalog}
                 profiles={profiles}
@@ -341,13 +373,15 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
+                mobileOpen={mobileSheet === "controls"}
+                onMobileClose={() => setMobileSheet("none")}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
                 onDepthChange={setDepthIndex}
                 onTimeChange={setTimeIndex}
                 onVerticalExaggerationChange={setVerticalExaggeration}
-                onProfileChange={setSelectedProfileId}
+                onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
               />
 
@@ -377,7 +411,7 @@ export default function App() {
                   profiles={profiles}
                   selectedProfileId={selectedProfileId}
                   verticalExaggeration={verticalExaggeration}
-                  onSelectProfile={setSelectedProfileId}
+                  onSelectProfile={handleProfileSelection}
                 />
               ) : (
                 <WaterColumn3D
@@ -389,7 +423,53 @@ export default function App() {
                 />
               )}
 
-              <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
+              <ProfilePanel
+                detail={profileDetail}
+                loading={profileLoading}
+                provenance={provenance}
+                mobileOpen={mobileSheet === "observation"}
+                onMobileClose={() => setMobileSheet("none")}
+              />
+
+              <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Layer</span>
+                  <strong>{selectedVariable?.label ?? variable}</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Time</span>
+                  <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Depth</span>
+                  <strong>{(catalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "observation"}
+                  disabled={!selectedProfile}
+                  onClick={() => setMobileSheet("observation")}
+                >
+                  <span>Observation</span>
+                  <strong>{selectedProfile ? selectedProfile.platform_id : "None"}</strong>
+                </button>
+                <button type="button" onClick={() => navigate("compare")}>
+                  <span>Compare</span>
+                  <strong>Model ↔ Argo</strong>
+                </button>
+              </div>
             </>
           ) : page === "telemetry" ? (
             <TelemetryPage catalog={catalog} provenance={provenance} />
