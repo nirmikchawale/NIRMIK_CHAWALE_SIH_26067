@@ -2173,3 +2173,78 @@
     display: none;
   }
 }
+
+
+/* Final MVP major redesign — Phase 2 connected visualization stage.
+   Keep Cesium mounted so geographic camera context survives Water Column exploration. */
+.visualization-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #01070c;
+}
+
+.visualization-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(.992);
+  transition:
+    opacity var(--ot-motion-emphasis) var(--ot-ease-standard),
+    transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+    visibility 0s linear var(--ot-motion-emphasis);
+}
+
+.visualization-layer.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+  transition:
+    opacity var(--ot-motion-emphasis) var(--ot-ease-standard),
+    transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+    visibility 0s linear 0s;
+}
+
+.globe-visualization-layer {
+  z-index: 1;
+}
+
+.water-column-visualization-layer {
+  z-index: 2;
+  background: #01070c;
+}
+
+.visualization-stage .globe-shell {
+  inset: 0;
+}
+
+@media (max-width: 760px) {
+  .visualization-stage {
+    position: relative;
+    order: 1;
+    width: 100%;
+    height: 62vh;
+    min-height: 62vh;
+    flex: 0 0 62vh;
+  }
+
+  .visualization-stage .globe-shell {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex: none;
+    order: initial;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visualization-layer,
+  .visualization-layer.active {
+    transform: none;
+  }
+}
