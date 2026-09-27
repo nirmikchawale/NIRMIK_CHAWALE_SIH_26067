@@ -313,17 +313,15 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Depth slice" }).click();
   const depthIndicator = page.locator(".depth-indicator");
   const initialDepth = await depthIndicator.textContent();
-  const depthSlider = page
-    .locator(".control-panel section")
-    .filter({ hasText: "Water column" })
-    .locator('input[type="range"]')
-    .first();
+  const depthSlider = page.getByLabel("Model depth");
+  await expect(depthSlider).toBeVisible();
 
   await depthSlider.focus();
   await depthSlider.press("End");
   await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
 
-  const profileSelect = page.locator(".control-panel select");
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
   await profileSelect.selectOption({ index: 1 });
   await expect(page.locator(".profile-panel")).toBeVisible();
   await expect(page.locator(".profile-panel")).toContainText("Argo");
