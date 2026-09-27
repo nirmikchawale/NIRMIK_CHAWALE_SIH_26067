@@ -296,11 +296,8 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   const selectedLayer = page.locator(".water-column-selected");
   const initialSelectedLayer = await selectedLayer.textContent();
-  const waterColumnDepthSlider = page
-    .locator(".control-panel section")
-    .filter({ hasText: "Water column" })
-    .locator('input[type="range"]')
-    .first();
+  const waterColumnDepthSlider = page.getByLabel("Model depth");
+  await expect(waterColumnDepthSlider).toBeVisible();
   await waterColumnDepthSlider.focus();
   await waterColumnDepthSlider.press("Home");
   await expect(selectedLayer).not.toHaveText(initialSelectedLayer ?? "");
