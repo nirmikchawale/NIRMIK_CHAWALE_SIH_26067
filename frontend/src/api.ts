@@ -6,6 +6,7 @@ import type {
   CurrentsVolumeResponse,
   FieldResponse,
   IncoisOperationalSnapshot,
+  IncoisChlorophyllSnapshot,
   ProfileDetail,
   ProfilesResponse,
   ProvenanceResponse,
@@ -40,6 +41,16 @@ async function getJson<T>(path: string, staticPath: string): Promise<T> {
   }
   return response.json() as Promise<T>;
 }
+
+export async function fetchIncoisChlorophyll(): Promise<IncoisChlorophyllSnapshot> {
+  const target = `${import.meta.env.BASE_URL}operational/incois-chlorophyll.json`;
+  const response = await fetch(target, { headers: { Accept: "application/json" } });
+  if (!response.ok) {
+    throw new Error(`INCOIS chlorophyll snapshot unavailable: ${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<IncoisChlorophyllSnapshot>;
+}
+
 
 export async function fetchIncoisOperational(): Promise<IncoisOperationalSnapshot> {
   const target = `${import.meta.env.BASE_URL}operational/incois-argo-10d-vam.json`;
