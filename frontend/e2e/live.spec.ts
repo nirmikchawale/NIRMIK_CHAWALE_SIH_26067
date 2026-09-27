@@ -317,7 +317,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".visualization-dock")).toContainText("INCOIS satellite ocean-colour chlorophyll");
   await expect(page.getByRole("button", { name: /Chlorophyll-a/ })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".legend-card")).toContainText("Chlorophyll-a");
-  await expect(page.locator(".legend-card")).toContainText("mg/m^3");
+  await expect(page.locator(".legend-card")).toContainText(/mg\/m(\^3|³)/);
   await expect(page.locator(".surface-only-control")).toContainText("Surface field only");
   await expect(page.locator(".evidence-readout")).toContainText("SURFACE");
   const chlorophyllWaterColumn = page.getByRole("button", { name: "Water Column 3D", exact: true });

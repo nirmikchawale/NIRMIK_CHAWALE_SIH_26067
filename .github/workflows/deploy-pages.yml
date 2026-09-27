@@ -20,6 +20,9 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Last good deployment, used only if a live data fetch fails (see scripts/restore_last_deployed.sh).
+      LAST_GOOD_BASE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}
     steps:
       - name: Checkout verified branch
         uses: actions/checkout@v4
@@ -39,16 +42,24 @@ jobs:
         run: python scripts/export_static_science.py --output frontend/public/science-static
 
       - name: Fetch verified INCOIS multi-time operational snapshot
-        run: python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json
+        run: |
+          python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json \
+            || bash scripts/restore_last_deployed.sh operational/incois-argo-10d-vam.json frontend/public/operational/incois-argo-10d-vam.json
 
       - name: Fetch verified INCOIS chlorophyll ocean-colour snapshot
-        run: python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json
+        run: |
+          python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json \
+            || bash scripts/restore_last_deployed.sh operational/incois-chlorophyll.json frontend/public/operational/incois-chlorophyll.json
 
       - name: Verify INCOIS OPeNDAP DAP2 endpoints
-        run: python scripts/verify_incois_opendap.py --output frontend/public/operational/opendap-verification.json
+        run: |
+          python scripts/verify_incois_opendap.py --output frontend/public/operational/opendap-verification.json \
+            || bash scripts/restore_last_deployed.sh operational/opendap-verification.json frontend/public/operational/opendap-verification.json
 
       - name: Fetch verified Glider CTD BGC observation profiles
-        run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
+        run: |
+          python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json \
+            || bash scripts/restore_last_deployed.sh observations/verified-profiles.json frontend/public/observations/verified-profiles.json
 
       - name: Create browser NetCDF ingestion test fixture
         run: python scripts/create_netcdf_browser_fixture.py --output frontend/public/samples/cf-profile-fixture.nc

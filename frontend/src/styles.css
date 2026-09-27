@@ -797,6 +797,7 @@ input[type="range"] {
 .legend-values {
   display: flex;
   justify-content: space-between;
+  gap: 6px;
   margin-top: 4px;
   color: #7695a9;
   font-size: 8px;
