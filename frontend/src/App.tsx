@@ -800,6 +800,7 @@ export default function App() {
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
+                    canEnterWaterColumn={activeExploreCatalog.capabilities.surface_only !== true}
                   />
                 </div>
                 <div

@@ -1,18 +1,18 @@
 /* Authoritative workspace composition. Scientific renderer values remain untouched. */
 :root {
-  --wb-bg: #10151f;
-  --wb-panel: #171e2b;
-  --wb-raised: #202a3b;
-  --wb-line: #344155;
-  --wb-text: #edf3fc;
-  --wb-muted: #a3b3c9;
-  --wb-accent: #67deeb;
+  --wb-bg: #0d1c26;
+  --wb-panel: #142833;
+  --wb-raised: #1e3542;
+  --wb-line: #36505f;
+  --wb-text: #f2eee4;
+  --wb-muted: #acbfca;
+  --wb-accent: #a9d5e5;
   --wb-left: 274px;
   --wb-right: 264px;
 }
 :root[data-theme="light"] {
-  --wb-bg: #e8eef5;
-  --wb-panel: #f8fafd;
+  --wb-bg: #eae7df;
+  --wb-panel: #f7f5ef;
   --wb-raised: #e7eef7;
   --wb-line: #b7c6d7;
   --wb-text: #182b43;
@@ -198,4 +198,52 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ocean-workbench *, .ocean-workbench *::before, .ocean-workbench *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* Coastal field journal: interface colours never replace scientific scales. */
+.evidence-heading h2 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; font-size: 29px; letter-spacing: -.035em; }
+.field-story { padding: 22px 0 16px; border-bottom: 1px solid var(--wb-line); }
+.field-chapter { font-size: 10px; letter-spacing: .1em; color: var(--wb-accent); }
+.field-story h3 { font-family: Georgia, "Times New Roman", serif; font-size: 23px; line-height: 1.2; font-weight: 400; margin: 12px 0; }
+.field-reading { margin: 14px 0; padding: 12px 0; border-bottom: 1px solid var(--wb-line); }
+.field-reading summary { cursor: pointer; color: var(--wb-accent); font-size: 13px; min-height: 30px; }
+.evidence-rail .evidence-mobile-toggle { display: none; }
+.ocean-journey { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); z-index: 12; display: flex; flex-direction: column; align-items: center; gap: 7px; width: max-content; max-width: calc(100% - 24px); }
+.journey-stops { display: flex; align-items: center; gap: 9px; padding: 10px 14px; border: 1px solid var(--wb-line); border-radius: 30px; background: var(--wb-panel); font-size: 11px; color: var(--wb-muted); }
+.journey-stops .active { color: var(--wb-accent); }
+.journey-stops i { font-style: normal; opacity: .6; }
+.ocean-journey button,.field-inspect-toggle { background: var(--wb-panel); color: var(--wb-text); border: 1px solid var(--wb-line); border-radius: 6px; min-height: 36px; padding: 7px 12px; cursor: pointer; font-size: 12px; }
+.ocean-workbench .globe-intro-status { top: 32%; left: 50%; right: auto; transform: translateX(-50%); width: min(360px,calc(100% - 32px)); background: var(--wb-panel); border-color: var(--wb-line); pointer-events: none; }
+.ocean-workbench .globe-intro-status strong { font: 30px/1.15 Georgia,serif; color: var(--wb-text); }
+.field-entry-actions { position: absolute; top: 112px; right: 14px; width: 190px; z-index: 11; display: grid; gap: 6px; }
+.ocean-workbench .field-entry-actions .study-region-entry { position: static; width: 100%; min-height: 92px; text-align: left; background: var(--wb-panel); border-color: var(--wb-accent); color: var(--wb-text); }
+.ocean-workbench .field-entry-actions .study-region-entry small { display: block; font-size: 11px; line-height: 1.5; color: var(--wb-muted); margin-top: 8px; }
+.field-inspect-toggle[aria-pressed="true"] { border-color: var(--wb-accent); color: var(--wb-accent); }
+.water-column-canvas { touch-action: none; }
+.ocean-workbench .visualization-stage { animation: field-reveal 420ms ease-out; }
+@keyframes field-reveal { from { opacity: .4; } to { opacity: 1; } }
+.ocean-workbench button:focus-visible,.field-reading summary:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 3px; }
+@media (max-width:1150px) {
+  .ocean-workbench .evidence-rail { display: block; position: absolute; left: calc(var(--wb-left) + 10px); right: 10px; top: auto; bottom: 10px; width: auto; padding: 0; z-index: 30; border: 1px solid var(--wb-line); border-radius: 10px; max-height: min(70vh,620px); }
+  .evidence-rail .evidence-mobile-toggle { display: flex; margin: 0; min-height: 42px; border: 0; background: var(--wb-panel); }
+  .evidence-content { display: none; padding: 20px; }
+  .evidence-expanded .evidence-content { display: block; }
+}
+@media (max-width:760px) {
+  .ocean-workbench .evidence-rail { left: 10px; bottom: 74px; }
+  .ocean-workbench .evidence-rail.evidence-expanded { top: 8px; bottom: 74px; max-height: none; }
+  .ocean-journey { top: 8px; }
+  .journey-stops { font-size: 10px; padding: 7px 10px; gap: 7px; }
+  .ocean-journey button { min-height: 32px; font-size: 11px; }
+  .field-entry-actions { top: 82px; right: 10px; width: 145px; }
+  .ocean-workbench .field-entry-actions .study-region-entry { min-height: 72px; }
+  .ocean-workbench .field-entry-actions .study-region-entry small { display: none; }
+  .field-inspect-toggle { font-size: 10px; min-height: 34px; }
+  .ocean-workbench .cesium-smooth-zoom.camera-control-stack { bottom: 58px; }
+  .ocean-workbench .water-column-smooth-zoom { bottom: 100px; }
+  .ocean-workbench .globe-intro-status strong { font-size: 24px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .ocean-workbench .visualization-stage { animation: none; }
+  .ocean-workbench button { transition: none; }
 }

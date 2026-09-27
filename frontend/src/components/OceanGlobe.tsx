@@ -68,6 +68,7 @@ interface Props {
   onSelectProfile: (profileId: string) => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
+  canEnterWaterColumn: boolean;
 }
 
 const INTRO_SESSION_KEY = "oceantwin-intro-seen";
@@ -112,12 +113,16 @@ export function OceanGlobe({
   colorMaximum,
   onSelectProfile,
   onSelectImportedProfile,
-  onEnterWaterColumn
+  onEnterWaterColumn,
+  canEnterWaterColumn
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const enterWaterColumnRef = useRef(onEnterWaterColumn);
-  const regionEntryArmedRef = useRef(false);
+  const regionEntryArmedRef = useRef(true);
+  const journeyRef = useRef<(skip?: boolean) => void>(() => {});
+  const entryAvailableRef = useRef(canEnterWaterColumn);
+  useEffect(() => { entryAvailableRef.current = canEnterWaterColumn; }, [canEnterWaterColumn]);
   const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection | Primitive>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
@@ -132,8 +137,8 @@ export function OceanGlobe({
   const [cameraHeight, setCameraHeight] = useState(0);
   const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
   const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
-  const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "flying" | "region">("idle");
-  const [regionEntryArmed, setRegionEntryArmed] = useState(false);
+  const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "india" | "flying" | "region">("idle");
+  const [regionEntryArmed, setRegionEntryArmed] = useState(true);
 
   useEffect(() => {
     enterWaterColumnRef.current = onEnterWaterColumn;
@@ -215,52 +220,51 @@ export function OceanGlobe({
     } catch {
       // Session storage is optional. If unavailable, the orientation remains harmless and interruptible.
     }
-    const playOpeningTransition = firstSessionEntry && !reducedMotion;
-    regionEntryArmedRef.current = firstSessionEntry;
-    setRegionEntryArmed(firstSessionEntry);
-
-    if (playOpeningTransition) {
+    let journeyGeneration = 0;
+    const stopJourney = () => {
+      journeyGeneration += 1;
+      if (introTimer != null) window.clearTimeout(introTimer);
+      introTimer = null;
+      viewer.camera.cancelFlight();
+      setIntroPhase("region");
+    };
+    journeyRef.current = (skip = false) => {
+      stopJourney();
+      const generation = journeyGeneration;
+      const current = () => !viewer.isDestroyed() && generation === journeyGeneration;
+      const finish = () => {
+        if (!current()) return;
+        setIntroPhase("region");
+        setCameraHeight(viewer.camera.positionCartographic.height);
+      };
+      const destination = Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65);
+      if (skip || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        viewer.camera.setView({ destination });
+        finish();
+        return;
+      }
       setIntroPhase("earth");
       viewer.camera.setView({
-        destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
-        orientation: {
-          heading: 0,
-          pitch: CesiumMath.toRadians(-90),
-          roll: 0
-        }
+        destination: Cartesian3.fromDegrees(76, 20, 16_000_000),
+        orientation: { heading: 0, pitch: CesiumMath.toRadians(-90), roll: 0 }
       });
-      setCameraHeight(viewer.camera.positionCartographic.height);
       introTimer = window.setTimeout(() => {
-        if (viewer.isDestroyed()) return;
-        setIntroPhase("flying");
+        if (!current()) return;
+        setIntroPhase("india");
         viewer.camera.flyTo({
-          destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
-          duration: 0.9,
+          destination: Rectangle.fromDegrees(64, 6, 92, 35), duration: 1.8,
           complete: () => {
-            if (viewer.isDestroyed()) return;
-            setIntroPhase("region");
-            setCameraHeight(viewer.camera.positionCartographic.height);
-          },
-          cancel: () => {
-            if (!viewer.isDestroyed()) {
-              setIntroPhase("region");
-              setCameraHeight(viewer.camera.positionCartographic.height);
-            }
+            if (!current()) return;
+            introTimer = window.setTimeout(() => {
+              if (!current()) return;
+              setIntroPhase("flying");
+              viewer.camera.flyTo({ destination, duration: 2, complete: finish });
+            }, 700);
           }
         });
-      }, 140);
-    } else {
-      setIntroPhase("region");
-      viewer.camera.setView({
-        destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
-        orientation: {
-          heading: CesiumMath.toRadians(248),
-          pitch: CesiumMath.toRadians(-76),
-          roll: 0
-        }
-      });
-      setCameraHeight(viewer.camera.positionCartographic.height);
-    }
+      }, 900);
+    };
+    journeyRef.current(!firstSessionEntry || reducedMotion);
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -277,14 +281,7 @@ export function OceanGlobe({
     viewerRef.current = viewer;
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
-    const interruptOpeningTransition = () => {
-      if (introTimer != null) {
-        window.clearTimeout(introTimer);
-        introTimer = null;
-      }
-      viewer.camera.cancelFlight();
-      setIntroPhase("region");
-    };
+    const interruptOpeningTransition = stopJourney;
     handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.LEFT_DOWN);
     handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.WHEEL);
     handler.setInputAction((movement: { position: Cartesian2 }) => {
@@ -313,7 +310,7 @@ export function OceanGlobe({
         const insideVerifiedRegion =
           longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14;
 
-        if (insideVerifiedRegion && regionEntryArmedRef.current) {
+        if (insideVerifiedRegion && regionEntryArmedRef.current && entryAvailableRef.current) {
           regionEntryArmedRef.current = false;
           setRegionEntryArmed(false);
           setInspection(null);
@@ -329,6 +326,8 @@ export function OceanGlobe({
     clickHandlerRef.current = handler;
 
     return () => {
+      stopJourney();
+      journeyRef.current = () => {};
       removeRenderErrorListener();
       window.removeEventListener("resize", syncRenderQuality);
       if (zoomAnimationRef.current != null) {
@@ -951,6 +950,7 @@ export function OceanGlobe({
   return (
     <main
       className="globe-shell"
+      data-journey-phase={introPhase}
       data-render-scale={renderScale.toFixed(2)}
       data-antialiasing={antialiasing}
       data-render-quality="high"
@@ -1006,28 +1006,31 @@ export function OceanGlobe({
         </div>
         <small>Preferred online HD → automatic offline fallback · basemap only; scientific coordinates and values never change.</small>
       </div>
-      {(introPhase === "earth" || introPhase === "flying") && (
-        <div className="globe-intro-status" role="status" aria-live="polite">
-          <span>OCEANTWIN ORIENTATION</span>
-          <strong>{introPhase === "earth" ? "Earth" : "Indian Ocean"}</strong>
-          <small>Locating verified model window · 67–70°E · 12–14°N</small>
+      <div className="ocean-journey" aria-label="Ocean orientation journey">
+        <div className="journey-stops" aria-live="polite">
+          <span className={introPhase === "earth" ? "active" : ""}>01 Earth</span><i aria-hidden="true">→</i>
+          <span className={introPhase === "india" ? "active" : ""}>02 India</span><i aria-hidden="true">→</i>
+          <span className={introPhase === "flying" || introPhase === "region" ? "active" : ""}>03 Ocean field</span>
         </div>
-      )}
-      {regionEntryArmed && introPhase === "region" && (
-        <button
-          type="button"
-          className="study-region-entry"
-          onClick={() => {
-            regionEntryArmedRef.current = false;
-            setRegionEntryArmed(false);
-            enterWaterColumnRef.current();
-          }}
-        >
-          <span>VERIFIED STUDY REGION</span>
-          <strong>Enter Water Column 3D</strong>
-          <small>67–70°E · 12–14°N · same model evidence, deeper view</small>
+        <button type="button" onClick={() => journeyRef.current(introPhase !== "region")}>
+          {introPhase === "region" ? "Replay journey" : "Skip journey"}
         </button>
-      )}
+      </div>
+      {introPhase !== "region" && introPhase !== "idle" && <div className="globe-intro-status" role="status">
+        <span>A CLOSER LOOK AT OUR OCEAN</span>
+        <strong>{introPhase === "earth" ? "One connected ocean." : introPhase === "india" ? "India, in perspective." : "Beneath the Arabian Sea."}</strong>
+        <small>{introPhase === "flying" ? "Our study window · 67–70°E · 12–14°N" : "Follow the journey, or take the controls at any time."}</small>
+      </div>}
+      {canEnterWaterColumn && introPhase === "region" && <div className="field-entry-actions">
+        <button type="button" className="study-region-entry" onClick={() => enterWaterColumnRef.current()}>
+          <span>LOOK BENEATH THE SURFACE</span><strong>Enter Water Column 3D</strong>
+          <small>{regionEntryArmed ? "Click the ocean field, or enter here" : "Point inspection is on · enter 3D here"}</small>
+        </button>
+        <button type="button" className="field-inspect-toggle" aria-pressed={!regionEntryArmed} onClick={() => {
+          regionEntryArmedRef.current = !regionEntryArmed;
+          setRegionEntryArmed(!regionEntryArmed);
+        }}>{regionEntryArmed ? "Inspect points on map" : "Enable field-click entry"}</button>
+      </div>}
       <div className="globe-overlay top-left judge-summary">
         <div>
           <span className="live-dot" />
