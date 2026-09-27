@@ -170,7 +170,7 @@ function applyPacking(value: number, meta: VariableMeta): number | null {
 export async function parseBrowserNetcdf(file: File): Promise<NetcdfBrowserImport> {
   const { NetCDF4 } = await import("@earthyscience/netcdf4-wasm");
   const wasmPath = new URL("../node_modules/@earthyscience/netcdf4-wasm/dist/netcdf4-wasm.wasm", import.meta.url).toString();
-  const dataset = await NetCDF4.fromBlobLazy(file, { wasmPath });
+  const dataset = await NetCDF4.fromBlob(file, "r", { wasmPath });
 
   try {
     const metadataRaw = await dataset.getFullMetadata();
