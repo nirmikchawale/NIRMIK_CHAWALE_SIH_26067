@@ -58,7 +58,7 @@ jobs:
           assert manifest["depth_levels"] == 31
           assert manifest["profiles"] == 2
           assert manifest["scientific_data_network_required_at_runtime"] is False
-          expected_files = 4 + manifest["profiles"] + manifest["time_steps"] * (2 + 7 * manifest["depth_levels"])
+          expected_files = 5 + manifest["profiles"] + manifest["time_steps"] * (2 + 7 * manifest["depth_levels"])
           assert len(manifest["files"]) == expected_files
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
           assert (root / "telemetry/so/t0_d18.json").is_file()
