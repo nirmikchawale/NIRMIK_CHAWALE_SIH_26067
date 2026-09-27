@@ -167,14 +167,17 @@
   .ocean-workbench .visualization-dock-modes button { padding: 6px; gap: 5px; height: 42px; }
   .ocean-workbench .mode-label strong { font-size: 12px; }
   .ocean-workbench .visualization-stage { position: absolute; left: 0; right: 0; top: 125px; bottom: 72px; height: auto; min-height: 0; width: 100%; }
-  .ocean-workbench .control-panel { position: absolute; display: block; top: 0; bottom: 0; left: 0; width: min(360px,100%); max-height: 100%; z-index: 35; transform: translateX(-105%); visibility: hidden; }
+  .ocean-workbench .control-panel { position: fixed !important; display: block; top: 64px; bottom: 0; left: 0; width: min(360px,100%); max-height: calc(100dvh - 64px); z-index: 60; transform: translateX(-105%); visibility: hidden; }
   .ocean-workbench .control-panel[data-mobile-open="true"] { transform: none; visibility: visible; }
-  .ocean-workbench .profile-panel { position: absolute; inset: 0 0 0 auto; max-height: 100%; width: min(360px,100%); z-index: 35; }
+  .ocean-workbench .profile-panel { position: fixed !important; inset: 64px 0 0 auto; max-height: calc(100dvh - 64px); width: min(360px,100%); z-index: 60; }
   .ocean-workbench .mobile-sheet-header { display: flex; gap: 12px; margin-bottom: 16px; }
   .ocean-workbench .mobile-sheet-header button { min-height: 40px; font-size: 13px; }
   .ocean-workbench .mobile-explore-tray { position: absolute; left: 0; right: 0; bottom: 0; min-height: 72px; padding: 6px; border-radius: 0; background: var(--wb-panel); border-color: var(--wb-line); z-index: 23; }
   .ocean-workbench .mobile-explore-tray span { font-size: 10px; }
   .ocean-workbench .mobile-explore-tray strong { font-size: 11px; }
+  .ocean-workbench .mobile-explore-tray { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); overflow-x: auto; }
+  .ocean-workbench .mobile-explore-tray button { min-width: 0; padding: 5px; }
+  .ocean-workbench .mobile-explore-tray strong { max-width: 100%; }
   .ocean-workbench .imagery-control { width: 160px; top: 10px; left: 10px; }
   .ocean-workbench .study-region-entry { top: 10px; right: 10px; width: 128px; }
   .ocean-workbench .study-region-entry > span { font-size: 8px; }
