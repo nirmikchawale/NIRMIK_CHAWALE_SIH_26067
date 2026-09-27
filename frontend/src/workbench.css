@@ -25,15 +25,15 @@
 .ocean-workbench .brand h1 { font-size: 22px; }
 .ocean-workbench .header-status { gap: 10px; }
 .ocean-workbench .header-status > div:not(.header-workspace-actions) { display: none; }
-.header-workspace-actions { display: flex; align-items: center; gap: 6px; }
+.header-workspace-actions { position: relative; z-index: 101; display: flex; align-items: center; gap: 6px; }
 .header-action-button { min-height: 36px; padding: 7px 10px; border: 1px solid var(--wb-line); border-radius: 6px; background: var(--wb-panel); color: var(--wb-text); font-size: 12px; cursor: pointer; }
 .header-action-button:hover,.header-action-button:focus-visible { border-color: var(--wb-accent); color: var(--wb-accent); background: var(--wb-raised); }
 .ocean-workbench .system-pill { font-size: 11px; letter-spacing: .04em; color: var(--wb-accent); background: var(--wb-panel); }
 .ocean-workbench .theme-toggle { font-size: 12px; background: var(--wb-panel); color: var(--wb-text); }
 .present-button { border: 1px solid var(--wb-accent); border-radius: 7px; min-height: 40px; padding: 8px 16px; color: var(--wb-bg); background: var(--wb-accent); font-size: 14px; font-weight: 650; cursor: pointer; }
-.ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 56px minmax(0,1fr); background: var(--wb-bg); overflow: hidden; }
+.ocean-workbench .workspace-frame { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 56px minmax(0,1fr); background: var(--wb-bg); overflow: hidden; }
 .ocean-workbench .workspace-frame > .workspace { grid-column: 1; grid-row: 2; min-height: 0; position: relative; padding: 0; overflow: hidden; }
-.ocean-workbench .feature-rail { position: static; flex-direction: row; align-items: center; padding: 6px 14px; gap: 5px; border: 0; border-bottom: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-bg); overflow-x: auto; }
+.ocean-workbench .feature-rail { position: static; z-index: 2; flex-direction: row; align-items: center; padding: 6px 14px; gap: 5px; border: 0; border-bottom: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-bg); overflow-x: auto; }
 .ocean-workbench .feature-rail-left { grid-column: 1; grid-row: 1; width: auto; }
 .ocean-workbench .feature-rail-right { display: none !important; }
 .ocean-workbench .rail-title,.ocean-workbench .rail-group-label { display: none; }
