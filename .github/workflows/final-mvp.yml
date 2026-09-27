@@ -107,6 +107,7 @@ jobs:
           root = Path("/tmp/oceantwin-static-science")
           manifest = json.loads((root / "manifest.json").read_text())
           operational = json.loads(Path("/tmp/oceantwin-operational/incois-argo-10d-vam.json").read_text())
+          chlorophyll = json.loads(Path("/tmp/oceantwin-operational/incois-chlorophyll.json").read_text())
           assert manifest["schema"] == "oceantwin-static-science-v1"
           assert manifest["time_steps"] == 1
           assert manifest["depth_levels"] == 31
