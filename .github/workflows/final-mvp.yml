@@ -57,6 +57,26 @@ jobs:
           print("INCOIS operational evidence verified:", payload["record_count"], "records")
           PY
 
+      - name: Fetch verified INCOIS chlorophyll ocean-colour snapshot
+        run: |
+          python scripts/fetch_incois_chlorophyll.py --output /tmp/oceantwin-operational/incois-chlorophyll.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/oceantwin-operational/incois-chlorophyll.json").read_text())
+          assert payload["schema"] == "oceantwin-incois-chlorophyll-v1"
+          assert payload["source"]["provider"] == "INCOIS"
+          assert payload["source"]["dataset_id"] == "IRS_chlorophyll_datasets"
+          assert payload["integrity"]["genuine_time_count"] >= 2
+          assert payload["integrity"]["surface_only"] is True
+          assert payload["integrity"]["synthetic_timestamps"] is False
+          assert payload["integrity"]["synthetic_depths"] is False
+          assert payload["integrity"]["source_values_modified"] is False
+          assert payload["record_count"] > 0
+          assert payload["variable"]["units"] == "mg/m^3"
+          print("INCOIS chlorophyll evidence verified:", payload["record_count"], "records")
+          PY
+
       - name: Fetch verified Glider CTD BGC observation breadth pack
         run: |
           rm -rf /tmp/oceantwin-observations
@@ -95,6 +115,11 @@ jobs:
           assert operational["source"]["provider"] == "INCOIS"
           assert operational["integrity"]["genuine_time_count"] >= 2
           assert operational["integrity"]["genuine_depth_count"] >= 2
+          assert chlorophyll["source"]["dataset_id"] == "IRS_chlorophyll_datasets"
+          assert chlorophyll["integrity"]["genuine_time_count"] >= 2
+          assert chlorophyll["integrity"]["surface_only"] is True
+          assert chlorophyll["integrity"]["synthetic_timestamps"] is False
+          assert chlorophyll["integrity"]["synthetic_depths"] is False
           expected_files = 5 + manifest["profiles"] + manifest["time_steps"] * (3 + 7 * manifest["depth_levels"])
           assert len(manifest["files"]) == expected_files
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
@@ -199,6 +224,9 @@ jobs:
       - name: Fetch verified INCOIS operational snapshot for hosted build
         run: python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json
 
+      - name: Fetch verified INCOIS chlorophyll for hosted build
+        run: python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json
+
       - name: Fetch verified Glider CTD BGC profiles for hosted build
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
@@ -235,6 +263,7 @@ jobs:
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/health.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
+          test -s frontend/dist/operational/incois-chlorophyll.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
           find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
@@ -247,6 +276,7 @@ jobs:
           catalog = json.loads((root / "catalog.json").read_text())
           manifest = json.loads((root / "manifest.json").read_text())
           observations = json.loads(Path("frontend/dist/observations/verified-profiles.json").read_text())
+          chlorophyll = json.loads(Path("frontend/dist/operational/incois-chlorophyll.json").read_text())
           assert health["status"] == "ok"
           assert sorted(health["variables"]) == ["so", "thetao", "uo", "vo"]
           assert catalog["capabilities"]["current_vectors"] is True
@@ -255,6 +285,10 @@ jobs:
           assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["record_count"] > 30
+          assert chlorophyll["source"]["dataset_id"] == "IRS_chlorophyll_datasets"
+          assert chlorophyll["integrity"]["surface_only"] is True
+          assert chlorophyll["integrity"]["genuine_time_count"] >= 2
+          assert chlorophyll["integrity"]["synthetic_depths"] is False
           assert (root / "fields/thetao/t0_d18.json").is_file()
           assert (root / "fields/so/t0_d18.json").is_file()
           assert (root / "currents/t0_d18.json").is_file()
@@ -314,6 +348,7 @@ jobs:
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
           operational = get_json("/operational/incois-argo-10d-vam.json")
+          chlorophyll = get_json("/operational/incois-chlorophyll.json")
           observations = get_json("/observations/verified-profiles.json")
           netcdf_fixture = get_bytes("/samples/cf-profile-fixture.nc")
           natural_earth = get_bytes(
