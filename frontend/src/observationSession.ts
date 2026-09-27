@@ -104,7 +104,17 @@ export function groupImportedObservationProfiles(
       timestamp: first.timestamp,
       source: first.source,
       dataset_id: first.dataset_id,
-      variables: [...new Set(group.map((row) => row.variable))].sort(),
+      variables: [...new Set(group.map((row) => row.variable))].sort((a, b) => {
+        const priority = (value: string) => {
+          const key = value.toLowerCase();
+          if (key.includes("temp")) return 0;
+          if (key.includes("sal")) return 1;
+          if (key.includes("chlor") || key === "chla") return 2;
+          if (key.includes("oxygen") || key === "doxy") return 3;
+          return 10;
+        };
+        return priority(a) - priority(b) || a.localeCompare(b);
+      }),
       records: [...group].sort((a, b) => a.depth_m - b.depth_m)
     };
   });
