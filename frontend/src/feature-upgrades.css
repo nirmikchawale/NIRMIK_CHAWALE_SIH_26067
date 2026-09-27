@@ -2853,3 +2853,29 @@
     display: none;
   }
 }
+
+
+/* Post-merge UI correction — reserve the dual-view dock's full desktop height.
+   The verified-window summary and basemap card must never occupy the dock's zone. */
+@media (min-width: 1201px) {
+  .top-left,
+  .imagery-control,
+  .depth-indicator,
+  .water-column-selected {
+    top: 150px !important;
+  }
+}
+
+@media (max-width: 1200px) and (min-width: 761px) {
+  .visualization-dock {
+    top: 14px !important;
+  }
+
+  .top-left,
+  .imagery-control,
+  .depth-indicator,
+  .water-column-selected {
+    top: 190px !important;
+  }
+}
+
