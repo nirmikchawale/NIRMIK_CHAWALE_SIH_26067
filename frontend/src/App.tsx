@@ -368,7 +368,10 @@ export default function App() {
                   type="button"
                   className="mobile-sheet-backdrop"
                   aria-label="Close mobile panel"
-                  onClick={() => setMobileSheet("none")}
+                  onClick={() => {
+                    if (mobileSheet === "observation") setProfilePanelOpen(false);
+                    setMobileSheet("none");
+                  }}
                 />
               )}
 
