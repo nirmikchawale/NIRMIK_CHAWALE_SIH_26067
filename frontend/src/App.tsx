@@ -510,7 +510,7 @@ export default function App() {
     setSelectedImportedProfileId("");
     setSelectedProfileId(profileId);
     setProfilePanelOpen(true);
-    setEvidenceOpen(true);
+    setEvidenceOpen(false);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
     }
@@ -519,7 +519,7 @@ export default function App() {
   const handleImportedProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId(profileId);
     setProfilePanelOpen(true);
-    setEvidenceOpen(true);
+    setEvidenceOpen(false);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
     }
@@ -768,7 +768,11 @@ export default function App() {
                   type="button"
                   className="evidence-status-pill"
                   aria-label="Open evidence inspector"
-                  onClick={() => setEvidenceOpen(true)}
+                  onClick={() => {
+                    setProfilePanelOpen(false);
+                    setMobileSheet("none");
+                    setEvidenceOpen(true);
+                  }}
                 >
                   <span>Evidence</span>
                   <strong>
