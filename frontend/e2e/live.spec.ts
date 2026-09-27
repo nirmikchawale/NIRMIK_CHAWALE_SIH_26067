@@ -42,6 +42,27 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
   await expect(documentRoot).toHaveAttribute("data-theme", "light");
 
+  const appShell = page.locator(".app-shell");
+  await expect(page.locator(".feature-rail-right")).toHaveCount(0);
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+  await expect(page.getByRole("button", { name: "Open evidence inspector" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.getByRole("button", { name: "Open evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "open");
+  await expect(page.locator(".evidence-rail")).toBeVisible();
+  await page.getByRole("button", { name: "Close evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+
   await page.getByRole("button", { name: "Telemetry" }).click();
   await expect(page).toHaveURL(/#\/telemetry$/);
   const telemetryPage = page.locator('.telemetry-page[data-page="telemetry"]');

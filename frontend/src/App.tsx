@@ -77,6 +77,8 @@ export default function App() {
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [controlDockOpen, setControlDockOpen] = useState(true);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
@@ -145,6 +147,18 @@ export default function App() {
   }, [theme]);
 
   useEffect(() => {
+    const handleDockShortcut = (event: KeyboardEvent) => {
+      if (page !== "explore") return;
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") {
+        event.preventDefault();
+        setControlDockOpen((open) => !open);
+      }
+    };
+    window.addEventListener("keydown", handleDockShortcut);
+    return () => window.removeEventListener("keydown", handleDockShortcut);
+  }, [page]);
+
+  useEffect(() => {
     const syncRoute = () => {
       const next = routeFromHash(window.location.hash);
       setPage(next);
@@ -152,6 +166,7 @@ export default function App() {
         setFocusMode(false);
         setMobileSheet("none");
         setProfilePanelOpen(false);
+        setEvidenceOpen(false);
       }
     };
     window.addEventListener("hashchange", syncRoute);
@@ -170,6 +185,7 @@ export default function App() {
       setFocusMode(false);
       setMobileSheet("none");
       setProfilePanelOpen(false);
+      setEvidenceOpen(false);
     }
   }, []);
 
@@ -494,6 +510,7 @@ export default function App() {
     setSelectedImportedProfileId("");
     setSelectedProfileId(profileId);
     setProfilePanelOpen(true);
+    setEvidenceOpen(true);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
     }
@@ -502,6 +519,7 @@ export default function App() {
   const handleImportedProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId(profileId);
     setProfilePanelOpen(true);
+    setEvidenceOpen(true);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
     }
@@ -631,6 +649,8 @@ export default function App() {
       data-theme={theme}
       data-page={page}
       data-explore-source={sourceMode}
+      data-control-dock={controlDockOpen ? "open" : "closed"}
+      data-evidence-inspector={evidenceOpen ? "open" : "closed"}
     >
       <header className="app-header">
         <div className="brand">
@@ -656,6 +676,36 @@ export default function App() {
                   : "GLORYS12V1"
             }</strong>
           </div>
+          {page === "explore" && !focusMode && (
+            <div className="header-workspace-actions" role="toolbar" aria-label="Explorer workspace actions">
+              <button
+                type="button"
+                className="header-action-button"
+                aria-label={controlDockOpen ? "Hide explorer controls" : "Show explorer controls"}
+                aria-expanded={controlDockOpen}
+                title="Toggle Explorer controls · Ctrl+B"
+                onClick={() => setControlDockOpen((open) => !open)}
+              >
+                {controlDockOpen ? "Hide controls" : "Controls"}
+              </button>
+              <button
+                type="button"
+                className="header-action-button"
+                aria-label="Focus 3D"
+                onClick={() => setFocusMode(true)}
+              >
+                Focus 3D
+              </button>
+              <button
+                type="button"
+                className="header-action-button"
+                aria-label="Sources & QC"
+                onClick={() => setProvenanceOpen(true)}
+              >
+                Sources & QC
+              </button>
+            </div>
+          )}
           {focusMode && (
             <button className="evidence-button focus-exit-header" onClick={() => setFocusMode(false)}>
               Show panels
@@ -683,8 +733,6 @@ export default function App() {
           page={page}
           focusMode={focusMode}
           onNavigate={navigate}
-          onToggleFocus={() => setFocusMode((current) => !current)}
-          onOpenSources={() => setProvenanceOpen(true)}
         />
 
         <div className="workspace">
@@ -701,7 +749,39 @@ export default function App() {
           }} />}
           {page === "explore" ? (
             <>
-              <EvidenceRail catalog={activeExploreCatalog} variable={selectedVariable} depth={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0} time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"} profile={activeSelectedProfile} loading={scienceLoading} error={error} onInspect={() => activeSelectedProfile && handleProfileSelection(activeSelectedProfile.profile_id)} onCompare={() => navigate("compare")} onSources={() => setProvenanceOpen(true)} />
+              <EvidenceRail
+                catalog={activeExploreCatalog}
+                variable={selectedVariable}
+                depth={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
+                time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
+                profile={activeSelectedProfile}
+                loading={scienceLoading}
+                error={error}
+                open={evidenceOpen}
+                onClose={() => setEvidenceOpen(false)}
+                onInspect={() => activeSelectedProfile && handleProfileSelection(activeSelectedProfile.profile_id)}
+                onCompare={() => navigate("compare")}
+                onSources={() => setProvenanceOpen(true)}
+              />
+              {!evidenceOpen && !focusMode && (
+                <button
+                  type="button"
+                  className="evidence-status-pill"
+                  aria-label="Open evidence inspector"
+                  onClick={() => setEvidenceOpen(true)}
+                >
+                  <span>Evidence</span>
+                  <strong>
+                    {activeSelectedProfile
+                      ? `Argo ${activeSelectedProfile.platform_id} · Active`
+                      : error
+                        ? "Field unavailable"
+                        : scienceLoading
+                          ? "Updating field…"
+                          : "Verified field · Active"}
+                  </strong>
+                </button>
+              )}
               {mobileSheet !== "none" && (
                 <button
                   type="button"
