@@ -161,7 +161,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await importedSelector.getByRole("button", { name: /GLIDER.*glider_demo_01/i }).click();
   await expect(page.locator(".imported-profile-panel")).toBeVisible();
   await expect(page.locator(".imported-profile-panel")).toContainText("Glider");
-  await expect(page.locator(".imported-profile-panel")).toContainText("temperature vs depth");
+  await expect(page.locator(".imported-profile-panel")).toContainText(/temperature\s+vs\s+depth/i);
   await page.getByRole("button", { name: "Data Lab", exact: true }).click();
   await expect(page).toHaveURL(/#\/data-lab$/);
 
