@@ -9,6 +9,7 @@ import type {
   ProfilesResponse,
   ProvenanceResponse,
   TelemetryResponse,
+  VerifiedObservationPack,
   VolumeResponse
 } from "./types";
 
@@ -46,6 +47,16 @@ export async function fetchIncoisOperational(): Promise<IncoisOperationalSnapsho
     throw new Error(`INCOIS operational snapshot unavailable: ${response.status} ${response.statusText}`);
   }
   return response.json() as Promise<IncoisOperationalSnapshot>;
+}
+
+
+export async function fetchVerifiedObservationPack(): Promise<VerifiedObservationPack> {
+  const target = `${import.meta.env.BASE_URL}observations/verified-profiles.json`;
+  const response = await fetch(target, { headers: { Accept: "application/json" } });
+  if (!response.ok) {
+    throw new Error(`Verified observation pack unavailable: ${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<VerifiedObservationPack>;
 }
 
 export const api = {
