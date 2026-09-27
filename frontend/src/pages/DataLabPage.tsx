@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { api } from "../api";
-import type { ConnectorRegistryResponse } from "../types";
+import { writeImportedObservationRecords } from "../observationSession";
+import type {
+  ConnectorRegistryResponse,
+  ImportedObservationRecord,
+  ImportedSensorType
+} from "../types";
 
 const REQUIRED_FIELDS = [
   "longitude",
@@ -108,6 +113,7 @@ interface NormalizedRecord {
   platform_id?: string;
   qc_flag?: string;
   dataset_id?: string;
+  sensor_type: ImportedSensorType;
 }
 
 interface VariableSummary {
@@ -151,10 +157,18 @@ function textValue(value: unknown): string {
 function canonicalizeRecord(record: Record<string, unknown>): Record<string, unknown> {
   const normalized: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(record)) {
-    const canonical = key.trim().toLowerCase();
+    let canonical = key.trim().toLowerCase();
+    if (canonical === "instrument_type" || canonical === "platform_type") canonical = "sensor_type";
     if (canonical && !(canonical in normalized)) normalized[canonical] = value;
   }
   return normalized;
+}
+
+function sensorTypeValue(value: unknown): ImportedSensorType {
+  const normalized = textValue(value).toLowerCase();
+  return normalized === "argo" || normalized === "glider" || normalized === "ctd" || normalized === "bgc"
+    ? normalized
+    : "other";
 }
 
 function parseDelimited(text: string, delimiter = ","): Array<Record<string, unknown>> {
@@ -379,7 +393,8 @@ function validateRecords(
         source,
         platform_id: textValue(record.platform_id) || undefined,
         qc_flag: textValue(record.qc_flag) || undefined,
-        dataset_id: textValue(record.dataset_id) || undefined
+        dataset_id: textValue(record.dataset_id) || undefined,
+        sensor_type: sensorTypeValue(record.sensor_type)
       });
     }
   });
@@ -491,8 +506,8 @@ function downloadText(filename: string, text: string, type: string) {
 
 function downloadSchema() {
   const text = [
-    "longitude,latitude,depth_m,timestamp,variable,value,units,source,platform_id,qc_flag,dataset_id",
-    "68.2500,13.2500,10.0,2020-07-01T00:00:00Z,temperature,28.2,degree_Celsius,example_source,platform_001,1,dataset_name"
+    "longitude,latitude,depth_m,timestamp,variable,value,units,source,platform_id,sensor_type,qc_flag,dataset_id",
+    "68.2500,13.2500,10.0,2020-07-01T00:00:00Z,temperature,28.2,degree_Celsius,example_source,platform_001,glider,1,dataset_name"
   ].join("\n");
   downloadText("OceanTwin_data_lab_schema.csv", text, "text/csv;charset=utf-8");
 }
@@ -598,6 +613,32 @@ export function DataLabPage() {
     setResult(null);
     setProcessingError("");
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const loadIntoExplorer = () => {
+    if (!result || result.status !== "validated" || result.records.length === 0) return;
+    const visualRecords: ImportedObservationRecord[] = result.records
+      .filter((record) => Boolean(record.platform_id))
+      .map((record) => ({
+        longitude: record.longitude,
+        latitude: record.latitude,
+        depth_m: record.depth_m,
+        timestamp: record.timestamp,
+        variable: record.variable,
+        value: record.value,
+        units: record.units,
+        source: record.source,
+        platform_id: record.platform_id as string,
+        sensor_type: record.sensor_type,
+        qc_flag: record.qc_flag,
+        dataset_id: record.dataset_id
+      }));
+    if (visualRecords.length === 0) {
+      setProcessingError("A platform_id is required to load validated rows as a 3D instrument profile.");
+      return;
+    }
+    writeImportedObservationRecords(visualRecords);
+    window.location.hash = "/explore";
   };
 
   return (
@@ -827,6 +868,11 @@ export function DataLabPage() {
               </small>
             </div>
             <div className="data-lab-status-actions">
+              {result.status === "validated" && result.records.length > 0 && (
+                <button type="button" className="primary" onClick={loadIntoExplorer}>
+                  Load validated profiles into 3D Explorer
+                </button>
+              )}
               <button type="button" onClick={() => downloadReport(result)}>Download validation report</button>
               <button type="button" onClick={clear}>Clear dataset</button>
             </div>
@@ -946,7 +992,7 @@ export function DataLabPage() {
                   <thead>
                     <tr>
                       <th>Record</th><th>Lon</th><th>Lat</th><th>Depth m</th><th>Timestamp</th>
-                      <th>Variable</th><th>Value</th><th>Units</th><th>Source</th>
+                      <th>Variable</th><th>Value</th><th>Units</th><th>Sensor</th><th>Source</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -960,6 +1006,7 @@ export function DataLabPage() {
                         <td>{record.variable}</td>
                         <td>{record.value}</td>
                         <td>{record.units}</td>
+                        <td>{record.sensor_type}</td>
                         <td>{record.source}</td>
                       </tr>
                     ))}
