@@ -906,10 +906,6 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
-                colorPalette={colorPalette}
-                colorScale={colorScale}
-                colorMinimum={colorMinimum}
-                colorMaximum={colorMaximum}
                 isoSurfaceEnabled={isoSurfaceEnabled}
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
@@ -923,10 +919,6 @@ export default function App() {
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
-                onColorPaletteChange={setColorPalette}
-                onColorScaleChange={setColorScale}
-                onColorMinimumChange={setColorMinimum}
-                onColorMaximumChange={setColorMaximum}
                 onIsoSurfaceEnabledChange={setIsoSurfaceEnabled}
                 onIsoValueChange={setIsoValue}
               />
