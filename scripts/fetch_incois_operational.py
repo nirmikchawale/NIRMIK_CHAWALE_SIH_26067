@@ -22,7 +22,7 @@ from urllib.request import Request, urlopen
 
 DATASET_ID = "incois_argo_10d_VAM"
 
-EXPECTED_CERT_SHA256 = None  # Filled only after an independently observed INCOIS server certificate probe.
+EXPECTED_CERT_SHA256 = "431214acb138abeb8b2a076121d973fcd459c9d044e339beb1ad0f4429b3fcac"  # Observed independently in GitHub Actions; fail closed on change.
 
 
 def _peer_cert_sha256(host: str = "erddap.incois.gov.in", port: int = 443) -> str:
