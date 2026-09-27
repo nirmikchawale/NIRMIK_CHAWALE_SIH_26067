@@ -99,6 +99,57 @@ CONNECTORS: list[dict[str, Any]] = [
         "wms_url": "https://erddap.incois.gov.in/erddap/wms/IRS_chlorophyll_datasets/request",
         "wcs_url": "https://erddap.incois.gov.in/erddap/wcs/IRS_chlorophyll_datasets/request",
     },
+    {
+        "id": "ocean-gliders-gdac",
+        "adapter": "glider_profile",
+        "kind": "remote_observation",
+        "provider": "OceanGliders / Ifremer",
+        "title": "OceanGliders GDAC profile observations",
+        "role": "Autonomous glider trajectory/profile source for geospatial depth-variable overlays.",
+        "variables": ["temperature", "salinity", "pressure/depth", "time", "platform metadata"],
+        "protocols": ["ERDDAP", "NetCDF", "GDAC"],
+        "standards": ["EGO/OG1-style NetCDF", "CF-style coordinates"],
+        "runtime": "remote-optional/import",
+        "official": True,
+        "source_url": "https://nrt.cmems-du.eu/erddap/index.html",
+        "opendap_url": "https://nrt.cmems-du.eu/erddap/",
+        "wms_url": None,
+        "wcs_url": None,
+    },
+    {
+        "id": "incois-ctd-holdings",
+        "adapter": "ctd_profile",
+        "kind": "provider_export_observation",
+        "provider": "INCOIS",
+        "title": "INCOIS CTD / XCTD profile holdings",
+        "role": "Sponsor-native conductivity/temperature/depth observations imported from authorised INCOIS exports.",
+        "variables": ["temperature", "salinity/conductivity", "pressure/depth", "time", "station metadata"],
+        "protocols": ["INCOIS portal export", "NetCDF", "ASCII/delimited text"],
+        "standards": ["canonical profile contract", "CF-aware NetCDF import"],
+        "runtime": "provider-export/import",
+        "official": True,
+        "source_url": "https://incois.gov.in/site/dataholdings.jsp",
+        "opendap_url": None,
+        "wms_url": None,
+        "wcs_url": None,
+    },
+    {
+        "id": "bgc-argo-gdac",
+        "adapter": "bgc_argo_profile",
+        "kind": "remote_observation",
+        "provider": "Argo GDAC / Ifremer",
+        "title": "BGC-Argo synthetic profiles",
+        "role": "Biogeochemical profile pathway for chlorophyll, oxygen, nitrate, pH and optical variables.",
+        "variables": ["CHLA", "DOXY", "NITRATE", "PH_IN_SITU_TOTAL", "BBP", "temperature", "salinity", "pressure"],
+        "protocols": ["Argo GDAC", "NetCDF", "S-profile index"],
+        "standards": ["Argo BGC S-profile", "CF-NetCDF source"],
+        "runtime": "remote-optional/import",
+        "official": True,
+        "source_url": "https://data-argo.ifremer.fr/",
+        "opendap_url": None,
+        "wms_url": None,
+        "wcs_url": None,
+    }
 ]
 
 ADAPTER_CONTRACTS: dict[str, dict[str, Any]] = {
@@ -125,6 +176,24 @@ ADAPTER_CONTRACTS: dict[str, dict[str, Any]] = {
         "required_coordinates": ["time", "latitude", "longitude"],
         "output": "canonical remote observation table descriptor + query template",
     },
+    "glider_profile": {
+        "input": ["OceanGliders/EGO NetCDF", "canonical delimited profile"],
+        "required_coordinates": ["longitude", "latitude", "time", "pressure/depth"],
+        "required_metadata": ["platform/deployment id", "units", "source provenance"],
+        "output": "canonical geospatial glider profile + depth-variable series",
+    },
+    "ctd_profile": {
+        "input": ["CTD/XCTD NetCDF", "ASCII/delimited provider export"],
+        "required_coordinates": ["longitude", "latitude", "time", "pressure/depth"],
+        "required_metadata": ["station/platform id", "units", "source provenance"],
+        "output": "canonical geospatial CTD profile + depth-variable series",
+    },
+    "bgc_argo_profile": {
+        "input": ["BGC-Argo S-profile NetCDF", "canonical delimited profile"],
+        "required_coordinates": ["longitude", "latitude", "time", "pressure/depth"],
+        "required_metadata": ["platform id", "parameter QC", "units", "source provenance"],
+        "output": "canonical geospatial BGC profile + depth-variable series",
+    }
 }
 
 

@@ -394,3 +394,34 @@ export interface IncoisOperationalSnapshot {
     source_values_modified: false;
   };
 }
+
+
+export type ImportedSensorType = "argo" | "glider" | "ctd" | "bgc" | "other";
+
+export interface ImportedObservationRecord {
+  longitude: number;
+  latitude: number;
+  depth_m: number;
+  timestamp: string;
+  variable: string;
+  value: number;
+  units: string;
+  source: string;
+  platform_id: string;
+  sensor_type: ImportedSensorType;
+  qc_flag?: string;
+  dataset_id?: string;
+}
+
+export interface ImportedObservationProfile {
+  id: string;
+  platform_id: string;
+  sensor_type: ImportedSensorType;
+  longitude: number;
+  latitude: number;
+  timestamp: string;
+  source: string;
+  dataset_id?: string;
+  variables: string[];
+  records: ImportedObservationRecord[];
+}
