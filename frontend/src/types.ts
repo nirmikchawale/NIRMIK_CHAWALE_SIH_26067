@@ -5,7 +5,7 @@ export type ColorPalette = "thermal" | "viridis" | "icefire";
 export type ColorScaleMode = "linear" | "log";
 
 export interface VariableCard {
-  id: "thetao" | "so" | "currents";
+  id: "thetao" | "so" | "currents" | "chlorophyll";
   label: string;
   kind: VariableKind;
   units: string;
@@ -46,6 +46,8 @@ export interface Catalog {
     argo_profiles: boolean;
     offline_scientific_data: boolean;
     streamlit_fallback: boolean;
+    surface_only?: boolean;
+    biogeochemical_field?: boolean;
   };
   scientific_disclaimer: string;
 }
@@ -406,6 +408,51 @@ export interface IncoisOperationalSnapshot {
     genuine_time_count: number;
     genuine_depth_count: number;
     synthetic_timestamps: false;
+    source_values_modified: false;
+  };
+}
+
+
+export interface IncoisChlorophyllRecord {
+  time: string;
+  latitude: number;
+  longitude: number;
+  chlorophyll_mg_m3: number;
+}
+
+export interface IncoisChlorophyllSnapshot {
+  schema: "oceantwin-incois-chlorophyll-v1";
+  source: {
+    provider: "INCOIS";
+    dataset_id: string;
+    title: string;
+    service: string;
+    query_url: string;
+    official_metadata: string;
+    conventions: string[];
+    runtime_policy: string;
+  };
+  coverage: {
+    times: string[];
+    latitudes: number[];
+    longitudes: number[];
+    surface_only: true;
+  };
+  variable: {
+    source_name: "CHLOROPHYLL";
+    label: string;
+    standard_name: string;
+    units: string;
+    minimum: number;
+    maximum: number;
+  };
+  records: IncoisChlorophyllRecord[];
+  record_count: number;
+  integrity: {
+    genuine_time_count: number;
+    surface_only: true;
+    synthetic_timestamps: false;
+    synthetic_depths: false;
     source_values_modified: false;
   };
 }
