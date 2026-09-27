@@ -1,9 +1,13 @@
 import { gradientCss, paletteLabel } from "../colorScale";
+import type { ScientificSourceMode } from "../incois";
 import type { Catalog, ColorPaletteId, ColorScaleMode, ColorTransfer, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
+  sourceMode: ScientificSourceMode;
+  sourceStatus: "idle" | "connecting" | "ready" | "error";
+  sourceError: string;
   variable: "thetao" | "so" | "currents";
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
@@ -16,6 +20,7 @@ interface Props {
   playing: boolean;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onSourceModeChange: (value: ScientificSourceMode) => void | Promise<void>;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
@@ -34,6 +39,9 @@ interface Props {
 export function ControlPanel({
   catalog,
   profiles,
+  sourceMode,
+  sourceStatus,
+  sourceError,
   variable,
   viewMode,
   visualizationMode,
@@ -46,6 +54,7 @@ export function ControlPanel({
   playing,
   mobileOpen,
   onMobileClose,
+  onSourceModeChange,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
@@ -79,6 +88,38 @@ export function ControlPanel({
           Close
         </button>
       </div>
+      <section className="source-mode-section">
+        <div className="section-kicker">Scientific source</div>
+        <div className="source-mode-switcher" aria-label="Scientific data source">
+          <button
+            type="button"
+            className={sourceMode === "copernicus" ? "active" : ""}
+            aria-pressed={sourceMode === "copernicus"}
+            onClick={() => onSourceModeChange("copernicus")}
+          >
+            <strong>Copernicus Verified</strong>
+            <small>Offline GLORYS12V1 · deterministic</small>
+          </button>
+          <button
+            type="button"
+            className={sourceMode === "incois" ? "active" : ""}
+            aria-pressed={sourceMode === "incois"}
+            disabled={sourceStatus === "connecting"}
+            onClick={() => onSourceModeChange("incois")}
+          >
+            <strong>{sourceStatus === "connecting" ? "Connecting INCOIS…" : "INCOIS Live"}</strong>
+            <small>Official ERDDAP · OPeNDAP · multi-time</small>
+          </button>
+        </div>
+        <p className={`microcopy ${sourceStatus === "error" ? "warning" : ""}`}>
+          {sourceMode === "incois"
+            ? "Operational TEMP/SAL objective-analysis fields are loaded directly from INCOIS. The verified Copernicus source remains one click away."
+            : sourceStatus === "error"
+              ? `INCOIS live probe failed: ${sourceError || "external service unavailable"}. Verified Copernicus data remains active.`
+              : "Switch to INCOIS Live for genuine multi-time Indian Ocean operational-source data."}
+        </p>
+      </section>
+
       <section>
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher" aria-label="Ocean variable">
@@ -359,8 +400,17 @@ export function ControlPanel({
         <strong>{catalog.dataset.label}</strong>
         <span>{catalog.dataset.product}</span>
         <div className="badges">
-          <span className="badge">REANALYSIS</span>
-          <span className="badge success">CACHED VERIFIED</span>
+          {sourceMode === "incois" ? (
+            <>
+              <span className="badge success">INCOIS LIVE</span>
+              <span className="badge">ERDDAP / OPeNDAP</span>
+            </>
+          ) : (
+            <>
+              <span className="badge">REANALYSIS</span>
+              <span className="badge success">CACHED VERIFIED</span>
+            </>
+          )}
         </div>
         <small>{catalog.dataset.region}</small>
       </section>
