@@ -89,7 +89,7 @@ CONNECTORS: list[dict[str, Any]] = [
         "title": "IRS P4 OCM Chlorophyll",
         "role": "INCOIS-native biogeochemical/ocean-colour interoperability example.",
         "variables": ["CHLOROPHYLL"],
-        "protocols": ["ERDDAP", "OPeNDAP", "WMS", "WCS", "REST"],
+        "protocols": ["ERDDAP", "OPeNDAP", "WMS", "REST"],
         "standards": ["CF-1.6", "COARDS", "OGC WMS", "OPeNDAP"],
         "runtime": "remote-optional",
         "official": True,

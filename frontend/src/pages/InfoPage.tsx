@@ -32,10 +32,11 @@ export function InfoPage({ catalog, provenance }: Props) {
           <div className="section-kicker">SIH26067 · SCIENCE & SYSTEM</div>
           <h2>From ocean data to an explainable 3D digital-twin workspace.</h2>
           <p>
-            OceanTwin turns a verified ocean-model extract and matched Argo observations into an
-            interactive water-column explorer. The goal is not to decorate a globe: it is to make
-            depth-dependent ocean structure, currents, model–observation differences and unusual
-            values inspectable without hiding provenance or inventing missing evidence.
+            OceanTwin combines a verified GLORYS–Argo comparison baseline with genuine INCOIS
+            multi-time fields, INCOIS satellite chlorophyll, and sourced Glider/CTD/BGC observations
+            in an interactive browser-native ocean workspace. The goal is not to decorate a globe:
+            it is to make depth-dependent structure, horizontal currents, model–observation differences,
+            biogeochemical evidence and provenance inspectable without inventing missing evidence.
           </p>
         </div>
         <aside className="info-mission-card">
@@ -85,20 +86,20 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span className="info-icon"><Icon name="globe" /></span>
           <strong>Cesium Globe</strong>
-          <p>Geospatial context, exact selected depth, scalar fields, Argo positions and horizontal currents.</p>
+          <p>Geospatial context for temperature, salinity, depth-resolved horizontal currents, Argo and imported sensor profiles, plus surface INCOIS chlorophyll.</p>
           <em>MODE 1 · ONLINE HD + OFFLINE FALLBACK</em>
         </article>
         <article>
           <span className="info-icon"><Icon name="column" /></span>
           <strong>Water-Column 3D</strong>
-          <p>Actual lon/lat/depth/value points with positive-down depth, orbit, zoom, opacity and cosmetic vertical exaggeration.</p>
-          <em>MODE 2 · SCIENTIFIC 3D</em>
+          <p>Actual lon/lat/depth/value points, scalar isosurfaces, and genuine horizontal u/v vectors across the water column; no vertical current is invented.</p>
+          <em>MODE 2 · SCIENTIFIC 3D · DEPTH-PRESERVING</em>
         </article>
         <article>
           <span className="info-icon"><Icon name="screen" /></span>
-          <strong>Depth & telemetry</strong>
-          <p>Full-grid finite-cell depth statistics, selected-depth distributions and horizontal-current summaries.</p>
-          <em>{depths.length} VERIFIED DEPTH LEVELS</em>
+          <strong>Depth, time & telemetry</strong>
+          <p>Depth slices, full-column statistics, genuine INCOIS multi-time playback, selected-depth distributions and current summaries.</p>
+          <em>{depths.length} GLORYS DEPTH LEVELS + GENUINE INCOIS TIME</em>
         </article>
         <article>
           <span className="info-icon"><Icon name="evidence" /></span>
@@ -115,8 +116,20 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span className="info-icon"><Icon name="shield" /></span>
           <strong>Guarded Data Lab</strong>
-          <p>Local CSV/JSON validation for coordinates, depth convention, timestamps, units, provenance, duplicates and missingness.</p>
-          <em>FAIL-CLOSED VALIDATION</em>
+          <p>Browser NetCDF/CF inspection plus CSV, TSV/ASCII and JSON validation; accepted observation profiles can become temporary 3D Explorer layers.</p>
+          <em>FAIL-CLOSED INGESTION · LOCAL FILE BYTES</em>
+        </article>
+        <article>
+          <span className="info-icon"><Icon name="evidence" /></span>
+          <strong>Multi-sensor overlays</strong>
+          <p>Genuine Glider, standalone CTD and BGC profile evidence uses one canonical plugin path with clickable geospatial markers and depth profiles.</p>
+          <em>ARGO · GLIDER · CTD · BGC</em>
+        </article>
+        <article>
+          <span className="info-icon"><Icon name="pipeline" /></span>
+          <strong>Open interoperability</strong>
+          <p>Discoverable adapters expose REST, verified INCOIS OPeNDAP DAP2, WMS pathways and OceanTwin WMS/WCS compatibility services with CF-style metadata.</p>
+          <em>REST · OPeNDAP · WMS · WCS · CF</em>
         </article>
       </section>
 
@@ -131,25 +144,25 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span>01</span>
           <strong>Verified sources</strong>
-          <p>Copernicus Marine GLORYS12V1 model evidence + Argo in-situ comparison evidence.</p>
+          <p>Copernicus Marine GLORYS12V1 + Argo, build-verified INCOIS physical/chlorophyll sources, and genuine Glider/CTD/BGC observation packs.</p>
         </article>
         <i>→</i>
         <article>
           <span>02</span>
           <strong>Scientific core</strong>
-          <p>Python/FastAPI contracts expose fields, volumes, currents, telemetry, comparisons, anomalies and provenance.</p>
+          <p>Python/FastAPI contracts expose fields, scalar/current volumes, telemetry, comparisons, anomalies, provenance and OGC WMS/WCS interoperability.</p>
         </article>
         <i>→</i>
         <article>
           <span>03</span>
           <strong>Static fail-safe</strong>
-          <p>Canonical API outputs are exported as immutable JSON so the hosted MVP still works without a runtime science server.</p>
+          <p>Canonical API outputs and build-verified external evidence are exported as static artifacts; OPeNDAP endpoint checks fail closed before deployment.</p>
         </article>
         <i>→</i>
         <article>
           <span>04</span>
           <strong>Interactive React UI</strong>
-          <p>React + Cesium present the same evidence across 3D, telemetry, comparison, screening and data-validation workspaces.</p>
+          <p>React + Cesium present the same evidence across 3D, genuine time playback, multi-sensor inspection, comparison, screening and ingestion workspaces.</p>
         </article>
       </section>
 
@@ -192,7 +205,7 @@ export function InfoPage({ catalog, provenance }: Props) {
           </div>
         </div>
         <div className="info-integrity-grid">
-          <article><strong>No synthetic timestamps</strong><p>Only {timestamps.length} genuine bundled model timestamp{timestamps.length === 1 ? "" : "s"} exist, so temporal trend/anomaly views remain locked when evidence is insufficient.</p></article>
+          <article><strong>No synthetic timestamps</strong><p>The GLORYS comparison baseline remains limited to its {timestamps.length} genuine bundled timestamp{timestamps.length === 1 ? "" : "s"}; separate INCOIS sources provide genuine multi-time playback instead of duplicated fields.</p></article>
           <article><strong>No depth sign ambiguity</strong><p>Scientific depth is metres positive downward. Visual exaggeration changes screen geometry only.</p></article>
           <article><strong>No black-box anomaly claim</strong><p>Flags are statistical extremes using an explicit robust rule; they do not prove an ocean event, sensor fault or forecast failure.</p></article>
           <article><strong>No hidden validation claim</strong><p>Argo comparisons are diagnostic collocations for this evidence window, not a global or independent validation of the model.</p></article>
@@ -205,11 +218,11 @@ export function InfoPage({ catalog, provenance }: Props) {
           <h3>Show the science in five moves.</h3>
         </div>
         <ol>
-          <li><strong>Explore</strong><span>Switch Cesium Globe ↔ Water-Column 3D; change depth and inspect actual values.</span></li>
-          <li><strong>Telemetry</strong><span>Show how temperature/salinity structure changes through the verified depth levels.</span></li>
+          <li><strong>Explore</strong><span>Switch GLORYS ↔ INCOIS multi-time ↔ INCOIS chlorophyll; then move Geographic View ↔ Water Column 3D where the source genuinely has depth.</span></li>
+          <li><strong>3D evidence</strong><span>Show scalar isosurfaces or the full-depth horizontal-current volume, then inspect genuine Glider/CTD/BGC profiles.</span></li>
           <li><strong>Compare</strong><span>Open an Argo profile and explain model − observation residuals and collocation metrics.</span></li>
           <li><strong>Screen</strong><span>Use explainable anomaly flags and point out that temporal screening is guarded by evidence availability.</span></li>
-          <li><strong>Verify</strong><span>Open provenance/Data Lab to show traceability, offline fail-safe and validation rules.</span></li>
+          <li><strong>Verify</strong><span>Open provenance/Data Lab to show NetCDF ingestion, plugin/source registry, OPeNDAP/WMS/WCS evidence and the offline/static fail-safe.</span></li>
         </ol>
       </section>
 
