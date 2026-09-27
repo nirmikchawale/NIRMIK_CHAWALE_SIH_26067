@@ -1044,7 +1044,7 @@ export function OceanGlobe({
           HD canvas ×{renderScale.toFixed(2)} · {antialiasing}
         </small>
       </div>
-      {importedProfiles.length > 0 && (
+      {importedProfiles.length > 0 && !selectedImportedProfileId && (
         <div className="globe-overlay imported-observation-chips" aria-label="Imported instrument profiles">
           <span>SESSION INSTRUMENTS</span>
           <div>
