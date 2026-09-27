@@ -236,7 +236,6 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
   await expect(page.locator(".profile-panel")).toHaveCount(0);
-  await expect(page.getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
 
   const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
   await expect(modeDock).toBeVisible();
@@ -328,6 +327,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".profile-panel")).toContainText("Argo");
   await expect(page.locator(".profile-panel")).toContainText("Matched levels");
   await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
+  await expect(page.getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
   await expect(page.locator(".qc-pill")).toHaveText("QC ACCEPTED");
 
   await page.getByRole("button", { name: "Sources & QC" }).click();
