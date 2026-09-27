@@ -2401,3 +2401,171 @@
     }
   }
 }
+
+
+/* Final MVP major redesign — Phase 4 progressive disclosure and contextual inspector. */
+.advanced-control-group {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(49, 96, 117, .58);
+  border-radius: 10px;
+  background: rgba(5, 24, 35, .58);
+}
+
+.advanced-control-group > summary {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 9px 34px 9px 10px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.advanced-control-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-control-group > summary::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-50%);
+  color: #61d3e8;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.advanced-control-group[open] > summary::after {
+  content: "−";
+}
+
+.advanced-control-group > summary span {
+  color: #ccecf3;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.advanced-control-group > summary small {
+  color: #6d91a1;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+.advanced-control-group > summary:hover,
+.advanced-control-group > summary:focus-visible {
+  background: rgba(14, 53, 69, .65);
+}
+
+.advanced-control-group > summary:focus-visible {
+  outline: 2px solid var(--ot-focus);
+  outline-offset: -2px;
+}
+
+.advanced-control-body {
+  padding: 10px;
+  border-top: 1px solid rgba(49, 96, 117, .48);
+}
+
+.advanced-control-body .visualization-kicker {
+  margin-top: 0;
+}
+
+.desktop-profile-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #315d70;
+  border-radius: 8px;
+  color: #a8d2dc;
+  background: rgba(6, 31, 43, .92);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.desktop-profile-close:hover,
+.desktop-profile-close:focus-visible {
+  border-color: #61d6eb;
+  color: #effcff;
+  background: #0c394c;
+}
+
+.desktop-profile-close:focus-visible {
+  outline: 2px solid var(--ot-focus);
+  outline-offset: 2px;
+}
+
+@media (min-width: 761px) {
+  .profile-panel[data-context-open="false"] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(24px);
+    transition:
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      transform var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear var(--ot-motion-standard);
+  }
+
+  .profile-panel[data-context-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition:
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      transform var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear 0s;
+  }
+}
+
+:root[data-theme="light"] .advanced-control-group {
+  border-color: #c6d9e1;
+  background: rgba(247, 251, 252, .86);
+}
+
+:root[data-theme="light"] .advanced-control-group > summary span {
+  color: #214c5f;
+}
+
+:root[data-theme="light"] .advanced-control-group > summary small {
+  color: #627f8d;
+}
+
+:root[data-theme="light"] .advanced-control-group > summary:hover,
+:root[data-theme="light"] .advanced-control-group > summary:focus-visible {
+  background: #edf7f9;
+}
+
+:root[data-theme="light"] .advanced-control-body {
+  border-top-color: #cfdee4;
+}
+
+:root[data-theme="light"] .desktop-profile-close {
+  border-color: #bfd4dc;
+  color: #426b7c;
+  background: rgba(249, 252, 253, .96);
+}
+
+@media (max-width: 760px) {
+  .desktop-profile-close {
+    display: none;
+  }
+
+  .advanced-control-group {
+    margin-top: 14px;
+  }
+
+  .advanced-control-group > summary {
+    min-height: 48px;
+  }
+}
