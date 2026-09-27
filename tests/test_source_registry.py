@@ -26,6 +26,14 @@ def test_registry_has_unique_real_adapters_and_incois_open_standards():
     assert grid["depth_count"] > 1
 
 
+    adapters = {item["adapter"] for item in connectors}
+    assert {"glider_profile", "ctd_profile", "bgc_argo_profile"} <= adapters
+    providers = {item["provider"] for item in connectors}
+    assert "OceanGliders / Ifremer" in providers
+    assert "INCOIS" in providers
+    assert any(item["id"] == "bgc-argo-gdac" for item in connectors)
+
+
 def test_bundled_model_passes_generic_cf_style_inspection():
     report = inspect_cf_netcdf(MODEL_FILE)
     assert report["cf_ready"] is True
