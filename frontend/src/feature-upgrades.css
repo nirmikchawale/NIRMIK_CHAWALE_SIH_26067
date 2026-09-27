@@ -4295,7 +4295,8 @@ select:hover,
 
 .imported-observation-chips {
   left: 290px;
-  bottom: 64px;
+  bottom: 300px;
+  z-index: 19;
   display: grid;
   gap: 7px;
   max-width: min(520px, calc(100% - 680px));
@@ -4349,15 +4350,17 @@ select:hover,
   .imported-observation-chips {
     left: 266px;
     right: 326px;
+    bottom: 300px;
     max-width: none;
   }
 }
 
 @media (max-width: 760px) {
   .imported-observation-chips {
-    left: 12px;
+    top: 190px;
     right: 12px;
-    bottom: 82px;
+    bottom: auto;
+    left: 12px;
     max-width: none;
   }
 }
