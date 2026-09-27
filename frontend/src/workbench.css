@@ -55,8 +55,8 @@
 .ocean-workbench .advanced-control-group { background: var(--wb-bg); border-color: var(--wb-line); border-radius: 6px; }
 .ocean-workbench .advanced-control-group summary { padding: 12px; }
 .ocean-workbench .advanced-control-body { padding: 14px 10px; }
-.ocean-workbench .visualization-stage { left: var(--wb-left); right: var(--wb-right); top: 154px; bottom: 0; background: var(--wb-bg); }
-.ocean-workbench .visualization-dock { top: 0 !important; left: var(--wb-left) !important; right: var(--wb-right) !important; width: auto !important; min-width: 0; height: 154px; transform: none; padding: 14px 20px !important; display: grid !important; grid-template-columns: minmax(0,1fr); gap: 8px; border: 0 !important; border-bottom: 1px solid var(--wb-line) !important; border-radius: 0 !important; background: var(--wb-panel) !important; box-shadow: none; backdrop-filter: none; }
+.ocean-workbench .visualization-stage { left: var(--wb-left); right: var(--wb-right); top: 116px; bottom: 0; background: var(--wb-bg); }
+.ocean-workbench .visualization-dock { top: 0 !important; left: var(--wb-left) !important; right: var(--wb-right) !important; width: auto !important; min-width: 0; height: 116px; transform: none; padding: 10px 20px !important; display: grid !important; grid-template-columns: minmax(0,1fr); gap: 6px; border: 0 !important; border-bottom: 1px solid var(--wb-line) !important; border-radius: 0 !important; background: var(--wb-panel) !important; box-shadow: none; backdrop-filter: none; }
 .ocean-workbench .visualization-dock-copy { display: none; }
 .ocean-workbench .visualization-dock-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
 .ocean-workbench .visualization-dock-modes button { min-width: 0; width: auto; height: 48px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: var(--wb-muted); background: var(--wb-bg); border: 1px solid var(--wb-line); border-radius: 6px; box-shadow: none; transform: none; }
@@ -97,9 +97,9 @@
 .ocean-workbench .profile-panel { z-index: 22; top: 0; right: 0; bottom: 0; width: min(360px,100%); border-radius: 0; background: var(--wb-panel); border-color: var(--wb-line); }
 /* Canvas overlays are relative to the canvas, never to the whole workspace. */
 .ocean-workbench .visualization-stage .globe-shell { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
-.ocean-workbench .top-left { top: 14px; left: 14px; right: auto; width: auto; max-width: calc(100% - 28px); }
+.ocean-workbench .top-left { top: 14px !important; bottom: auto; left: 14px; right: auto; width: auto; max-width: calc(100% - 28px); }
 .ocean-workbench .judge-summary,.ocean-workbench .depth-indicator,.ocean-workbench .render-quality-line { display: none; }
-.ocean-workbench .imagery-control { left: 14px; right: auto; top: 14px; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
+.ocean-workbench .imagery-control { display: grid; left: 14px; right: auto; top: 14px !important; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
 .ocean-workbench .imagery-control > span,.ocean-workbench .imagery-control > small { display: none; }
 .ocean-workbench .imagery-control > strong { font-size: 11px; }
 .ocean-workbench .imagery-control button { min-height: 32px; font-size: 11px; }
@@ -107,7 +107,7 @@
 .ocean-workbench .camera-control-stack > small,.ocean-workbench .camera-control-stack > span { display: none; }
 .ocean-workbench .camera-control-stack button { min-height: 34px; }
 .ocean-workbench .camera-control-stack button strong { font-size: 11px; }
-.ocean-workbench .study-region-entry { top: 14px; right: 14px; left: auto; bottom: auto; width: 190px; min-height: 65px; padding: 10px; transform: none; }
+.ocean-workbench .study-region-entry { top: 14px; right: 14px; left: auto; bottom: auto; width: 190px; min-width: 0; min-height: 65px; padding: 10px; transform: none; }
 .ocean-workbench .study-region-entry strong { font-size: 13px; }
 .ocean-workbench .study-region-entry small { display: none; }
 .ocean-workbench .legend-card,.ocean-workbench .water-column-legend { right: 14px; left: auto; bottom: 64px; width: 190px; transform: none; }
@@ -116,8 +116,10 @@
 .ocean-workbench .water-column-summary { max-width: calc(100% - 155px); }
 .ocean-workbench .water-column-summary strong { font-size: 11px; }
 .ocean-workbench .water-column-summary span,.ocean-workbench .water-column-summary small { font-size: 11px; }
-.ocean-workbench .water-column-selected { top: 14px; right: 14px; left: auto; width: 118px; }
-.ocean-workbench .water-column-axis-key { left: 14px; right: 14px; bottom: 58px; max-width: none; width: auto; transform: none; }
+.ocean-workbench .water-column-selected { top: 14px !important; bottom: auto; right: 14px; left: auto; width: 118px; min-width: 0; }
+.ocean-workbench .water-column-axis-key { top: auto; left: 14px; right: 14px; bottom: 48px; max-width: none; width: auto; transform: none; padding: 7px 10px; }
+.ocean-workbench .water-column-axis-key strong { font-size: 11px; }
+.ocean-workbench .water-column-axis-key > span { display: none; }
 .ocean-workbench .water-column-axis-key small { display: none; }
 .ocean-workbench .water-column-smooth-zoom { left: 14px; right: auto; bottom: 106px; width: 145px; }
 .ocean-workbench .water-column-smooth-zoom small { display: none; }
