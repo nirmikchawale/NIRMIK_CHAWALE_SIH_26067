@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { api } from "./api";
+import { api, fetchVerifiedObservationPack } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
@@ -20,7 +20,8 @@ import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import {
   IMPORTED_OBSERVATIONS_EVENT,
   groupImportedObservationProfiles,
-  readImportedObservationRecords
+  readImportedObservationRecords,
+  sanitizeImportedObservationRecords
 } from "./observationSession";
 import type {
   Catalog,
@@ -65,9 +66,16 @@ export default function App() {
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
-  const [importedProfiles, setImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
+  const [sessionImportedProfiles, setSessionImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
     groupImportedObservationProfiles(readImportedObservationRecords())
   );
+  const [verifiedObservationProfiles, setVerifiedObservationProfiles] = useState<ImportedObservationProfile[]>([]);
+  const importedProfiles = useMemo(() => {
+    const profilesById = new Map<string, ImportedObservationProfile>();
+    for (const profile of verifiedObservationProfiles) profilesById.set(profile.id, profile);
+    for (const profile of sessionImportedProfiles) profilesById.set(profile.id, profile);
+    return [...profilesById.values()];
+  }, [verifiedObservationProfiles, sessionImportedProfiles]);
   const [selectedImportedProfileId, setSelectedImportedProfileId] = useState("");
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
@@ -136,10 +144,7 @@ export default function App() {
   useEffect(() => {
     const syncImportedProfiles = () => {
       const next = groupImportedObservationProfiles(readImportedObservationRecords());
-      setImportedProfiles(next);
-      setSelectedImportedProfileId((current) =>
-        current && next.some((profile) => profile.id === current) ? current : ""
-      );
+      setSessionImportedProfiles(next);
     };
     window.addEventListener(IMPORTED_OBSERVATIONS_EVENT, syncImportedProfiles);
     window.addEventListener("storage", syncImportedProfiles);
@@ -149,6 +154,47 @@ export default function App() {
       window.removeEventListener("storage", syncImportedProfiles);
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchVerifiedObservationPack()
+      .then((payload) => {
+        if (cancelled) return;
+        if (
+          payload.integrity.synthetic_measurements ||
+          payload.integrity.synthetic_timestamps ||
+          payload.integrity.provider_values_modified
+        ) {
+          throw new Error("Verified observation pack failed scientific-integrity policy.");
+        }
+        const records = sanitizeImportedObservationRecords(payload.records);
+        const next = groupImportedObservationProfiles(records);
+        const sensorTypes = new Set(next.map((profile) => profile.sensor_type));
+        if (!["glider", "ctd", "bgc"].every((sensor) => sensorTypes.has(sensor as "glider" | "ctd" | "bgc"))) {
+          throw new Error("Verified observation pack is missing Glider, CTD or BGC evidence.");
+        }
+        setVerifiedObservationProfiles(next);
+      })
+      .catch((reason: Error) => {
+        if (cancelled) return;
+        setVerifiedObservationProfiles([]);
+        setDegradedWarnings((current) =>
+          current.includes("Verified Glider/CTD/BGC evidence unavailable")
+            ? current
+            : [...current, "Verified Glider/CTD/BGC evidence unavailable"]
+        );
+        console.warn(reason);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setSelectedImportedProfileId((current) =>
+      current && importedProfiles.some((profile) => profile.id === current) ? current : ""
+    );
+  }, [importedProfiles]);
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
