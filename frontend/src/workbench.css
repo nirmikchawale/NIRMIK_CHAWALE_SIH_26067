@@ -20,7 +20,7 @@
   --wb-accent: #076b80;
 }
 .ocean-workbench { grid-template-rows: 72px minmax(0,1fr) 36px; background: var(--wb-bg); color: var(--wb-text); }
-.ocean-workbench .app-header { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 24px; }
+.ocean-workbench .app-header { position: relative; z-index: 50; background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 24px; }
 .ocean-workbench .brand p { color: var(--wb-muted); font-size: 12px; }
 .ocean-workbench .brand h1 { font-size: 22px; }
 .ocean-workbench .header-status { gap: 10px; }
