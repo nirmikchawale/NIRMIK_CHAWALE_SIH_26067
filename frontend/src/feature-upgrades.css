@@ -4291,3 +4291,73 @@ select:hover,
 :root[data-theme="light"] .imported-variable-tabs button.active {
   color: #143f50;
 }
+
+
+.imported-observation-chips {
+  left: 290px;
+  bottom: 64px;
+  display: grid;
+  gap: 7px;
+  max-width: min(520px, calc(100% - 680px));
+  padding: 8px 9px;
+}
+
+.imported-observation-chips > span {
+  color: #6fdcf2;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.imported-observation-chips > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.imported-observation-chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid #28566b;
+  border-radius: 999px;
+  color: #91afbf;
+  background: rgba(8, 32, 46, .92);
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.imported-observation-chips button strong {
+  color: #d8f5fb;
+  font-size: 7px;
+  letter-spacing: .08em;
+}
+
+.imported-observation-chips button.active {
+  border-color: #66dcef;
+  color: #f1fbff;
+  background: rgba(17, 64, 82, .96);
+}
+
+.focus-mode .imported-observation-chips {
+  left: 14px;
+  max-width: min(520px, calc(100% - 28px));
+}
+
+@media (max-width: 1150px) and (min-width: 761px) {
+  .imported-observation-chips {
+    left: 266px;
+    right: 326px;
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .imported-observation-chips {
+    left: 12px;
+    right: 12px;
+    bottom: 82px;
+    max-width: none;
+  }
+}
