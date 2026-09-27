@@ -125,7 +125,7 @@
 .evidence-status-pill {
   position: absolute;
   z-index: 24;
-  top: 130px;
+  top: 204px;
   right: 14px;
   display: grid;
   gap: 2px;
@@ -172,6 +172,16 @@
 .ocean-workbench .top-left { top: 14px !important; bottom: auto; left: 14px; right: auto; width: auto; max-width: calc(100% - 28px); }
 .ocean-workbench .judge-summary,.ocean-workbench .depth-indicator,.ocean-workbench .render-quality-line { display: none; }
 .ocean-workbench .imagery-control { display: grid; left: 14px; right: auto; top: 14px !important; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
+.ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover {
+  left: calc(var(--wb-control-width) + 28px);
+}
+.ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+  left: calc(var(--wb-control-width) + 28px);
+}
+
 .ocean-workbench .imagery-control > span,.ocean-workbench .imagery-control > small { display: none; }
 .ocean-workbench .imagery-control > strong { font-size: 11px; }
 .ocean-workbench .imagery-control button { min-height: 32px; font-size: 11px; }
@@ -362,4 +372,15 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .ocean-workbench *, .ocean-workbench *::before, .ocean-workbench *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+@media (max-width: 760px) {
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
+    left: 10px;
+  }
+  .evidence-status-pill { top: 204px; }
 }
