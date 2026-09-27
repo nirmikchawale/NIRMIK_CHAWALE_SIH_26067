@@ -65,6 +65,7 @@ interface Props {
   colorScale: ColorScaleMode;
   colorMinimum: number;
   colorMaximum: number;
+  presentationActive: boolean;
   onSelectProfile: (profileId: string) => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
@@ -110,6 +111,7 @@ export function OceanGlobe({
   colorScale,
   colorMinimum,
   colorMaximum,
+  presentationActive,
   onSelectProfile,
   onSelectImportedProfile,
   onEnterWaterColumn
@@ -345,6 +347,28 @@ export function OceanGlobe({
       viewerRef.current = null;
     };
   }, [onSelectProfile, onSelectImportedProfile]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!presentationActive || !viewer || viewer.isDestroyed()) return;
+
+    regionEntryArmedRef.current = false;
+    setRegionEntryArmed(false);
+    setInspection(null);
+    viewer.camera.cancelFlight();
+
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    viewer.camera.flyTo({
+      destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
+      duration: reducedMotion ? 0 : 1.15,
+      complete: () => {
+        if (!viewer.isDestroyed()) setCameraHeight(viewer.camera.positionCartographic.height);
+      },
+      cancel: () => {
+        if (!viewer.isDestroyed()) setCameraHeight(viewer.camera.positionCartographic.height);
+      }
+    });
+  }, [presentationActive]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
