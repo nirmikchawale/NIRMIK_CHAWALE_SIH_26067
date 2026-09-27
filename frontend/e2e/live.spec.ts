@@ -214,7 +214,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page).toHaveURL(/#\/explore$/);
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  const globeShell = page.locator(".globe-shell");
+  const globeShell = page.locator(".globe-shell:not(.water-column-shell)");
   await expect(globeShell).toHaveAttribute("data-render-quality", "high");
   await expect.poll(async () => Number(await globeShell.getAttribute("data-render-scale"))).toBeGreaterThanOrEqual(1.5);
   await expect(globeShell).toHaveAttribute("data-antialiasing", /MSAA|FXAA/);
@@ -236,11 +236,8 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Zoom in Cesium Globe" }).click();
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
 
-  const playButton = page.locator(".play-button");
-  await expect(playButton).toBeDisabled();
-  await expect(
-    page.getByText("Playback is intentionally disabled—no synthetic second timestamp is created.")
-  ).toBeVisible();
+  await expect(page.locator(".play-button")).toHaveCount(0);
+  await expect(page.locator(".static-time-row")).toContainText("Verified model timestamp · static snapshot");
 
   await page.getByRole("button", { name: /Salinity/i }).click();
   await expect(page.locator(".legend-card")).toContainText("Salinity");
