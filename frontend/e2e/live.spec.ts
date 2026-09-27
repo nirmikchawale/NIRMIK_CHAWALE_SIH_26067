@@ -278,7 +278,12 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
   await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialWaterZoom);
 
+  const viewSettings = page.locator(".advanced-control-group");
+  if (!(await viewSettings.getAttribute("open"))) {
+    await viewSettings.locator("summary").click();
+  }
   const opacitySlider = page.getByLabel("Point opacity");
+  await expect(opacitySlider).toBeVisible();
   await opacitySlider.focus();
   await opacitySlider.press("End");
   await expect(waterColumnShell).toHaveAttribute("data-opacity", "0.95");
