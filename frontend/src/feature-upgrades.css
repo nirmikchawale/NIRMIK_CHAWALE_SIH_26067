@@ -1795,3 +1795,274 @@
   }
 }
 
+
+
+/* Final MVP UI Phase 2 — mobile scientific workspace.
+   The 3D scene remains primary; desktop side panels become temporary sheets. */
+.mobile-explore-tray,
+.mobile-sheet-header,
+.mobile-sheet-backdrop {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    min-height: calc(100vh - 64px);
+    padding-bottom: 78px;
+  }
+
+  .globe-shell,
+  .water-column-shell {
+    min-height: 62vh;
+  }
+
+  .mobile-explore-tray {
+    position: fixed;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    z-index: 48;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 7px;
+    border: 1px solid rgba(74, 139, 162, .72);
+    border-radius: 15px;
+    background: rgba(3, 17, 27, .94);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(16px);
+    scrollbar-width: none;
+  }
+
+  .mobile-explore-tray::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-explore-tray button {
+    flex: 0 0 auto;
+    display: grid;
+    gap: 2px;
+    min-width: 92px;
+    min-height: 48px;
+    padding: 7px 9px;
+    border: 1px solid #28566d;
+    border-radius: 10px;
+    color: #8fb3c4;
+    background: #071f2d;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      transform var(--ot-motion-fast) var(--ot-ease-standard),
+      border-color var(--ot-motion-fast) var(--ot-ease-standard),
+      background-color var(--ot-motion-fast) var(--ot-ease-standard);
+  }
+
+  .mobile-explore-tray button:hover:not(:disabled),
+  .mobile-explore-tray button[aria-pressed="true"] {
+    transform: translateY(-1px);
+    border-color: #5ad4ea;
+    background: #0b3446;
+  }
+
+  .mobile-explore-tray button:disabled {
+    cursor: not-allowed;
+    opacity: .44;
+  }
+
+  .mobile-explore-tray span {
+    color: #6d95a7;
+    font-size: 7px;
+    font-weight: 850;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .mobile-explore-tray strong {
+    overflow: hidden;
+    max-width: 128px;
+    color: #e5f8fc;
+    font-size: 9px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 54;
+    display: block;
+    border: 0;
+    background: rgba(0, 7, 12, .54);
+    backdrop-filter: blur(2px);
+  }
+
+  .control-panel,
+  .profile-panel {
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 56;
+    display: block !important;
+    width: 100% !important;
+    max-height: min(74vh, 650px);
+    overflow-y: auto;
+    padding: 0 16px 24px !important;
+    border: 1px solid #28566d !important;
+    border-bottom: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    background: rgba(4, 20, 30, .98) !important;
+    box-shadow: 0 -20px 46px rgba(0, 0, 0, .42) !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(34px);
+    transition:
+      transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear var(--ot-motion-emphasis);
+  }
+
+  .control-panel[data-mobile-open="true"],
+  .profile-panel[data-mobile-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition:
+      transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear 0s;
+  }
+
+  .mobile-sheet-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 58px;
+    margin: 0 -16px 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #21465a;
+    background: rgba(4, 20, 30, .98);
+  }
+
+  .mobile-sheet-header > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .mobile-sheet-header span {
+    color: #67d9ee;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: .12em;
+  }
+
+  .mobile-sheet-header strong {
+    color: #e4f5f9;
+    font-size: 10px;
+  }
+
+  .mobile-sheet-header button {
+    min-width: 56px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid #35687c;
+    border-radius: 9px;
+    color: #c8eaf1;
+    background: #0a2b3a;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .profile-panel.panel-placeholder {
+    align-content: start;
+    justify-items: stretch;
+    color: #87a8b8;
+  }
+
+  .profile-panel.panel-placeholder > span {
+    display: block;
+    padding: 20px 0 28px;
+    text-align: center;
+  }
+
+  .science-footer {
+    display: none;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray {
+    border-color: #b8d0d9;
+    background: rgba(249, 252, 253, .96);
+    box-shadow: 0 14px 30px rgba(35, 72, 90, .16);
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray button {
+    border-color: #c4d6de;
+    color: #4f7282;
+    background: #f7fafb;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray button:hover:not(:disabled),
+  :root[data-theme="light"] .mobile-explore-tray button[aria-pressed="true"] {
+    border-color: #3aa6bd;
+    background: #eaf7fa;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray span {
+    color: #5e8191;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray strong {
+    color: #173849;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-backdrop {
+    background: rgba(30, 55, 68, .24);
+  }
+
+  :root[data-theme="light"] .control-panel,
+  :root[data-theme="light"] .profile-panel {
+    border-color: #bad1da !important;
+    background: rgba(249, 252, 253, .99) !important;
+    box-shadow: 0 -18px 40px rgba(30, 65, 82, .18) !important;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header {
+    border-bottom-color: #c7d9e0;
+    background: rgba(249, 252, 253, .99);
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header span {
+    color: #147e9b;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header strong {
+    color: #173849;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header button {
+    border-color: #adcbd5;
+    color: #1a6076;
+    background: #edf8fa;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-explore-tray {
+    right: 6px;
+    bottom: 6px;
+    left: 6px;
+    padding: 6px;
+  }
+
+  .mobile-explore-tray button {
+    min-width: 86px;
+  }
+}
