@@ -126,7 +126,97 @@
 .ocean-workbench .water-column-legend { bottom: 106px; }
 .ocean-workbench .water-column-note { left: 14px; right: 14px; bottom: 0; width: auto; max-width: none; transform: none; font-size: 9px; }
 .ocean-workbench .inspection-card,.ocean-workbench .water-column-hover { left: 14px; right: auto; top: 110px; bottom: auto; width: 220px; max-width: calc(100% - 28px); }
-.ocean-workbench .imported-observation-chips { left: 14px; right: 14px; top: 94px; bottom: auto; max-width: none; }
+.ocean-workbench .imported-observation-chips {
+  left: 14px;
+  right: 14px;
+  top: 94px;
+  bottom: auto;
+  max-width: none;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--wb-line);
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--wb-panel) 94%, transparent);
+  box-shadow: none;
+}
+
+.ocean-workbench .imported-observation-chips > span {
+  display: block;
+  color: var(--wb-muted);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: .12em;
+}
+
+.ocean-workbench .imported-observation-chips > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ocean-workbench .imported-observation-chips button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: 9px;
+  min-height: 36px;
+  max-width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  font-size: 11px;
+  line-height: 1.25;
+}
+
+.ocean-workbench .imported-observation-chips button strong {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  color: var(--wb-accent);
+  background: color-mix(in srgb, var(--wb-accent) 10%, var(--wb-panel));
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: .08em;
+}
+
+.ocean-workbench .imported-observation-chips button span {
+  min-width: 0;
+  color: var(--wb-text);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.ocean-workbench .imported-observation-chips button:hover,
+.ocean-workbench .imported-observation-chips button:focus-visible {
+  border-color: var(--wb-accent);
+  background: var(--wb-raised);
+}
+
+.ocean-workbench .imported-observation-chips button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-accent) 10%, var(--wb-panel));
+}
+
+@media (max-width: 760px) {
+  .ocean-workbench .imported-observation-chips {
+    padding: 10px;
+  }
+
+  .ocean-workbench .imported-observation-chips > div {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .ocean-workbench .imported-observation-chips button {
+    width: 100%;
+  }
+}
 .ocean-workbench .science-footer { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 16px; gap: 20px; color: var(--wb-muted); font-size: 11px; }
 .ocean-workbench .science-footer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { background: var(--wb-bg); color: var(--wb-text); padding: 32px clamp(20px,4vw,64px) 64px; }
