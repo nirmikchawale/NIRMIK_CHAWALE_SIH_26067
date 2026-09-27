@@ -3536,3 +3536,48 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+/* SIH26067 compliance expansion — ingestion handoff and imported observation layer. */
+.sensor-badge.imported { color: #f29b72; }
+.observation-map-marker.imported circle { fill: #f29b72; }
+.observation-map-legend i.imported { background: #f29b72; }
+.observation-profile-line.imported { stroke: #f29b72; }
+
+.data-lab-netcdf-meta {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid #2e716b;
+  border-radius: 8px;
+  color: #a6dcd5;
+  background: rgba(7, 45, 41, .5);
+}
+
+.data-lab-netcdf-meta strong {
+  color: #c8f4ee;
+  font-size: 10px;
+}
+
+.data-lab-netcdf-meta span,
+.data-lab-netcdf-meta small {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.data-lab-status-actions button.primary {
+  border-color: #47c8e3;
+  color: #edfcff;
+  background: #0d4255;
+}
+
+:root[data-theme="light"] .data-lab-netcdf-meta {
+  border-color: #9bc9bf;
+  color: #426e68;
+  background: #edf8f5;
+}
+
+:root[data-theme="light"] .data-lab-netcdf-meta strong {
+  color: #174b45;
+}
