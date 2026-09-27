@@ -277,6 +277,27 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
   await expect(page.locator(".static-time-row")).toContainText("Verified model timestamp · static snapshot");
 
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  const incoisSource = sourceSelector.getByRole("button", { name: "INCOIS multi-time" });
+  await expect(incoisSource).toBeEnabled();
+  await incoisSource.click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "incois");
+  await expect(page.locator(".visualization-dock")).toContainText("INCOIS operational analysis snapshot");
+  const genuineTimeSlider = page.getByLabel("Explore genuine timestamp");
+  const genuinePlay = page.getByRole("button", { name: "Play genuine Explore time playback" });
+  await expect(genuineTimeSlider).toBeVisible();
+  await expect(genuinePlay).toBeVisible();
+  const initialOperationalTime = await genuineTimeSlider.inputValue();
+  await genuinePlay.click();
+  await expect.poll(async () => await genuineTimeSlider.inputValue(), { timeout: 7000 }).not.toBe(initialOperationalTime);
+  await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
+  await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+
+  await sourceSelector.getByRole("button", { name: "GLORYS baseline" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "glorys");
+  await expect(page.locator(".play-button")).toHaveCount(0);
+  await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
+
   await page.getByRole("button", { name: /Salinity/i }).click();
   await expect(page.locator(".legend-card")).toContainText("Salinity");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
