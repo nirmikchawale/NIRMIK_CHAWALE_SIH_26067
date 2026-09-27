@@ -157,7 +157,7 @@ function canonicalizeRecord(record: Record<string, unknown>): Record<string, unk
   return normalized;
 }
 
-function parseCsv(text: string): Array<Record<string, unknown>> {
+function parseDelimited(text: string, delimiter = ","): Array<Record<string, unknown>> {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -180,9 +180,9 @@ function parseCsv(text: string): Array<Record<string, unknown>> {
     }
 
     if (char === '"') {
-      if (field.length !== 0) throw new Error("Malformed CSV: quote begins inside an unquoted field.");
+      if (field.length !== 0) throw new Error("Malformed delimited text: quote begins inside an unquoted field.");
       quoted = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       row.push(field);
       field = "";
     } else if (char === "\n") {
@@ -195,21 +195,21 @@ function parseCsv(text: string): Array<Record<string, unknown>> {
     }
   }
 
-  if (quoted) throw new Error("Malformed CSV: quoted field is not closed.");
+  if (quoted) throw new Error("Malformed delimited text: quoted field is not closed.");
   if (field.length > 0 || row.length > 0) {
     row.push(field);
     rows.push(row);
   }
 
   const nonBlank = rows.filter((item) => item.some((cell) => cell.trim() !== ""));
-  if (nonBlank.length < 2) throw new Error("CSV must include a header and at least one data row.");
+  if (nonBlank.length < 2) throw new Error("Delimited text must include a header and at least one data row.");
 
   const headers = nonBlank[0].map((cell, index) => {
     const clean = cell.replace(/^\uFEFF/, "").trim().toLowerCase();
-    if (!clean) throw new Error(`CSV header ${index + 1} is empty.`);
+    if (!clean) throw new Error(`Delimited-text header ${index + 1} is empty.`);
     return clean;
   });
-  if (new Set(headers).size !== headers.length) throw new Error("CSV contains duplicate column names.");
+  if (new Set(headers).size !== headers.length) throw new Error("Delimited text contains duplicate column names.");
 
   return nonBlank.slice(1).map((cells) => {
     const record: Record<string, unknown> = {};
