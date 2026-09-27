@@ -415,6 +415,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(profileSelect).toBeVisible();
   await profileSelect.selectOption({ index: 1 });
   await expect(page.locator(".profile-panel")).toBeVisible();
+  await expect(page.locator(".evidence-rail")).toHaveAttribute("data-open", "false");
   await expect(page.locator(".profile-panel")).toContainText("Argo");
   await expect(page.locator(".profile-panel")).toContainText("Matched levels");
   await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
@@ -475,6 +476,7 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
 
   await page.getByRole("button", { name: "Open evidence inspector" }).click();
   await expect(appShell).toHaveAttribute("data-evidence-inspector", "open");
+  await expect(page.locator(".profile-panel")).toHaveAttribute("data-context-open", "false");
   await expect(page.locator(".evidence-rail")).toBeVisible();
   await page.getByRole("button", { name: "Close evidence inspector" }).click();
   await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
