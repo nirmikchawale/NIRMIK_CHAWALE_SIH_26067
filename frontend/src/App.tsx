@@ -270,6 +270,11 @@ export default function App() {
     []
   );
 
+  const handleEnterWaterColumn = useCallback(() => {
+    if (variable === "currents") return;
+    setVisualizationMode("water-column");
+  }, [variable]);
+
   const selectedVariable = useMemo(
     () => catalog?.variables.find((item) => item.id === variable),
     [catalog, variable]
@@ -420,6 +425,7 @@ export default function App() {
                     selectedProfileId={selectedProfileId}
                     verticalExaggeration={verticalExaggeration}
                     onSelectProfile={handleProfileSelection}
+                    onEnterWaterColumn={handleEnterWaterColumn}
                   />
                 </div>
                 <div
