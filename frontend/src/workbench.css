@@ -622,3 +622,20 @@
   /* Evidence pill sat on top of the "Verified study region" card on phones. */
   .ocean-workbench .evidence-status-pill { top: 222px; }
 }
+
+/* Header fit at laptop/projector widths now that the workspace-mode switcher shares the row:
+   keep every header control on one line and let the brand subtitle truncate instead. */
+@media (min-width: 761px) {
+  .ocean-workbench .app-header .brand { min-width: 0; flex: 1 1 auto; }
+  .ocean-workbench .app-header .brand > div { min-width: 0; }
+  .ocean-workbench .app-header .brand h1 { white-space: nowrap; }
+  .ocean-workbench .app-header .brand p { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ocean-workbench .header-status { flex: 0 0 auto; }
+  .ocean-workbench .header-status button,
+  .ocean-workbench .header-status .system-pill { white-space: nowrap; }
+}
+@media (min-width: 761px) and (max-width: 1360px) {
+  .ocean-workbench .present-button { padding-inline: 12px; }
+  .ocean-workbench .header-action-button { padding-inline: 8px; }
+  .ocean-workbench .system-pill { display: none; }
+}
