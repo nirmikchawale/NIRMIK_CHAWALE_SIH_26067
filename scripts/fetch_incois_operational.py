@@ -88,7 +88,7 @@ def _constraints(variable: str) -> str:
 
 def build_url() -> str:
     query = ",".join((_constraints("TEMP"), _constraints("SAL")))
-    return BASE + "?" + quote(query, safe="[],():.-")
+    return BASE + "?" + quote(query, safe=",:.-")
 
 
 def _float(row: dict[str, str], key: str) -> float:
