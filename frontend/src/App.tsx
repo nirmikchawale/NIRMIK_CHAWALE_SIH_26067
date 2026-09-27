@@ -12,14 +12,21 @@ import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
 import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
+import { ImportedObservationPanel } from "./components/ImportedObservationPanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
+import {
+  IMPORTED_OBSERVATIONS_EVENT,
+  groupImportedObservationProfiles,
+  readImportedObservationRecords
+} from "./observationSession";
 import type {
   Catalog,
   ColorPalette,
   ColorScaleMode,
   CurrentsResponse,
   FieldResponse,
+  ImportedObservationProfile,
   ProfileDetail,
   ProfileSummary,
   ProvenanceResponse,
@@ -55,6 +62,10 @@ export default function App() {
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
+  const [importedProfiles, setImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
+    groupImportedObservationProfiles(readImportedObservationRecords())
+  );
+  const [selectedImportedProfileId, setSelectedImportedProfileId] = useState("");
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -117,6 +128,23 @@ export default function App() {
       setMobileSheet("none");
       setProfilePanelOpen(false);
     }
+  }, []);
+
+  useEffect(() => {
+    const syncImportedProfiles = () => {
+      const next = groupImportedObservationProfiles(readImportedObservationRecords());
+      setImportedProfiles(next);
+      setSelectedImportedProfileId((current) =>
+        current && next.some((profile) => profile.id === current) ? current : ""
+      );
+    };
+    window.addEventListener(IMPORTED_OBSERVATIONS_EVENT, syncImportedProfiles);
+    window.addEventListener("storage", syncImportedProfiles);
+    syncImportedProfiles();
+    return () => {
+      window.removeEventListener(IMPORTED_OBSERVATIONS_EVENT, syncImportedProfiles);
+      window.removeEventListener("storage", syncImportedProfiles);
+    };
   }, []);
 
   useEffect(() => {
@@ -273,7 +301,16 @@ export default function App() {
   }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
   const handleProfileSelection = useCallback((profileId: string) => {
+    setSelectedImportedProfileId("");
     setSelectedProfileId(profileId);
+    setProfilePanelOpen(true);
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setMobileSheet("observation");
+    }
+  }, []);
+
+  const handleImportedProfileSelection = useCallback((profileId: string) => {
+    setSelectedImportedProfileId(profileId);
     setProfilePanelOpen(true);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
@@ -311,6 +348,10 @@ export default function App() {
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
     [profiles, selectedProfileId]
+  );
+  const selectedImportedProfile = useMemo(
+    () => importedProfiles.find((item) => item.id === selectedImportedProfileId) ?? null,
+    [importedProfiles, selectedImportedProfileId]
   );
   const currentPage = PAGE_ITEMS.find((item) => item.id === page) ?? PAGE_ITEMS[0];
 
@@ -443,11 +484,13 @@ export default function App() {
                 regionLabel={catalog.dataset.region}
                 modelLabel={catalog.dataset.product}
                 observationLabel={
-                  selectedProfile
-                    ? `${selectedProfile.platform_id} · cycle ${selectedProfile.cycle} ${selectedProfile.direction}`
-                    : profiles.length === 0
-                      ? "Unavailable"
-                      : "Not selected"
+                  selectedImportedProfile
+                    ? `${selectedImportedProfile.sensor_type.toUpperCase()} · ${selectedImportedProfile.platform_id}`
+                    : selectedProfile
+                      ? `${selectedProfile.platform_id} · cycle ${selectedProfile.cycle} ${selectedProfile.direction}`
+                      : profiles.length === 0 && importedProfiles.length === 0
+                        ? "Unavailable"
+                        : "Not selected"
                 }
                 onChange={setVisualizationMode}
               />
@@ -467,12 +510,15 @@ export default function App() {
                     currents={visualizationMode === "globe" ? currents : null}
                     profiles={profiles}
                     selectedProfileId={selectedProfileId}
+                    importedProfiles={importedProfiles}
+                    selectedImportedProfileId={selectedImportedProfileId}
                     verticalExaggeration={verticalExaggeration}
                     colorPalette={colorPalette}
                     colorScale={colorScale}
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
                     onSelectProfile={handleProfileSelection}
+                    onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
                   />
                 </div>
@@ -496,17 +542,29 @@ export default function App() {
                 </div>
               </div>
 
-              <ProfilePanel
-                detail={profileDetail}
-                loading={profileLoading}
-                provenance={provenance}
-                open={profilePanelOpen || mobileSheet === "observation"}
-                mobileOpen={mobileSheet === "observation"}
-                onClose={() => {
-                  setProfilePanelOpen(false);
-                  setMobileSheet("none");
-                }}
-              />
+              {selectedImportedProfile ? (
+                <ImportedObservationPanel
+                  profile={selectedImportedProfile}
+                  open={profilePanelOpen || mobileSheet === "observation"}
+                  mobileOpen={mobileSheet === "observation"}
+                  onClose={() => {
+                    setProfilePanelOpen(false);
+                    setMobileSheet("none");
+                  }}
+                />
+              ) : (
+                <ProfilePanel
+                  detail={profileDetail}
+                  loading={profileLoading}
+                  provenance={provenance}
+                  open={profilePanelOpen || mobileSheet === "observation"}
+                  mobileOpen={mobileSheet === "observation"}
+                  onClose={() => {
+                    setProfilePanelOpen(false);
+                    setMobileSheet("none");
+                  }}
+                />
+              )}
 
               <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
                 <button
@@ -536,14 +594,20 @@ export default function App() {
                 <button
                   type="button"
                   aria-pressed={mobileSheet === "observation"}
-                  disabled={!selectedProfile}
+                  disabled={!selectedProfile && !selectedImportedProfile}
                   onClick={() => {
                     setProfilePanelOpen(true);
                     setMobileSheet("observation");
                   }}
                 >
                   <span>Observation</span>
-                  <strong>{selectedProfile ? selectedProfile.platform_id : "None"}</strong>
+                  <strong>{
+                    selectedImportedProfile
+                      ? selectedImportedProfile.platform_id
+                      : selectedProfile
+                        ? selectedProfile.platform_id
+                        : "None"
+                  }</strong>
                 </button>
                 <button type="button" onClick={() => navigate("compare")}>
                   <span>Compare</span>
