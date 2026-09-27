@@ -407,6 +407,14 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   const depthSlider = page.getByLabel("Model depth");
   await expect(depthSlider).toBeVisible();
 
+  const bathymetricController = page.locator(".bathymetric-depth-controller");
+  await expect(bathymetricController).toBeVisible();
+  await expect(bathymetricController).toHaveAttribute("data-track-allocation", "40-35-25");
+  await expect(page.locator(".depth-zone-track button")).toHaveCount(3);
+  await expect(page.getByRole("button", { name: "Epipelagic zone 0 to 200 metres" })).toBeEnabled();
+  await page.getByRole("button", { name: "Epipelagic zone 0 to 200 metres" }).click();
+  await expect(bathymetricController).toHaveAttribute("data-depth-zone", "epipelagic");
+
   await depthSlider.focus();
   await depthSlider.press("End");
   await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
