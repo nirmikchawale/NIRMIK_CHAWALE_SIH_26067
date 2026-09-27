@@ -250,8 +250,24 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(infoPage).toContainText("No synthetic timestamps");
   await expect(infoPage).toContainText("RECOMMENDED DEMO FLOW");
 
-  await page.getByRole("button", { name: "3D Explorer" }).click();
+  expect(pageErrors).toEqual([]);
+});
+test("live OceanTwin 3D explorer judge flow works", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl + "#/explore", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
   await expect(page).toHaveURL(/#\/explore$/);
+
+  const documentRoot = page.locator("html");
+  await expect(documentRoot).toHaveAttribute("data-theme", "dark");
+  await page.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(documentRoot).toHaveAttribute("data-theme", "light");
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
   const globeShell = page.locator(".globe-shell:not(.water-column-shell)");
