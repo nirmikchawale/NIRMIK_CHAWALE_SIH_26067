@@ -3008,3 +3008,78 @@
     font-size: 8px;
   }
 }
+
+
+/* SIH26067 compliance expansion — explicit sponsor-native scientific source switcher. */
+.source-mode-section {
+  padding-top: 0 !important;
+}
+
+.source-mode-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.source-mode-switcher button {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 8px;
+  border: 1px solid #23485c;
+  border-radius: 9px;
+  color: #87a8b8;
+  background: rgba(6, 27, 40, .9);
+  cursor: pointer;
+  text-align: left;
+}
+
+.source-mode-switcher button:hover:not(:disabled) {
+  border-color: #45c9e7;
+  background: #0b3040;
+}
+
+.source-mode-switcher button.active {
+  border-color: #57d4ec;
+  color: #eefcff;
+  background: linear-gradient(180deg, #113f52, #092a3a);
+  box-shadow: inset 0 0 0 1px rgba(87, 212, 236, .14);
+}
+
+.source-mode-switcher button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.source-mode-switcher strong {
+  overflow: hidden;
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.source-mode-switcher small {
+  color: #688b9d;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+.source-mode-switcher button.active small {
+  color: #98dcea;
+}
+
+:root[data-theme="light"] .source-mode-switcher button {
+  border-color: #bfd3dc;
+  color: #4d7082;
+  background: #f6fafb;
+}
+
+:root[data-theme="light"] .source-mode-switcher button.active {
+  border-color: #2f9bb7;
+  color: #153e50;
+  background: #e4f4f8;
+}
+
+:root[data-theme="light"] .source-mode-switcher small {
+  color: #6a8796;
+}
