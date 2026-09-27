@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { api } from "../api";
+import { parseBrowserNetcdf, type NetcdfBrowserInspection } from "../netcdfImport";
 import { writeImportedObservationRecords } from "../observationSession";
 import type {
   ConnectorRegistryResponse,
@@ -19,6 +20,7 @@ const REQUIRED_FIELDS = [
 ] as const;
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const MAX_NETCDF_FILE_BYTES = 32 * 1024 * 1024;
 const MAX_RECORDS = 100_000;
 const MAX_TEXT_LENGTH = 256;
 const EXPLICIT_TIMEZONE = /(?:Z|[+-]\d{2}:\d{2})$/i;
@@ -127,7 +129,7 @@ interface VariableSummary {
 
 interface ValidationResult {
   filename: string;
-  format: "csv" | "json";
+  format: "csv" | "json" | "netcdf";
   status: "validated" | "rejected";
   totalRows: number;
   validRows: number;
@@ -263,7 +265,7 @@ function numberValue(value: unknown): number | null {
 
 function validateRecords(
   filename: string,
-  format: "csv" | "json",
+  format: "csv" | "json" | "netcdf",
   rawRecords: Array<Record<string, unknown>>
 ): ValidationResult {
   if (rawRecords.length > MAX_RECORDS) {
@@ -543,6 +545,7 @@ export function DataLabPage() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [processingError, setProcessingError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [netcdfInspection, setNetcdfInspection] = useState<NetcdfBrowserInspection | null>(null);
   const [connectorRegistry, setConnectorRegistry] = useState<ConnectorRegistryResponse | null>(null);
   const [connectorError, setConnectorError] = useState("");
 
@@ -581,27 +584,43 @@ export function DataLabPage() {
     setProcessing(true);
     setProcessingError("");
     setResult(null);
+    setNetcdfInspection(null);
 
     try {
-      if (file.size > MAX_FILE_BYTES) {
-        throw new Error(`File is ${(file.size / (1024 * 1024)).toFixed(2)} MB; the local validation limit is 5 MB.`);
-      }
-
       const extension = file.name.toLowerCase().split(".").pop();
-      if (!extension || !["csv", "tsv", "txt", "asc", "json"].includes(extension)) {
-        throw new Error("Unsupported file type. Use CSV, TSV/ASCII text, or JSON.");
+      const netcdfFile = extension === "nc" || extension === "nc4" || extension === "cdf";
+      const limit = netcdfFile ? MAX_NETCDF_FILE_BYTES : MAX_FILE_BYTES;
+      if (file.size > limit) {
+        throw new Error(
+          `File is ${(file.size / (1024 * 1024)).toFixed(2)} MB; the local validation limit is ${netcdfFile ? 32 : 5} MB.`
+        );
       }
 
-      const text = await file.text();
-      if (!text.trim()) throw new Error("File is empty.");
-      const format = extension === "json" ? "json" : "csv";
-      const delimiter =
-        extension === "tsv" ? "\t"
-          : extension === "txt" || extension === "asc"
-            ? (text.includes("\t") ? "\t" : text.includes(";") ? ";" : ",")
-            : ",";
-      const records = extension === "json" ? parseJson(text) : parseDelimited(text, delimiter);
-      setResult(validateRecords(file.name, format, records));
+      if (!extension || !["csv", "tsv", "txt", "asc", "json", "nc", "nc4", "cdf"].includes(extension)) {
+        throw new Error("Unsupported file type. Use NetCDF (.nc/.nc4/.cdf), CSV, TSV/ASCII text, or JSON.");
+      }
+
+      if (netcdfFile) {
+        const imported = await parseBrowserNetcdf(file);
+        setNetcdfInspection(imported.inspection);
+        if (imported.records.length === 0) {
+          throw new Error(
+            "NetCDF metadata was inspected successfully, but no safe CF-style observation profile could be converted. Review the NetCDF inspection panel for missing coordinate/time/depth metadata."
+          );
+        }
+        setResult(validateRecords(file.name, "netcdf", imported.records));
+      } else {
+        const text = await file.text();
+        if (!text.trim()) throw new Error("File is empty.");
+        const format = extension === "json" ? "json" : "csv";
+        const delimiter =
+          extension === "tsv" ? "\t"
+            : extension === "txt" || extension === "asc"
+              ? (text.includes("\t") ? "\t" : text.includes(";") ? ";" : ",")
+              : ",";
+        const records = extension === "json" ? parseJson(text) : parseDelimited(text, delimiter);
+        setResult(validateRecords(file.name, format, records));
+      }
     } catch (reason) {
       setProcessingError(reason instanceof Error ? reason.message : String(reason));
     } finally {
@@ -611,6 +630,7 @@ export function DataLabPage() {
 
   const clear = () => {
     setResult(null);
+    setNetcdfInspection(null);
     setProcessingError("");
     if (inputRef.current) inputRef.current.value = "";
   };
@@ -653,8 +673,8 @@ export function DataLabPage() {
           <div className="section-kicker">GUARDED USER DATA</div>
           <h2>Additional dataset lab</h2>
           <p>
-            Validate a small ocean-observation CSV or JSON before analysis. OceanTwin checks
-            coordinates, depth convention, timezone-aware timestamps, values, units, provenance,
+            Validate a small ocean-observation NetCDF, CSV or JSON before analysis. OceanTwin checks
+            CF-style coordinates, depth convention, timezone-aware timestamps, values, units, provenance,
             duplicates and missingness. It never guesses missing scientific metadata.
           </p>
         </div>
@@ -791,18 +811,18 @@ export function DataLabPage() {
           <div className="data-lab-card-heading">
             <div>
               <span>1 · LOAD</span>
-              <h3>CSV / TSV / ASCII / JSON validator</h3>
+              <h3>NetCDF / CSV / TSV / ASCII / JSON validator</h3>
             </div>
             <button type="button" onClick={downloadSchema}>Download schema CSV</button>
           </div>
           <label className="data-lab-file-picker">
             <strong>{processing ? "Reading file…" : "Choose an ocean dataset"}</strong>
-            <span>CSV, TSV/ASCII or JSON · max 5 MB · max 100,000 records</span>
+            <span>NetCDF up to 32 MB · text/JSON up to 5 MB · max 100,000 canonical records</span>
             <input
               ref={inputRef}
               aria-label="Ocean dataset file"
               type="file"
-              accept=".csv,.tsv,.txt,.asc,.json,text/csv,text/tab-separated-values,text/plain,application/json"
+              accept=".nc,.nc4,.cdf,.csv,.tsv,.txt,.asc,.json,application/x-netcdf,application/netcdf,text/csv,text/tab-separated-values,text/plain,application/json"
               disabled={processing}
               onChange={handleFile}
             />
@@ -813,11 +833,41 @@ export function DataLabPage() {
               {REQUIRED_FIELDS.map((field) => <code key={field}>{field}</code>)}
             </div>
             <p>
-              <code>depth_m</code> is metres positive downward. <code>timestamp</code> must include
+              NetCDF files are inspected in-browser for CF-style longitude, latitude, depth, time and profile-shaped variables. For canonical text imports, <code>depth_m</code> is metres positive downward. <code>timestamp</code> must include
               Z or an explicit UTC offset. Units are preserved as supplied; OceanTwin does not
               convert unknown unit strings.
             </p>
           </div>
+          {netcdfInspection && (
+            <div className="netcdf-inspection-card" data-cf-profile-ready={netcdfInspection.cf_profile_ready ? "true" : "false"}>
+              <div className="data-lab-card-heading">
+                <div>
+                  <span>NETCDF4 / CF INSPECTION</span>
+                  <h3>{netcdfInspection.file_format} · {netcdfInspection.conventions || "Conventions not declared"}</h3>
+                </div>
+                <strong>{netcdfInspection.generated_profile_rows.toLocaleString()} canonical rows</strong>
+              </div>
+              <div className="netcdf-inspection-grid">
+                <div><span>Dimensions</span><strong>{netcdfInspection.dimensions.map((item) => `${item.name}=${item.size}`).join(" · ") || "—"}</strong></div>
+                <div><span>Coordinates</span><strong>
+                  lon={netcdfInspection.coordinates.longitude ?? "—"} · lat={netcdfInspection.coordinates.latitude ?? "—"} · depth={netcdfInspection.coordinates.depth ?? "—"} · time={netcdfInspection.coordinates.time ?? "—"}
+                </strong></div>
+                <div><span>Profile shape</span><strong>{netcdfInspection.profile_shape?.join(" × ") ?? "not detected"}</strong></div>
+                <div><span>Importable variables</span><strong>
+                  {netcdfInspection.variables.filter((item) => item.importable_profile_variable).map((item) => item.name).join(", ") || "none"}
+                </strong></div>
+              </div>
+              {netcdfInspection.notes.length > 0 && (
+                <ul className="netcdf-inspection-notes">
+                  {netcdfInspection.notes.map((note) => <li key={note}>{note}</li>)}
+                </ul>
+              )}
+              <p>
+                File bytes stay in this browser. OceanTwin does not infer missing coordinates, timestamps,
+                units or vertical conventions; files without sufficient CF-style evidence remain inspection-only.
+              </p>
+            </div>
+          )}
           {processingError && (
             <div className="data-lab-processing-error" role="alert">
               <strong>File rejected before schema validation</strong>
