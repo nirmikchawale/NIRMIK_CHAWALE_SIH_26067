@@ -49,9 +49,9 @@ The live acceptance suite verifies the deployed judge path, including:
 
 ## Final CI/deployment state
 
-Current documented `main` HEAD: `cc5c6eb9ee35ba6105a436cda7d7dd13a6ace67d`.
+The following is the final validation snapshot recorded before the documentation-only synchronization. For the current commit, GitHub Actions and the Pages deployment are authoritative.
 
-Validated gates:
+Validated snapshot:
 
 - tests #772 — PASS;
 - final-mvp #289 — PASS:
