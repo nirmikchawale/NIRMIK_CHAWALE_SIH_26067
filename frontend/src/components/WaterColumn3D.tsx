@@ -8,10 +8,11 @@ import {
   type WheelEvent
 } from "react";
 
-import type { ColorPalette, ColorScaleMode, VolumeResponse } from "../types";
+import type { ColorPalette, ColorScaleMode, CurrentsVolumeResponse, VolumeResponse } from "../types";
 
 interface Props {
   volume: VolumeResponse | null;
+  currentsVolume: CurrentsVolumeResponse | null;
   selectedDepthM: number;
   verticalExaggeration: number;
   opacity: number;
@@ -33,6 +34,8 @@ interface ProjectedPoint {
   depth: number;
   value: number;
   selected: boolean;
+  u?: number;
+  v?: number;
 }
 
 interface HoverPoint {
@@ -40,6 +43,8 @@ interface HoverPoint {
   latitude: number;
   depth: number;
   value: number;
+  u?: number;
+  v?: number;
 }
 
 const DEFAULT_ORBIT = { yaw: -0.72, pitch: -0.46, zoom: 1 };
@@ -168,6 +173,7 @@ function buildIsoTriangles(volume: VolumeResponse, isoValue: number, limit = 120
 
 export function WaterColumn3D({
   volume,
+  currentsVolume,
   selectedDepthM,
   verticalExaggeration,
   opacity,
@@ -187,9 +193,22 @@ export function WaterColumn3D({
   const [hover, setHover] = useState<HoverPoint | null>(null);
 
   const depthLevels = useMemo(() => {
-    if (!volume) return [];
-    return Array.from(new Set(volume.points.map((point) => point[2]))).sort((a, b) => a - b);
-  }, [volume]);
+    if (volume) return Array.from(new Set(volume.points.map((point) => point[2]))).sort((a, b) => a - b);
+    return currentsVolume?.depths_m.slice().sort((a, b) => a - b) ?? [];
+  }, [volume, currentsVolume]);
+
+  const spatialPoints = useMemo<Array<[number, number, number, number]>>(
+    () => volume
+      ? volume.points
+      : currentsVolume
+        ? currentsVolume.vectors.map(([longitude, latitude, depth, , , speed]) => [longitude, latitude, depth, speed])
+        : [],
+    [volume, currentsVolume]
+  );
+
+  const dataLabel = volume?.label ?? (currentsVolume ? "Current speed" : "Ocean field");
+  const dataUnits = volume?.units ?? currentsVolume?.units ?? "";
+  const dataTime = volume?.time ?? currentsVolume?.time ?? "";
 
   const isoTriangles = useMemo(
     () => (volume && isoSurfaceEnabled ? buildIsoTriangles(volume, isoValue) : []),
@@ -205,7 +224,7 @@ export function WaterColumn3D({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !volume || volume.points.length === 0) return;
+    if (!canvas || spatialPoints.length === 0) return;
 
     const context = canvas.getContext("2d");
     if (!context) return;
@@ -242,9 +261,9 @@ export function WaterColumn3D({
       context.fillStyle = background;
       context.fillRect(0, 0, width, height);
 
-      const longitudes = volume.points.map((point) => point[0]);
-      const latitudes = volume.points.map((point) => point[1]);
-      const depths = volume.points.map((point) => point[2]);
+      const longitudes = spatialPoints.map((point) => point[0]);
+      const latitudes = spatialPoints.map((point) => point[1]);
+      const depths = spatialPoints.map((point) => point[2]);
       const lonMin = Math.min(...longitudes);
       const lonMax = Math.max(...longitudes);
       const latMin = Math.min(...latitudes);
@@ -351,33 +370,85 @@ export function WaterColumn3D({
         }
       }
 
-      const projected: ProjectedPoint[] = volume.points.map(([longitude, latitude, depth, value]) => {
-        const screen = projectScientific(longitude, latitude, depth);
-        return {
-          ...screen,
-          longitude,
-          latitude,
-          depth,
-          value,
-          selected: Math.abs(depth - selectedDepth) < 1e-8
-        };
-      });
+      const projected: ProjectedPoint[] = [];
+      if (volume) {
+        for (const [longitude, latitude, depth, value] of volume.points) {
+          const screen = projectScientific(longitude, latitude, depth);
+          projected.push({
+            ...screen,
+            longitude,
+            latitude,
+            depth,
+            value,
+            selected: Math.abs(depth - selectedDepth) < 1e-8
+          });
+        }
 
-      projected.sort((a, b) => b.cameraDepth - a.cameraDepth);
-      projectedRef.current = projected;
-
-      for (const point of projected) {
-        const pointAlpha = point.selected ? Math.min(1, opacity + 0.28) : opacity;
-        context.beginPath();
-        context.arc(point.x, point.y, point.selected ? 3.2 : 1.65, 0, Math.PI * 2);
-        context.fillStyle = colourFor(point.value, colorMinimum, colorMaximum, colorPalette, colorScale, pointAlpha);
-        context.fill();
-        if (point.selected) {
-          context.strokeStyle = dark ? "rgba(244, 253, 255, 0.55)" : "rgba(18, 65, 82, 0.42)";
-          context.lineWidth = 0.6;
+        projected.sort((a, b) => b.cameraDepth - a.cameraDepth);
+        for (const point of projected) {
+          const pointAlpha = point.selected ? Math.min(1, opacity + 0.28) : opacity;
+          context.beginPath();
+          context.arc(point.x, point.y, point.selected ? 3.2 : 1.65, 0, Math.PI * 2);
+          context.fillStyle = colourFor(point.value, colorMinimum, colorMaximum, colorPalette, colorScale, pointAlpha);
+          context.fill();
+          if (point.selected) {
+            context.strokeStyle = dark ? "rgba(244, 253, 255, 0.55)" : "rgba(18, 65, 82, 0.42)";
+            context.lineWidth = 0.6;
+            context.stroke();
+          }
+        }
+      } else if (currentsVolume) {
+        const maxVectors = 2600;
+        const vectorStride = Math.max(1, Math.ceil(currentsVolume.vectors.length / maxVectors));
+        const displayScaleDegrees = 0.55;
+        for (let index = 0; index < currentsVolume.vectors.length; index += vectorStride) {
+          const [longitude, latitude, depth, u, v, speed] = currentsVolume.vectors[index];
+          const start = projectScientific(longitude, latitude, depth);
+          const cosLat = Math.max(Math.cos((latitude * Math.PI) / 180), 0.25);
+          const end = projectScientific(
+            longitude + (u * displayScaleDegrees) / cosLat,
+            latitude + v * displayScaleDegrees,
+            depth
+          );
+          const selected = Math.abs(depth - selectedDepth) < 1e-8;
+          const alpha = selected ? Math.min(1, opacity + 0.22) : Math.max(0.16, opacity * 0.48);
+          const stroke = colourFor(speed, colorMinimum, colorMaximum, colorPalette, colorScale, alpha);
+          context.beginPath();
+          context.moveTo(start.x, start.y);
+          context.lineTo(end.x, end.y);
+          context.strokeStyle = stroke;
+          context.lineWidth = selected ? 2.2 : 1.05;
           context.stroke();
+
+          const dx = end.x - start.x;
+          const dy = end.y - start.y;
+          const length = Math.max(Math.hypot(dx, dy), 1e-9);
+          const ux = dx / length;
+          const uy = dy / length;
+          const headLength = selected ? 5.5 : 3.8;
+          context.beginPath();
+          context.moveTo(end.x, end.y);
+          context.lineTo(end.x - ux * headLength - uy * headLength * 0.55, end.y - uy * headLength + ux * headLength * 0.55);
+          context.moveTo(end.x, end.y);
+          context.lineTo(end.x - ux * headLength + uy * headLength * 0.55, end.y - uy * headLength - ux * headLength * 0.55);
+          context.strokeStyle = stroke;
+          context.lineWidth = selected ? 1.8 : 1;
+          context.stroke();
+
+          projected.push({
+            ...start,
+            longitude,
+            latitude,
+            depth,
+            value: speed,
+            selected,
+            u,
+            v
+          });
         }
       }
+      projected.sort((a, b) => b.cameraDepth - a.cameraDepth);
+      projectedRef.current = projected;
 
       const axisText = dark ? "rgba(201, 232, 241, 0.72)" : "rgba(33, 74, 91, 0.76)";
       context.fillStyle = axisText;
@@ -398,7 +469,7 @@ export function WaterColumn3D({
       disposed = true;
       observer.disconnect();
     };
-  }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme, colorPalette, colorScale, colorMinimum, colorMaximum, isoSurfaceEnabled, isoValue, isoTriangles]);
+  }, [volume, currentsVolume, spatialPoints, selectedDepth, verticalExaggeration, opacity, orbit, theme, colorPalette, colorScale, colorMinimum, colorMaximum, isoSurfaceEnabled, isoValue, isoTriangles]);
 
   const smoothWaterZoomTo = (targetZoom: number) => {
     if (zoomAnimationRef.current != null) {
@@ -459,7 +530,9 @@ export function WaterColumn3D({
             longitude: nearest.longitude,
             latitude: nearest.latitude,
             depth: nearest.depth,
-            value: nearest.value
+            value: nearest.value,
+            u: nearest.u,
+            v: nearest.v
           }
         : null
     );
@@ -525,11 +598,11 @@ export function WaterColumn3D({
     }
   };
 
-  if (!volume) {
+  if (!volume && !currentsVolume) {
     return (
       <main className="globe-shell water-column-shell water-column-loading">
         <div className="water-column-loading-card">
-          <strong>Loading verified water-column volume…</strong>
+          <strong>Loading verified water-column evidence…</strong>
           <span>No synthetic values are substituted while the canonical volume is unavailable.</span>
         </div>
       </main>
@@ -547,6 +620,8 @@ export function WaterColumn3D({
       data-color-scale={colorScale}
       data-iso-enabled={isoSurfaceEnabled ? "true" : "false"}
       data-iso-triangles={isoTriangles.length}
+      data-current-vector-count={currentsVolume?.vectors.length ?? 0}
+      data-current-depth-count={currentsVolume?.depths_m.length ?? 0}
     >
       <canvas
         ref={canvasRef}
@@ -572,10 +647,10 @@ export function WaterColumn3D({
           <span className="live-dot" />
           <strong>SCIENTIFIC WATER-COLUMN 3D</strong>
         </div>
-        <span>{volume.label} · {volume.units}</span>
-        <small>{depthLevels.length} genuine depth levels · {volume.time.replace("T", " ").replace("Z", " UTC")}</small>
-        {isoSurfaceEnabled && (
-          <small>Isosurface {isoValue.toFixed(3)} {volume.units} · {isoTriangles.length.toLocaleString()} extracted triangles</small>
+        <span>{dataLabel} · {dataUnits}</span>
+        <small>{depthLevels.length} genuine depth levels · {dataTime.replace("T", " ").replace("Z", " UTC")}</small>
+        {volume && isoSurfaceEnabled && (
+          <small>Isosurface {isoValue.toFixed(3)} {dataUnits} · {isoTriangles.length.toLocaleString()} extracted triangles</small>
         )}
       </div>
 
@@ -586,11 +661,11 @@ export function WaterColumn3D({
       </div>
 
       <div className="globe-overlay water-column-legend">
-        <span>{volume.label}</span>
+        <span>{dataLabel}</span>
         <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
           <span>{colorMinimum.toFixed(3)}</span>
-          <span>{volume.units}</span>
+          <span>{dataUnits}</span>
           <span>{colorMaximum.toFixed(3)}</span>
         </div>
       </div>
@@ -623,7 +698,10 @@ export function WaterColumn3D({
           <strong>Scientific inspection</strong>
           <span>Lon {hover.longitude.toFixed(3)}°E · Lat {hover.latitude.toFixed(3)}°N</span>
           <span>Depth {hover.depth.toFixed(2)} m</span>
-          <span>{volume.label}: {hover.value.toFixed(4)} {volume.units}</span>
+          <span>{dataLabel}: {hover.value.toFixed(4)} {dataUnits}</span>
+          {currentsVolume && hover.u != null && hover.v != null && (
+            <span>u {hover.u.toFixed(4)} · v {hover.v.toFixed(4)} {dataUnits}</span>
+          )}
         </div>
       )}
 
@@ -632,7 +710,7 @@ export function WaterColumn3D({
       </div>
 
       <div className="globe-overlay volume-note water-column-note">
-        CANONICAL MODEL VALUES · visual depth ×{verticalExaggeration} · opacity {Math.round(opacity * 100)}% · geometry only
+        {currentsVolume ? "HORIZONTAL u/v AT GENUINE DEPTHS · NO VERTICAL w INFERRED" : "CANONICAL MODEL VALUES"} · visual depth ×{verticalExaggeration} · opacity {Math.round(opacity * 100)}% · geometry only
       </div>
     </main>
   );
