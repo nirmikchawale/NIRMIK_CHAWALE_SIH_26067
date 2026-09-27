@@ -2820,3 +2820,36 @@
     font-size: 10px;
   }
 }
+
+
+/* Final MVP major redesign — Phase 7 navigation hierarchy. */
+.rail-group {
+  display: contents;
+}
+
+.rail-group-label {
+  margin: 6px 0 -1px;
+  color: #466f84;
+  font-size: 6px;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-align: center;
+}
+
+.rail-group:first-of-type .rail-group-label {
+  margin-top: 2px;
+}
+
+:root[data-theme="light"] .rail-group-label {
+  color: #668493;
+}
+
+@media (max-width: 760px) {
+  .rail-group-label {
+    display: none;
+  }
+
+  .feature-rail-left .rail-title {
+    display: none;
+  }
+}
