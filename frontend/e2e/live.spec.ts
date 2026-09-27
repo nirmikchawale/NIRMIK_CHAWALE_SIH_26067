@@ -42,27 +42,6 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
   await expect(documentRoot).toHaveAttribute("data-theme", "light");
 
-  const appShell = page.locator(".app-shell");
-  await expect(page.locator(".feature-rail-right")).toHaveCount(0);
-  await expect(appShell).toHaveAttribute("data-control-dock", "open");
-  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
-  await expect(page.getByRole("button", { name: "Open evidence inspector" })).toBeVisible();
-
-  await page.getByRole("button", { name: "Hide explorer controls" }).click();
-  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
-  await page.getByRole("button", { name: "Show explorer controls" }).click();
-  await expect(appShell).toHaveAttribute("data-control-dock", "open");
-  await page.keyboard.press("Control+b");
-  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
-  await page.keyboard.press("Control+b");
-  await expect(appShell).toHaveAttribute("data-control-dock", "open");
-
-  await page.getByRole("button", { name: "Open evidence inspector" }).click();
-  await expect(appShell).toHaveAttribute("data-evidence-inspector", "open");
-  await expect(page.locator(".evidence-rail")).toBeVisible();
-  await page.getByRole("button", { name: "Close evidence inspector" }).click();
-  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
-
   await page.getByRole("button", { name: "Telemetry" }).click();
   await expect(page).toHaveURL(/#\/telemetry$/);
   const telemetryPage = page.locator('.telemetry-page[data-page="telemetry"]');
@@ -449,3 +428,52 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const appShell = page.locator(".app-shell");
+  await expect(page.locator(".feature-rail-right")).toHaveCount(0);
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+  await expect(page.getByRole("button", { name: "Open evidence inspector" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await page.keyboard.press("Control+b");
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.getByRole("button", { name: "Open evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "open");
+  await expect(page.locator(".evidence-rail")).toBeVisible();
+  await page.getByRole("button", { name: "Close evidence inspector" }).click();
+  await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
+
+  const imageryGlobeShell = page.locator(".globe-shell").first();
+  await page.getByRole("button", { name: "Offline", exact: true }).click();
+  await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
+  await page.getByRole("button", { name: "High-res auto" }).click();
+
+  await page.getByRole("button", { name: /Water Column 3D/ }).click();
+  const waterColumnShell = page.locator(".water-column-shell");
+  await expect(waterColumnShell).toBeVisible();
+  const initialZoom = Number(await waterColumnShell.getAttribute("data-zoom"));
+  await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
+  await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialZoom);
+
+  expect(pageErrors).toEqual([]);
+});
+
