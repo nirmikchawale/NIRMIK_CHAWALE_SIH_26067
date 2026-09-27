@@ -4187,3 +4187,107 @@ select:hover,
     --ui-muted: #345963;
   }
 }
+
+
+/* SIH26067 full-compliance — generic instrument plugin overlay + inspector. */
+.data-lab-status-actions .primary {
+  border-color: rgba(91, 218, 240, .86);
+  color: #e9fbff;
+  background: linear-gradient(180deg, rgba(19, 77, 98, .98), rgba(9, 44, 60, .98));
+  box-shadow: inset 0 0 0 1px rgba(99, 221, 242, .13);
+}
+
+.imported-profile-panel {
+  --sensor-accent: #d7e3ea;
+}
+
+.imported-profile-panel[data-sensor-type="argo"] { --sensor-accent: #f0a93d; }
+.imported-profile-panel[data-sensor-type="glider"] { --sensor-accent: #8cefff; }
+.imported-profile-panel[data-sensor-type="ctd"] { --sensor-accent: #b58cff; }
+.imported-profile-panel[data-sensor-type="bgc"] { --sensor-accent: #75e68e; }
+
+.imported-observation-proof {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0;
+  padding: 10px 11px;
+  border: 1px solid color-mix(in srgb, var(--sensor-accent) 52%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--sensor-accent) 8%, rgba(5, 24, 35, .86));
+}
+
+.imported-observation-proof > span {
+  color: var(--sensor-accent);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.imported-observation-proof > strong {
+  color: #edfaff;
+  font-size: 11px;
+}
+
+.imported-observation-proof > small {
+  color: #7695a7;
+  font-size: 8px;
+}
+
+.imported-variable-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 14px 0 8px;
+}
+
+.imported-variable-tabs button {
+  padding: 6px 8px;
+  border: 1px solid #285266;
+  border-radius: 7px;
+  color: #8cabbc;
+  background: #08202e;
+  cursor: pointer;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+.imported-variable-tabs button.active {
+  border-color: var(--sensor-accent);
+  color: #effcff;
+  background: color-mix(in srgb, var(--sensor-accent) 15%, #08202e);
+}
+
+.imported-profile-line {
+  fill: none;
+  stroke: var(--sensor-accent);
+  stroke-width: 2.2;
+}
+
+.imported-profile-point {
+  fill: var(--sensor-accent);
+  stroke: #ffffff;
+  stroke-width: 1;
+}
+
+.imported-axis-label {
+  fill: #7694a6;
+  font-size: 8px;
+}
+
+:root[data-theme="light"] .imported-observation-proof {
+  background: color-mix(in srgb, var(--sensor-accent) 8%, #f7fbfc);
+}
+
+:root[data-theme="light"] .imported-observation-proof > strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .imported-variable-tabs button {
+  border-color: #bfd2da;
+  color: #4f7183;
+  background: #f6fafb;
+}
+
+:root[data-theme="light"] .imported-variable-tabs button.active {
+  color: #143f50;
+}
