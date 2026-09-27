@@ -57,6 +57,26 @@ jobs:
           print("INCOIS operational evidence verified:", payload["record_count"], "records")
           PY
 
+      - name: Fetch genuine Glider CTD and BGC observation evidence
+        run: |
+          rm -rf /tmp/oceantwin-multisensor
+          python scripts/fetch_multisensor_observations.py --output /tmp/oceantwin-multisensor/observations.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/oceantwin-multisensor/observations.json").read_text())
+          assert payload["schema"] == "oceantwin-multisensor-observations-v1"
+          assert payload["integrity"]["synthetic_measurements"] is False
+          assert payload["integrity"]["provider_values_modified"] is False
+          profiles = payload["profiles"]
+          assert {p["sensor_type"] for p in profiles} == {"glider", "ctd", "bgc"}
+          assert all(len(p["records"]) >= 8 for p in profiles)
+          bgc = next(p for p in profiles if p["sensor_type"] == "bgc")
+          assert {"chlorophyll_a", "dissolved_oxygen"} <= set(bgc["variables"])
+          assert all(p["source_url"].startswith("https://") for p in profiles)
+          print("Multi-sensor provider evidence verified:", [(p["sensor_type"], len(p["records"])) for p in profiles])
+          PY
+
       - name: Export immutable static science fail-safe
         run: |
           rm -rf /tmp/oceantwin-static-science
