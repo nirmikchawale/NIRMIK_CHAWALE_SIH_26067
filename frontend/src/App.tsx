@@ -14,6 +14,7 @@ import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
+import { ObservationsPage } from "./pages/ObservationsPage";
 import { InfoPage } from "./pages/InfoPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
@@ -636,6 +637,8 @@ export default function App() {
                 </button>
               </div>
             </>
+          ) : page === "observations" ? (
+            <ObservationsPage />
           ) : page === "telemetry" ? (
             <TelemetryPage catalog={catalog} provenance={provenance} />
           ) : page === "compare" ? (
