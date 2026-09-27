@@ -52,6 +52,7 @@ export default function App() {
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
+  const [profilePanelOpen, setProfilePanelOpen] = useState(false);
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -88,6 +89,7 @@ export default function App() {
       if (next !== "explore") {
         setFocusMode(false);
         setMobileSheet("none");
+        setProfilePanelOpen(false);
       }
     };
     window.addEventListener("hashchange", syncRoute);
@@ -105,6 +107,7 @@ export default function App() {
     if (next !== "explore") {
       setFocusMode(false);
       setMobileSheet("none");
+      setProfilePanelOpen(false);
     }
   }, []);
 
@@ -254,6 +257,7 @@ export default function App() {
 
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedProfileId(profileId);
+    setProfilePanelOpen(true);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
     }
@@ -446,8 +450,12 @@ export default function App() {
                 detail={profileDetail}
                 loading={profileLoading}
                 provenance={provenance}
+                open={profilePanelOpen || mobileSheet === "observation"}
                 mobileOpen={mobileSheet === "observation"}
-                onMobileClose={() => setMobileSheet("none")}
+                onClose={() => {
+                  setProfilePanelOpen(false);
+                  setMobileSheet("none");
+                }}
               />
 
               <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
@@ -479,7 +487,10 @@ export default function App() {
                   type="button"
                   aria-pressed={mobileSheet === "observation"}
                   disabled={!selectedProfile}
-                  onClick={() => setMobileSheet("observation")}
+                  onClick={() => {
+                    setProfilePanelOpen(true);
+                    setMobileSheet("observation");
+                  }}
                 >
                   <span>Observation</span>
                   <strong>{selectedProfile ? selectedProfile.platform_id : "None"}</strong>
