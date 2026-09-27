@@ -194,39 +194,38 @@ export function ControlPanel({
 
       <section>
         <div className="section-kicker">Time</div>
-        <div className="time-row">
-          <button
-            className="play-button"
-            disabled={!catalog.capabilities.time_animation}
-            onClick={() => onPlayingChange(!playing)}
-            title={
-              catalog.capabilities.time_animation
-                ? "Play verified time steps"
-                : "Only one verified model time step is currently bundled"
-            }
-          >
-            {playing ? "■" : "▶"}
-          </button>
-          <div>
-            <strong>{time.replace("T00:00:00Z", "")}</strong>
-            <span>
-              {catalog.capabilities.time_steps} verified timestep
-              {catalog.capabilities.time_steps === 1 ? "" : "s"}
-            </span>
+        {catalog.capabilities.time_animation ? (
+          <>
+            <div className="time-row">
+              <button
+                className="play-button"
+                onClick={() => onPlayingChange(!playing)}
+                title="Play verified time steps"
+              >
+                {playing ? "■" : "▶"}
+              </button>
+              <div>
+                <strong>{time.replace("T00:00:00Z", "")}</strong>
+                <span>
+                  {catalog.capabilities.time_steps} verified timesteps
+                </span>
+              </div>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={Math.max(0, catalog.coordinates.time.length - 1)}
+              value={timeIndex}
+              onChange={(event) => onTimeChange(Number(event.target.value))}
+            />
+          </>
+        ) : (
+          <div className="time-row static-time-row" aria-label="Verified model timestamp">
+            <div>
+              <strong>{time.replace("T00:00:00Z", "")}</strong>
+              <span>Verified model timestamp · static snapshot</span>
+            </div>
           </div>
-        </div>
-        <input
-          type="range"
-          min={0}
-          max={Math.max(0, catalog.coordinates.time.length - 1)}
-          value={timeIndex}
-          disabled={catalog.coordinates.time.length < 2}
-          onChange={(event) => onTimeChange(Number(event.target.value))}
-        />
-        {!catalog.capabilities.time_animation && (
-          <p className="microcopy">
-            Single verified model timestamp available. Playback requires additional verified timesteps.
-          </p>
         )}
       </section>
 
