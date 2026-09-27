@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { api, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
+import { api, fetchIncoisChlorophyll, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
@@ -18,6 +18,8 @@ import { ImportedObservationPanel } from "./components/ImportedObservationPanel"
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import {
+  buildIncoisChlorophyllCatalog,
+  buildIncoisChlorophyllField,
   buildIncoisExploreCatalog,
   buildIncoisField,
   buildIncoisVolume,
@@ -37,6 +39,7 @@ import type {
   CurrentsVolumeResponse,
   FieldResponse,
   ImportedObservationProfile,
+  IncoisChlorophyllSnapshot,
   IncoisOperationalSnapshot,
   ProfileDetail,
   ProfileSummary,
@@ -66,6 +69,8 @@ export default function App() {
   const [sourceMode, setSourceMode] = useState<ExploreSourceMode>("glorys");
   const [operationalSnapshot, setOperationalSnapshot] = useState<IncoisOperationalSnapshot | null>(null);
   const [operationalError, setOperationalError] = useState("");
+  const [chlorophyllSnapshot, setChlorophyllSnapshot] = useState<IncoisChlorophyllSnapshot | null>(null);
+  const [chlorophyllError, setChlorophyllError] = useState("");
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState("");
   const [profileDetail, setProfileDetail] = useState<ProfileDetail | null>(null);
@@ -89,7 +94,7 @@ export default function App() {
   }, [verifiedObservationProfiles, sessionImportedProfiles]);
   const [selectedImportedProfileId, setSelectedImportedProfileId] = useState("");
 
-  const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
+  const [variable, setVariable] = useState<"thetao" | "so" | "currents" | "chlorophyll">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
   const [visualizationMode, setVisualizationMode] = useState<VisualizationMode>("globe");
   const [waterColumnOpacity, setWaterColumnOpacity] = useState(58);
@@ -118,7 +123,16 @@ export default function App() {
     () => operationalSnapshot ? buildIncoisExploreCatalog(operationalSnapshot) : null,
     [operationalSnapshot]
   );
-  const exploreCatalog = sourceMode === "incois" && operationalCatalog ? operationalCatalog : catalog;
+  const chlorophyllCatalog = useMemo(
+    () => chlorophyllSnapshot ? buildIncoisChlorophyllCatalog(chlorophyllSnapshot) : null,
+    [chlorophyllSnapshot]
+  );
+  const exploreCatalog =
+    sourceMode === "incois" && operationalCatalog
+      ? operationalCatalog
+      : sourceMode === "chlorophyll" && chlorophyllCatalog
+        ? chlorophyllCatalog
+        : catalog;
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -197,6 +211,39 @@ export default function App() {
           current.includes("INCOIS multi-time Explore source unavailable")
             ? current
             : [...current, "INCOIS multi-time Explore source unavailable"]
+        );
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchIncoisChlorophyll()
+      .then((payload) => {
+        if (cancelled) return;
+        if (
+          !payload.integrity.surface_only ||
+          payload.integrity.synthetic_timestamps ||
+          payload.integrity.synthetic_depths ||
+          payload.integrity.source_values_modified ||
+          payload.integrity.genuine_time_count < 2 ||
+          payload.record_count < 1
+        ) {
+          throw new Error("INCOIS chlorophyll snapshot failed scientific-integrity policy.");
+        }
+        setChlorophyllSnapshot(payload);
+        setChlorophyllError("");
+      })
+      .catch((reason: Error) => {
+        if (cancelled) return;
+        setChlorophyllSnapshot(null);
+        setChlorophyllError(reason.message);
+        setDegradedWarnings((current) =>
+          current.includes("INCOIS chlorophyll Explore source unavailable")
+            ? current
+            : [...current, "INCOIS chlorophyll Explore source unavailable"]
         );
       });
     return () => {
@@ -376,7 +423,9 @@ export default function App() {
     if (sourceMode === "incois") {
       try {
         if (!operationalSnapshot) throw new Error("INCOIS operational snapshot is unavailable.");
-        if (variable === "currents") throw new Error("Currents are not available in the selected INCOIS snapshot.");
+        if (variable === "currents" || variable === "chlorophyll") {
+          throw new Error("Selected variable is unavailable in the INCOIS physical snapshot.");
+        }
         if (visualizationMode === "water-column" || viewMode === "volume") {
           setVolume(buildIncoisVolume(operationalSnapshot, variable, timeIndex));
         } else {
@@ -387,6 +436,27 @@ export default function App() {
       } finally {
         setScienceLoading(false);
       }
+      return;
+    }
+
+    if (sourceMode === "chlorophyll") {
+      try {
+        if (!chlorophyllSnapshot) throw new Error("INCOIS chlorophyll snapshot is unavailable.");
+        if (variable !== "chlorophyll") {
+          throw new Error("Only chlorophyll is available in the selected ocean-colour source.");
+        }
+        setField(buildIncoisChlorophyllField(chlorophyllSnapshot, timeIndex));
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : String(reason));
+      } finally {
+        setScienceLoading(false);
+      }
+      return;
+    }
+
+    if (variable === "chlorophyll") {
+      setError("Chlorophyll is available only from the INCOIS ocean-colour source.");
+      setScienceLoading(false);
       return;
     }
 
@@ -418,7 +488,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [exploreCatalog, sourceMode, operationalSnapshot, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
+  }, [exploreCatalog, sourceMode, operationalSnapshot, chlorophyllSnapshot, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId("");
@@ -438,7 +508,7 @@ export default function App() {
   }, []);
 
   const handleVariableChange = useCallback(
-    (value: "thetao" | "so" | "currents") => {
+    (value: "thetao" | "so" | "currents" | "chlorophyll") => {
       setVariable(value);
       const nextVariable = exploreCatalog?.variables.find((item) => item.id === value);
       if (nextVariable && nextVariable.kind === "scalar") {
@@ -456,29 +526,54 @@ export default function App() {
           setColorScale("linear");
         }
       }
+      if (value === "chlorophyll") {
+        setViewMode("slice");
+        setVisualizationMode("globe");
+        setDepthIndex(0);
+        setIsoSurfaceEnabled(false);
+        setColorPalette("viridis");
+        setColorScale("linear");
+      }
     },
     [exploreCatalog]
   );
 
   const handleSourceModeChange = useCallback((nextSource: ExploreSourceMode) => {
     if (nextSource === "incois" && !operationalCatalog) return;
+    if (nextSource === "chlorophyll" && !chlorophyllCatalog) return;
+
+    const nextCatalog =
+      nextSource === "incois"
+        ? operationalCatalog
+        : nextSource === "chlorophyll"
+          ? chlorophyllCatalog
+          : catalog;
+    let targetVariable: "thetao" | "so" | "currents" | "chlorophyll" = variable;
+    if (nextSource === "chlorophyll") targetVariable = "chlorophyll";
+    else if (targetVariable === "chlorophyll" || (nextSource === "incois" && targetVariable === "currents")) {
+      targetVariable = "thetao";
+    }
+
     setSourceMode(nextSource);
+    setVariable(targetVariable);
     setPlaying(false);
     setTimeIndex(0);
     setProfilePanelOpen(false);
     setSelectedProfileId((current) => current);
-    const nextCatalog = nextSource === "incois" ? operationalCatalog : catalog;
-    if (nextSource === "incois" && variable === "currents") {
-      setVariable("thetao");
+
+    if (nextSource === "chlorophyll") {
       setViewMode("slice");
       setVisualizationMode("globe");
+      setDepthIndex(0);
       setIsoSurfaceEnabled(false);
+      setColorPalette("viridis");
+    } else {
+      const nextDepth = nextSource === "incois"
+        ? 0
+        : Math.min(18, Math.max(0, (nextCatalog?.coordinates.depth.length ?? 1) - 1));
+      setDepthIndex(nextDepth);
     }
-    const nextDepth = nextSource === "incois"
-      ? 0
-      : Math.min(18, Math.max(0, (nextCatalog?.coordinates.depth.length ?? 1) - 1));
-    setDepthIndex(nextDepth);
-    const targetVariable = nextSource === "incois" && variable === "currents" ? "thetao" : variable;
+
     const nextVariable = nextCatalog?.variables.find((item) => item.id === targetVariable);
     if (nextVariable?.kind === "scalar") {
       setColorMinimum(nextVariable.minimum);
@@ -486,11 +581,12 @@ export default function App() {
       setIsoValue((nextVariable.minimum + nextVariable.maximum) / 2);
       setColorScale("linear");
     }
-  }, [operationalCatalog, catalog, variable]);
+  }, [operationalCatalog, chlorophyllCatalog, catalog, variable]);
 
   const handleEnterWaterColumn = useCallback(() => {
+    if (sourceMode === "chlorophyll") return;
     setVisualizationMode("water-column");
-  }, []);
+  }, [sourceMode]);
 
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
@@ -552,7 +648,13 @@ export default function App() {
           </div>
           <div>
             <span>MODEL</span>
-            <strong>{page === "explore" && sourceMode === "incois" ? "INCOIS MULTI-TIME" : "GLORYS12V1"}</strong>
+            <strong>{
+              page === "explore" && sourceMode === "incois"
+                ? "INCOIS MULTI-TIME"
+                : page === "explore" && sourceMode === "chlorophyll"
+                  ? "INCOIS OCM"
+                  : "GLORYS12V1"
+            }</strong>
           </div>
           {focusMode && (
             <button className="evidence-button focus-exit-header" onClick={() => setFocusMode(false)}>
@@ -617,6 +719,7 @@ export default function App() {
                 profiles={activeComparisonProfiles}
                 sourceMode={sourceMode}
                 operationalAvailable={Boolean(operationalCatalog) && !operationalError}
+                chlorophyllAvailable={Boolean(chlorophyllCatalog) && !chlorophyllError}
                 variable={variable}
                 viewMode={viewMode}
                 visualizationMode={visualizationMode}
@@ -653,7 +756,8 @@ export default function App() {
 
               <VisualizationDock
                 mode={visualizationMode}
-                waterColumnAvailable={sourceMode === "glorys" || variable !== "currents"}
+                waterColumnAvailable={sourceMode !== "chlorophyll" && (sourceMode === "glorys" || variable !== "currents")}
+                surfaceOnly={activeExploreCatalog.capabilities.surface_only === true}
                 variableLabel={selectedVariable?.label ?? variable}
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 timeLabel={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
