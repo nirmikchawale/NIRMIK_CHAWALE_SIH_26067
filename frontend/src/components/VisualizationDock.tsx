@@ -3,6 +3,7 @@ import type { VisualizationMode } from "../types";
 interface Props {
   mode: VisualizationMode;
   waterColumnAvailable: boolean;
+  surfaceOnly: boolean;
   variableLabel: string;
   depthM: number;
   timeLabel: string;
@@ -38,6 +39,7 @@ function compactUtc(value: string): string {
 export function VisualizationDock({
   mode,
   waterColumnAvailable,
+  surfaceOnly,
   variableLabel,
   depthM,
   timeLabel,
@@ -55,7 +57,11 @@ export function VisualizationDock({
       <div className="visualization-dock-copy">
         <span>DUAL 3D VISUALIZATION</span>
         <strong>Move from ocean geography into the verified water column</strong>
-        <small>{variableLabel} · {depthM.toFixed(2)} m · depth positive down</small>
+        <small>{
+          surfaceOnly
+            ? `${variableLabel} · satellite surface field · no depth axis`
+            : `${variableLabel} · ${depthM.toFixed(2)} m · depth positive down`
+        }</small>
       </div>
 
       <div className="visualization-dock-modes">
