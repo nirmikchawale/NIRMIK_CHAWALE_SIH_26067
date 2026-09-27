@@ -1,6 +1,7 @@
 import type {
   AnomalyResponse,
   Catalog,
+  ConnectorRegistryResponse,
   CurrentsResponse,
   FieldResponse,
   ProfileDetail,
@@ -40,6 +41,7 @@ async function getJson<T>(path: string, staticPath: string): Promise<T> {
 export const api = {
   health: () => getJson<Record<string, unknown>>("/api/health", "/health.json"),
   catalog: () => getJson<Catalog>("/api/catalog", "/catalog.json"),
+  connectors: () => getJson<ConnectorRegistryResponse>("/api/connectors", "/connectors.json"),
   profiles: () => getJson<ProfilesResponse>("/api/profiles", "/profiles/index.json"),
   provenance: () => getJson<ProvenanceResponse>("/api/provenance", "/provenance.json"),
   profile: (profileId: string) =>
