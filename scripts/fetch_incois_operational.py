@@ -10,13 +10,55 @@ import argparse
 import csv
 from datetime import datetime, timezone
 import io
+import hashlib
 import json
 import math
+import socket
+import ssl
 from pathlib import Path
 from urllib.parse import quote
+from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 DATASET_ID = "incois_argo_10d_VAM"
+
+EXPECTED_CERT_SHA256 = None  # Filled only after an independently observed INCOIS server certificate probe.
+
+
+def _peer_cert_sha256(host: str = "erddap.incois.gov.in", port: int = 443) -> str:
+    """Return the leaf-certificate SHA-256 without trusting the provider chain."""
+    context = ssl._create_unverified_context()
+    with socket.create_connection((host, port), timeout=20) as raw:
+        with context.wrap_socket(raw, server_hostname=host) as tls:
+            der = tls.getpeercert(binary_form=True)
+    if not der:
+        raise RuntimeError("INCOIS TLS peer did not present a certificate")
+    return hashlib.sha256(der).hexdigest()
+
+
+def _open_request(request: Request, timeout: int):
+    """Use normal CA validation; only permit provider-chain bypass with an exact pinned leaf cert."""
+    try:
+        return urlopen(request, timeout=timeout), True, None
+    except URLError as exc:
+        reason = getattr(exc, "reason", None)
+        if not isinstance(reason, ssl.SSLCertVerificationError):
+            raise
+        fingerprint = _peer_cert_sha256()
+        if not EXPECTED_CERT_SHA256:
+            raise RuntimeError(
+                "INCOIS TLS chain is not trusted by the runner. "
+                f"Observed leaf certificate SHA-256: {fingerprint}. "
+                "Pin this fingerprint explicitly before allowing a provider-specific fallback."
+            ) from exc
+        if fingerprint.lower() != EXPECTED_CERT_SHA256.lower():
+            raise RuntimeError(
+                "INCOIS TLS certificate fingerprint changed; refusing download. "
+                f"expected={EXPECTED_CERT_SHA256} observed={fingerprint}"
+            ) from exc
+        context = ssl._create_unverified_context()
+        return urlopen(request, timeout=timeout, context=context), False, fingerprint
+
 BASE = f"https://erddap.incois.gov.in/erddap/griddap/{DATASET_ID}.csv"
 TIME_START = "2026-07-10T00:00:00Z"
 TIME_END = "2026-07-30T00:00:00Z"
@@ -65,7 +107,8 @@ def fetch(timeout: int = 60) -> dict:
             "Accept": "text/csv,*/*;q=0.8",
         },
     )
-    with urlopen(request, timeout=timeout) as response:
+    response_handle, transport_verified, cert_fingerprint = _open_request(request, timeout)
+    with response_handle as response:
         if response.status != 200:
             raise RuntimeError(f"INCOIS ERDDAP returned HTTP {response.status}")
         text = response.read().decode("utf-8")
@@ -118,6 +161,8 @@ def fetch(timeout: int = 60) -> dict:
             "official_metadata": f"https://erddap.incois.gov.in/erddap/info/{DATASET_ID}/index.html",
             "conventions": ["CF-1.6", "COARDS", "ACDD-1.3"],
             "runtime_policy": "fetched and validated at build time; static at browser runtime",
+            "transport_tls_ca_verified": transport_verified,
+            "transport_leaf_cert_sha256": cert_fingerprint,
         },
         "coverage": {
             "times": times,
