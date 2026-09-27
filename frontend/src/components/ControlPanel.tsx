@@ -345,6 +345,8 @@ export function ControlPanel({
             <div className="time-row">
               <button
                 className="play-button"
+                aria-label={playing ? "Pause genuine Explore time playback" : "Play genuine Explore time playback"}
+                aria-pressed={playing}
                 onClick={() => onPlayingChange(!playing)}
                 title="Play verified time steps"
               >
@@ -359,6 +361,7 @@ export function ControlPanel({
             </div>
             <input
               type="range"
+              aria-label="Explore genuine timestamp"
               min={0}
               max={Math.max(0, catalog.coordinates.time.length - 1)}
               value={timeIndex}
