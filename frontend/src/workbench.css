@@ -665,7 +665,7 @@
 .ocean-workbench button:focus-visible,.field-reading summary:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 3px; }
 
 .ocean-workbench .evidence-rail p { font-size: 14px; }
-.ocean-workbench .field-entry-actions { top: 180px; }
+.ocean-workbench .field-entry-actions { top: 140px; }
 .ocean-workbench[data-workspace-mode="analysis"] .field-entry-actions { display:none; }
 @media(max-width:760px) {
  .ocean-journey { top:8px; }
@@ -677,4 +677,30 @@
 @media(prefers-reduced-motion:reduce) {
  .ocean-workbench .visualization-stage { animation:none; }
  .ocean-workbench button { transition:none; }
+}
+
+.ocean-workbench .evidence-rail { background: var(--wb-panel); }
+.ocean-journey button,.field-inspect-toggle { min-height:44px; }
+
+/* Reserve a journey strip below the desktop instrument row and above mobile imagery. */
+.ocean-journey { top:84px; flex-direction:row; }
+.ocean-workbench .field-entry-actions { top:140px; }
+.ocean-workbench .field-entry-actions .study-region-entry { min-height:84px; }
+@media(max-width:760px) {
+ .ocean-journey { top:8px; gap:5px; }
+ .journey-stops { font-size:9px; gap:5px; padding:10px 8px; }
+ .ocean-journey button { font-size:10px; padding:7px; }
+ .ocean-workbench .visualization-stage .imagery-control { top:66px !important; }
+ .ocean-workbench .field-entry-actions { top:174px; }
+}
+
+.ocean-workbench .imported-observation-chips .sensor-disclosure { display:none; }
+@media(max-width:760px) {
+ .ocean-workbench .visualization-stage .imported-observation-chips { top:138px; padding:0; z-index:15; }
+ .ocean-workbench .imported-observation-chips > span { display:none; }
+ .ocean-workbench .imported-observation-chips .sensor-disclosure { display:block; width:100%; min-height:44px; text-align:left; }
+ .ocean-workbench .imported-observation-chips[data-expanded="false"] > div { display:none; }
+ .ocean-workbench .imported-observation-chips[data-expanded="true"] > div { max-height:180px; overflow-y:auto; padding:8px; }
+ .ocean-workbench .field-entry-actions { top:194px; }
+ .globe-shell:has(.imported-observation-chips[data-expanded="true"]) .field-entry-actions { visibility:hidden; }
 }

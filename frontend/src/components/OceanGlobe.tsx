@@ -123,6 +123,7 @@ export function OceanGlobe({
   const viewerRef = useRef<Viewer | null>(null);
   const enterWaterColumnRef = useRef(onEnterWaterColumn);
   const regionEntryArmedRef = useRef(true);
+  const stopJourneyRef = useRef<() => void>(() => {});
   const journeyRef = useRef<(skip?: boolean) => void>(() => {});
   const entryAvailableRef = useRef(canEnterWaterColumn);
   useEffect(() => { entryAvailableRef.current = canEnterWaterColumn; }, [canEnterWaterColumn]);
@@ -133,6 +134,7 @@ export function OceanGlobe({
   const zoomAnimationRef = useRef<number | null>(null);
   const imageryRequestRef = useRef(0);
   const sliceHeightRef = useRef(0);
+  const [sensorsExpanded, setSensorsExpanded] = useState(false);
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [rendererError, setRendererError] = useState("");
   const [renderScale, setRenderScale] = useState(1);
@@ -231,6 +233,7 @@ export function OceanGlobe({
       viewer.camera.cancelFlight();
       setIntroPhase("region");
     };
+    stopJourneyRef.current = stopJourney;
     journeyRef.current = (skip = false) => {
       stopJourney();
       const generation = journeyGeneration;
@@ -331,6 +334,7 @@ export function OceanGlobe({
     return () => {
       stopJourney();
       journeyRef.current = () => {};
+      stopJourneyRef.current = () => {};
       removeRenderErrorListener();
       window.removeEventListener("resize", syncRenderQuality);
       if (zoomAnimationRef.current != null) {
@@ -853,6 +857,7 @@ export function OceanGlobe({
 
 
   const smoothGlobeZoom = (direction: "in" | "out") => {
+    stopJourneyRef.current();
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed()) return;
 
@@ -905,6 +910,7 @@ export function OceanGlobe({
   };
 
   const cancelCameraAnimation = () => {
+    stopJourneyRef.current();
     const viewer = viewerRef.current;
     if (!viewer || viewer.isDestroyed()) return null;
     if (zoomAnimationRef.current != null) {
@@ -1062,9 +1068,10 @@ export function OceanGlobe({
         </small>
       </div>
       {importedProfiles.length > 0 && !selectedImportedProfileId && (
-        <div className="globe-overlay imported-observation-chips" aria-label="Multi-sensor observation profiles">
+        <div className="globe-overlay imported-observation-chips" aria-label="Multi-sensor observation profiles" data-expanded={sensorsExpanded}>
           <span>MULTI-SENSOR PROFILES</span>
-          <div>
+          <button className="sensor-disclosure" type="button" aria-expanded={sensorsExpanded} aria-controls="sensor-profile-choices" onClick={() => setSensorsExpanded(!sensorsExpanded)}>{sensorsExpanded ? "Close sensor profiles" : `Sensor profiles (${importedProfiles.length})`}</button>
+          <div id="sensor-profile-choices">
             {importedProfiles.map((profile) => (
               <button
                 type="button"
