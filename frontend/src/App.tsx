@@ -113,7 +113,9 @@ export default function App() {
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMobileSheet("none");
+      if (event.key !== "Escape") return;
+      setMobileSheet("none");
+      setProfilePanelOpen(false);
     };
     window.addEventListener("keydown", handleEscape);
     return () => window.removeEventListener("keydown", handleEscape);
