@@ -115,7 +115,7 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span className="info-icon"><Icon name="shield" /></span>
           <strong>Guarded Data Lab</strong>
-          <p>Local CSV/JSON validation for coordinates, depth convention, timestamps, units, provenance, duplicates and missingness.</p>
+          <p>Browser-local NetCDF4/CF, CSV, TSV/ASCII and JSON validation with guarded conversion into temporary 3D observation layers.</p>
           <em>FAIL-CLOSED VALIDATION</em>
         </article>
       </section>
@@ -131,13 +131,13 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span>01</span>
           <strong>Verified sources</strong>
-          <p>Copernicus Marine GLORYS12V1 model evidence + Argo in-situ comparison evidence.</p>
+          <p>Copernicus Marine GLORYS12V1 + build-verified INCOIS multi-time physics and chlorophyll + Argo/Glider/CTD/BGC observations.</p>
         </article>
         <i>→</i>
         <article>
           <span>02</span>
           <strong>Scientific core</strong>
-          <p>Python/FastAPI contracts expose fields, volumes, currents, telemetry, comparisons, anomalies and provenance.</p>
+          <p>Python/FastAPI contracts expose fields, scalar volumes, all-depth horizontal currents, telemetry, comparisons, anomalies, provenance and OGC interoperability.</p>
         </article>
         <i>→</i>
         <article>
@@ -192,7 +192,7 @@ export function InfoPage({ catalog, provenance }: Props) {
           </div>
         </div>
         <div className="info-integrity-grid">
-          <article><strong>No synthetic timestamps</strong><p>Only {timestamps.length} genuine bundled model timestamp{timestamps.length === 1 ? "" : "s"} exist, so temporal trend/anomaly views remain locked when evidence is insufficient.</p></article>
+          <article><strong>No synthetic timestamps</strong><p>The bundled GLORYS baseline contains {timestamps.length} genuine model timestamp{timestamps.length === 1 ? "" : "s"}. Playback is enabled only for separate INCOIS sources that supply multiple genuine provider timestamps; OceanTwin never duplicates a field to simulate time.</p></article>
           <article><strong>No depth sign ambiguity</strong><p>Scientific depth is metres positive downward. Visual exaggeration changes screen geometry only.</p></article>
           <article><strong>No black-box anomaly claim</strong><p>Flags are statistical extremes using an explicit robust rule; they do not prove an ocean event, sensor fault or forecast failure.</p></article>
           <article><strong>No hidden validation claim</strong><p>Argo comparisons are diagnostic collocations for this evidence window, not a global or independent validation of the model.</p></article>
@@ -205,7 +205,7 @@ export function InfoPage({ catalog, provenance }: Props) {
           <h3>Show the science in five moves.</h3>
         </div>
         <ol>
-          <li><strong>Explore</strong><span>Switch Cesium Globe ↔ Water-Column 3D; change depth and inspect actual values.</span></li>
+          <li><strong>Explore</strong><span>Switch GLORYS ↔ genuine INCOIS sources; demonstrate time playback, surface chlorophyll, depth slices and full-water-column scalar/current 3D.</span></li>
           <li><strong>Telemetry</strong><span>Show how temperature/salinity structure changes through the verified depth levels.</span></li>
           <li><strong>Compare</strong><span>Open an Argo profile and explain model − observation residuals and collocation metrics.</span></li>
           <li><strong>Screen</strong><span>Use explainable anomaly flags and point out that temporal screening is guarded by evidence availability.</span></li>

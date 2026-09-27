@@ -167,16 +167,19 @@ React + CesiumJS
        |
 validated Python scientific core
        |
-bundled Copernicus + Argo evidence
+verified Copernicus + INCOIS + multi-sensor evidence
 ```
 
 The existing Streamlit application remains the **frozen scientific reference and emergency
 demo fallback**. It is not replaced or rewritten.
 
-The bundled Copernicus subset already contains verified `thetao`, `so`, `uo`, and `vo`
-fields, so the web MVP exposes real temperature, salinity, and current data from the same
-file. The current file contains one genuine model timestamp; the new UI reports that
-limitation and does not fabricate time animation.
+The bundled Copernicus subset contains verified `thetao`, `so`, `uo`, and `vo` fields,
+including all-depth horizontal-current visualization. That GLORYS evidence still contains
+one genuine model timestamp, and OceanTwin reports that limitation instead of fabricating
+time. Separate build-verified INCOIS sources provide genuine multi-time temperature/salinity
+playback and genuine surface chlorophyll. Browser Data Lab ingestion supports CF-aware NetCDF
+as well as delimited/JSON observations, and verified Glider/CTD/BGC profiles use the shared
+observation-plugin path.
 
 See:
 
