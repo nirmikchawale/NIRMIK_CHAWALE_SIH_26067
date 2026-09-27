@@ -293,6 +293,26 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
 
+  const chlorophyllSource = sourceSelector.getByRole("button", { name: "INCOIS chlorophyll" });
+  await expect(chlorophyllSource).toBeEnabled();
+  await chlorophyllSource.click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "chlorophyll");
+  await expect(page.locator(".visualization-dock")).toContainText("INCOIS satellite ocean-colour chlorophyll");
+  await expect(page.getByRole("button", { name: /Chlorophyll-a/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".legend-card")).toContainText("Chlorophyll-a");
+  await expect(page.locator(".legend-card")).toContainText("mg/m^3");
+  await expect(page.locator(".surface-only-control")).toContainText("Surface field only");
+  await expect(page.locator(".evidence-readout")).toContainText("SURFACE");
+  const chlorophyllWaterColumn = page.getByRole("button", { name: /Water Column 3D/ });
+  await expect(chlorophyllWaterColumn).toBeDisabled();
+  const chlorophyllTime = page.getByLabel("Explore genuine timestamp");
+  await expect(chlorophyllTime).toBeVisible();
+  const chlorophyllInitialTime = await chlorophyllTime.inputValue();
+  await chlorophyllTime.focus();
+  await chlorophyllTime.press("End");
+  await expect.poll(async () => await chlorophyllTime.inputValue()).not.toBe(chlorophyllInitialTime);
+  await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+
   await sourceSelector.getByRole("button", { name: "GLORYS baseline" }).click();
   await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "glorys");
   await expect(page.locator(".play-button")).toHaveCount(0);
