@@ -290,6 +290,20 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
 
+  const globeCameraHud = globeShell.locator(".camera-orientation-hud");
+  await expect(globeCameraHud).toBeVisible();
+  await expect(globeCameraHud.getByRole("button", { name: "Nadir plan view" })).toBeVisible();
+  await globeCameraHud.getByRole("button", { name: "Nadir plan view" }).click();
+  await expect(globeShell).toHaveAttribute("data-camera-preset", "nadir");
+  await globeCameraHud.getByRole("button", { name: "Perspective 45 degree view" }).click();
+  await expect(globeShell).toHaveAttribute("data-camera-preset", "perspective");
+  await globeCameraHud.getByRole("button", { name: "Equatorial cross-section view" }).click();
+  await expect(globeShell).toHaveAttribute("data-camera-preset", "cross-section");
+  await globeCameraHud.getByRole("button", { name: "Basin framing view" }).click();
+  await expect(globeShell).toHaveAttribute("data-camera-preset", "basin");
+  await globeCameraHud.getByRole("button", { name: "Face Ocean Globe camera due north" }).click();
+  await expect(globeShell).toHaveAttribute("data-camera-preset", "north");
+
   await expect(page.locator(".play-button")).toHaveCount(0);
   await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
   await expect(page.locator(".static-time-row")).toContainText("Verified model timestamp · static snapshot");
@@ -364,6 +378,15 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".water-column-selected")).toContainText("SELECTED LAYER");
   await expect(page.locator(".water-column-axis-key")).toContainText("Depth m ↓");
   await expect(page.locator(".water-column-smooth-zoom")).toBeVisible();
+
+  const waterCameraHud = waterColumnShell.locator(".camera-orientation-hud");
+  await expect(waterCameraHud).toBeVisible();
+  await waterCameraHud.getByRole("button", { name: "Equatorial cross-section view" }).click();
+  await expect(waterColumnShell).toHaveAttribute("data-camera-preset", "cross-section");
+  await waterCameraHud.getByRole("button", { name: "Perspective 45 degree view" }).click();
+  await expect(waterColumnShell).toHaveAttribute("data-camera-preset", "perspective");
+  await waterCameraHud.getByRole("button", { name: "Face Water-Column 3D camera due north" }).click();
+  await expect(waterColumnShell).toHaveAttribute("data-camera-preset", "north");
 
   const initialWaterZoom = Number(await waterColumnShell.getAttribute("data-zoom"));
   await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
