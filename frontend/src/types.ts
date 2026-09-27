@@ -1,5 +1,15 @@
 export type VariableKind = "scalar" | "vector";
-export type ViewMode = "slice" | "volume";
+export type ViewMode = "slice" | "volume" | "isosurface";
+export type ColorPaletteId = "thermal" | "haline" | "viridis" | "icefire";
+export type ColorScaleMode = "linear" | "log";
+
+export interface ColorTransfer {
+  palette: ColorPaletteId;
+  scale: ColorScaleMode;
+  minimum: number;
+  maximum: number;
+  isosurfaceValue: number;
+}
 export type VisualizationMode = "globe" | "water-column";
 
 export interface VariableCard {
