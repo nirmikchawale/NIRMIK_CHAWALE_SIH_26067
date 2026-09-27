@@ -77,7 +77,7 @@ jobs:
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
-          test -s frontend/dist/netcdf4-wasm.wasm
+          find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
 
       - name: Configure GitHub Pages
