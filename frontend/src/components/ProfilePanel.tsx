@@ -231,7 +231,6 @@ export function ProfilePanel({
       <aside
         className="profile-panel panel-placeholder"
         data-context-open={open ? "true" : "false"}
-        data-context-open={open ? "true" : "false"}
         data-mobile-open={mobileOpen ? "true" : "false"}
         aria-label="Observation details"
       >
@@ -245,6 +244,7 @@ export function ProfilePanel({
     return (
       <aside
         className="profile-panel panel-placeholder"
+        data-context-open={open ? "true" : "false"}
         data-mobile-open={mobileOpen ? "true" : "false"}
         aria-label="Observation details"
       >
