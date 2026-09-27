@@ -1033,7 +1033,7 @@ export function OceanGlobe({
           <span className="live-dot" />
           <strong>INDIAN OCEAN · VERIFIED WINDOW</strong>
         </div>
-        <span>67–70°E · 12–14°N · {profiles.length} Argo comparison profiles · {importedProfiles.length} imported sensor profiles</span>
+        <span>67–70°E · 12–14°N · {profiles.length} Argo comparison profiles · {importedProfiles.length} sensor plugin profiles</span>
         <small>
           {scalar?.label ?? (currents ? "Currents" : "Ocean field")}
           {field ? ` · ${field.depth_m.toFixed(2)} m` : ""}
@@ -1045,8 +1045,8 @@ export function OceanGlobe({
         </small>
       </div>
       {importedProfiles.length > 0 && !selectedImportedProfileId && (
-        <div className="globe-overlay imported-observation-chips" aria-label="Imported instrument profiles">
-          <span>SESSION INSTRUMENTS</span>
+        <div className="globe-overlay imported-observation-chips" aria-label="Multi-sensor observation profiles">
+          <span>MULTI-SENSOR PROFILES</span>
           <div>
             {importedProfiles.map((profile) => (
               <button
