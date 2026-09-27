@@ -293,6 +293,7 @@ export function ControlPanel({
           </span>
           <input
             type="range"
+            aria-label="Model depth"
             min={0}
             max={catalog.coordinates.depth.length - 1}
             value={depthIndex}
