@@ -77,6 +77,23 @@ jobs:
           print("INCOIS chlorophyll evidence verified:", payload["record_count"], "records")
           PY
 
+      - name: Verify real INCOIS OPeNDAP DAP2 endpoints
+        run: |
+          rm -rf /tmp/oceantwin-opendap
+          python scripts/verify_incois_opendap.py --output /tmp/oceantwin-opendap/opendap-verification.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/oceantwin-opendap/opendap-verification.json").read_text())
+          assert payload["protocol"] == "OPeNDAP DAP2"
+          assert payload["provider"] == "INCOIS"
+          assert payload["integrity"]["real_network_endpoints_checked"] is True
+          assert payload["integrity"]["placeholder_endpoints"] is False
+          assert payload["integrity"]["dataset_count"] >= 2
+          assert {item["dataset_id"] for item in payload["sources"]} >= {"incois_argo_10d_VAM", "IRS_chlorophyll_datasets"}
+          print("INCOIS OPeNDAP interoperability verified.")
+          PY
+
       - name: Fetch verified Glider CTD BGC observation breadth pack
         run: |
           rm -rf /tmp/oceantwin-observations
@@ -222,6 +239,9 @@ jobs:
       - name: Fetch verified INCOIS chlorophyll snapshot for hosted build
         run: python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json
 
+      - name: Verify INCOIS OPeNDAP for hosted build
+        run: python scripts/verify_incois_opendap.py --output frontend/public/operational/opendap-verification.json
+
       - name: Fetch verified Glider CTD BGC profiles for hosted build
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
@@ -259,6 +279,7 @@ jobs:
           test -s frontend/dist/science-static/health.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/operational/incois-chlorophyll.json
+          test -s frontend/dist/operational/opendap-verification.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
           find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
@@ -340,6 +361,7 @@ jobs:
           operational = get_json("/operational/incois-argo-10d-vam.json")
           observations = get_json("/observations/verified-profiles.json")
           chlorophyll = get_json("/operational/incois-chlorophyll.json")
+          opendap = get_json("/operational/opendap-verification.json")
           netcdf_fixture = get_bytes("/samples/cf-profile-fixture.nc")
           natural_earth = get_bytes(
               "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
@@ -370,6 +392,9 @@ jobs:
           assert chlorophyll["integrity"]["surface_only"] is True
           assert chlorophyll["integrity"]["synthetic_depths"] is False
           assert chlorophyll["record_count"] > 0
+          assert opendap["protocol"] == "OPeNDAP DAP2"
+          assert opendap["integrity"]["real_network_endpoints_checked"] is True
+          assert opendap["integrity"]["placeholder_endpoints"] is False
           assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["integrity"]["runtime_network_required"] is False
