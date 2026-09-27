@@ -32,6 +32,7 @@ from src.comparison_loader import (
 )
 from src.ocean_dataset import load_ocean_dataset
 from src.source_registry import registry_payload
+from backend.app.ogc import build_ogc_router
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -79,6 +80,9 @@ def _dataset() -> dict[str, Any]:
 @lru_cache(maxsize=1)
 def _comparison_bundle():
     return load_bundle(COMPARISON_DIR)
+
+
+app.include_router(build_ogc_router(_dataset))
 
 
 def _ensure_index(name: str, index: int, size: int) -> None:
