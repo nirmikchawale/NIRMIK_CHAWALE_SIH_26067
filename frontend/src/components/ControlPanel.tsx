@@ -1,4 +1,4 @@
-import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 import { displayUnits } from "../units";
 
 const DEPTH_TRACK_MAX = 1000;
@@ -63,10 +63,6 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
-  colorPalette: ColorPalette;
-  colorScale: ColorScaleMode;
-  colorMinimum: number;
-  colorMaximum: number;
   isoSurfaceEnabled: boolean;
   isoValue: number;
   mobileOpen: boolean;
@@ -80,10 +76,6 @@ interface Props {
   onVerticalExaggerationChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
-  onColorPaletteChange: (value: ColorPalette) => void;
-  onColorScaleChange: (value: ColorScaleMode) => void;
-  onColorMinimumChange: (value: number) => void;
-  onColorMaximumChange: (value: number) => void;
   onIsoSurfaceEnabledChange: (value: boolean) => void;
   onIsoValueChange: (value: number) => void;
 }
@@ -103,10 +95,6 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
-  colorPalette,
-  colorScale,
-  colorMinimum,
-  colorMaximum,
   isoSurfaceEnabled,
   isoValue,
   mobileOpen,
@@ -120,10 +108,6 @@ export function ControlPanel({
   onVerticalExaggerationChange,
   onProfileChange,
   onPlayingChange,
-  onColorPaletteChange,
-  onColorScaleChange,
-  onColorMinimumChange,
-  onColorMaximumChange,
   onIsoSurfaceEnabledChange,
   onIsoValueChange
 }: Props) {
@@ -308,55 +292,12 @@ export function ControlPanel({
               </label>
             )}
 
-            <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
-                <div className="section-kicker visualization-kicker">Colorbar</div>
-                <label>
-                  Palette
-                  <select
-                    value={colorPalette}
-                    onChange={(event) => onColorPaletteChange(event.target.value as ColorPalette)}
-                  >
-                    <option value="thermal">Thermal</option>
-                    <option value="viridis">Viridis</option>
-                    <option value="icefire">Ice–Fire</option>
-                  </select>
-                </label>
-                <div className="color-range-grid">
-                  <label>
-                    Minimum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMinimum) ? colorMinimum : ""}
-                      onChange={(event) => onColorMinimumChange(Number(event.target.value))}
-                    />
-                  </label>
-                  <label>
-                    Maximum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMaximum) ? colorMaximum : ""}
-                      onChange={(event) => onColorMaximumChange(Number(event.target.value))}
-                    />
-                  </label>
-                </div>
-                <div className="segmented color-scale-selector" aria-label="Color scale">
-                  <button
-                    className={colorScale === "linear" ? "active" : ""}
-                    onClick={() => onColorScaleChange("linear")}
-                  >
-                    Linear
-                  </button>
-                  <button
-                    className={colorScale === "log" ? "active" : ""}
-                    disabled={colorMinimum <= 0 || colorMaximum <= 0}
-                    title={colorMinimum <= 0 || colorMaximum <= 0 ? "Log scale requires a positive range" : "Logarithmic color mapping"}
-                    onClick={() => onColorScaleChange("log")}
-                  >
-                    Log
-                  </button>
-                </div>
+            <div className="persistent-colorbar-relocated">
+              <div className="section-kicker visualization-kicker">Colorbar</div>
+              <p className="microcopy">
+                Range, histogram, scale and palette controls are now persistent on the 3D canvas for direct manipulation.
+              </p>
+            </div>
                 {scalar && !surfaceOnly && <label className="iso-toggle">
                   <span className="label-row">
                     <span>Isosurface</span>
