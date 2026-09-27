@@ -244,7 +244,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
-  await page.getByRole("button", { name: "Zoom in Cesium Globe" }).click();
+  await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
 
   await expect(page.locator(".play-button")).toHaveCount(0);
