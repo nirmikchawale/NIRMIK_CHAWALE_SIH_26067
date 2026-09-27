@@ -1,5 +1,52 @@
 import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
+const DEPTH_TRACK_MAX = 1000;
+const EPipelagic_END_M = 200;
+const MESOPELAGIC_END_M = 1000;
+const DEEP_REFERENCE_M = 4000;
+
+function depthToTrackPosition(depthM: number, deepestVerifiedM: number) {
+  if (depthM <= EPipelagic_END_M) {
+    return (Math.max(0, depthM) / EPipelagic_END_M) * 400;
+  }
+  if (depthM <= MESOPELAGIC_END_M) {
+    return 400 + ((depthM - EPipelagic_END_M) / (MESOPELAGIC_END_M - EPipelagic_END_M)) * 350;
+  }
+  const deepExtent = Math.max(DEEP_REFERENCE_M, deepestVerifiedM);
+  return 750 + ((Math.min(depthM, deepExtent) - MESOPELAGIC_END_M) / (deepExtent - MESOPELAGIC_END_M)) * 250;
+}
+
+function trackPositionToDepth(trackPosition: number, deepestVerifiedM: number) {
+  const position = Math.min(DEPTH_TRACK_MAX, Math.max(0, trackPosition));
+  if (position <= 400) {
+    return (position / 400) * EPipelagic_END_M;
+  }
+  if (position <= 750) {
+    return EPipelagic_END_M + ((position - 400) / 350) * (MESOPELAGIC_END_M - EPipelagic_END_M);
+  }
+  const deepExtent = Math.max(DEEP_REFERENCE_M, deepestVerifiedM);
+  return MESOPELAGIC_END_M + ((position - 750) / 250) * (deepExtent - MESOPELAGIC_END_M);
+}
+
+function nearestDepthIndex(depths: number[], targetDepthM: number) {
+  let bestIndex = 0;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  depths.forEach((depthM, index) => {
+    const distance = Math.abs(depthM - targetDepthM);
+    if (distance < bestDistance) {
+      bestIndex = index;
+      bestDistance = distance;
+    }
+  });
+  return bestIndex;
+}
+
+function depthZone(depthM: number) {
+  if (depthM <= EPipelagic_END_M) return "Epipelagic";
+  if (depthM <= MESOPELAGIC_END_M) return "Mesopelagic";
+  return "Bathypelagic";
+}
+
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
@@ -79,10 +126,36 @@ export function ControlPanel({
   onIsoSurfaceEnabledChange,
   onIsoValueChange
 }: Props) {
-  const depth = catalog.coordinates.depth[depthIndex] ?? 0;
+  const depths = catalog.coordinates.depth;
+  const depth = depths[depthIndex] ?? 0;
+  const deepestVerifiedDepth = Math.max(...depths, 0);
+  const depthTrackPosition = depthToTrackPosition(depth, deepestVerifiedDepth);
   const time = catalog.coordinates.time[timeIndex] ?? "Unavailable";
   const scalar = variable !== "currents";
   const surfaceOnly = catalog.capabilities.surface_only === true;
+  const currentDepthZone = depthZone(depth);
+
+  const selectDepthFromTrack = (trackPosition: number) => {
+    const physicalDepth = trackPositionToDepth(trackPosition, deepestVerifiedDepth);
+    onDepthChange(nearestDepthIndex(depths, physicalDepth));
+  };
+
+  const selectDepthZone = (minimumM: number, maximumM: number, targetM: number) => {
+    const candidates = depths
+      .map((depthM, index) => ({ depthM, index }))
+      .filter(({ depthM }) => depthM >= minimumM && depthM <= maximumM);
+    if (candidates.length === 0) return;
+    const nearest = candidates.reduce((best, candidate) =>
+      Math.abs(candidate.depthM - targetM) < Math.abs(best.depthM - targetM) ? candidate : best
+    );
+    onDepthChange(nearest.index);
+  };
+
+  const zoneAvailability = {
+    epipelagic: depths.some((value) => value >= 0 && value <= EPipelagic_END_M),
+    mesopelagic: depths.some((value) => value > EPipelagic_END_M && value <= MESOPELAGIC_END_M),
+    bathypelagic: depths.some((value) => value > MESOPELAGIC_END_M)
+  };
 
   return (
     <aside
@@ -348,20 +421,76 @@ export function ControlPanel({
             <span>No model depth coordinate exists for this satellite chlorophyll product.</span>
           </div>
         ) : (
-          <label>
-            <span className="label-row">
-              <span>Depth</span>
+          <div
+            className="bathymetric-depth-controller"
+            data-depth-zone={currentDepthZone.toLowerCase()}
+            data-track-allocation="40-35-25"
+          >
+            <div className="label-row">
+              <span>Depth · {currentDepthZone}</span>
               <strong>{depth.toFixed(2)} m</strong>
-            </span>
-            <input
-              type="range"
-              aria-label="Model depth"
-              min={0}
-              max={catalog.coordinates.depth.length - 1}
-              value={depthIndex}
-              onChange={(event) => onDepthChange(Number(event.target.value))}
-            />
-          </label>
+            </div>
+
+            <div className="depth-zone-track" aria-label="Oceanographic depth zones">
+              <button
+                type="button"
+                className={currentDepthZone === "Epipelagic" ? "active" : ""}
+                disabled={!zoneAvailability.epipelagic}
+                onClick={() => selectDepthZone(0, EPipelagic_END_M, 100)}
+                aria-label="Epipelagic zone 0 to 200 metres"
+              >
+                <strong>Epipelagic</strong>
+                <span>0–200 m</span>
+              </button>
+              <button
+                type="button"
+                className={currentDepthZone === "Mesopelagic" ? "active" : ""}
+                disabled={!zoneAvailability.mesopelagic}
+                onClick={() => selectDepthZone(EPipelagic_END_M + Number.EPSILON, MESOPELAGIC_END_M, 600)}
+                aria-label="Mesopelagic zone 200 to 1000 metres"
+              >
+                <strong>Mesopelagic</strong>
+                <span>200–1,000 m</span>
+              </button>
+              <button
+                type="button"
+                className={currentDepthZone === "Bathypelagic" ? "active" : ""}
+                disabled={!zoneAvailability.bathypelagic}
+                onClick={() => selectDepthZone(MESOPELAGIC_END_M + Number.EPSILON, Number.POSITIVE_INFINITY, 2000)}
+                aria-label="Bathypelagic zone deeper than 1000 metres"
+              >
+                <strong>Bathypelagic</strong>
+                <span>1,000–4,000+ m</span>
+              </button>
+            </div>
+
+            <div className="nonlinear-depth-slider-shell">
+              <input
+                type="range"
+                aria-label="Model depth"
+                min={0}
+                max={DEPTH_TRACK_MAX}
+                step={1}
+                value={Math.round(depthTrackPosition)}
+                onChange={(event) => selectDepthFromTrack(Number(event.target.value))}
+              />
+              <div className="depth-track-allocation" aria-hidden="true">
+                <span className="epipelagic" />
+                <span className="mesopelagic" />
+                <span className="bathypelagic" />
+              </div>
+            </div>
+
+            <div className="depth-controller-meta">
+              <span>40% surface · 35% twilight · 25% deep track</span>
+              <span>{depths.length} verified levels · source max {deepestVerifiedDepth.toFixed(1)} m</span>
+            </div>
+            {!zoneAvailability.bathypelagic && (
+              <p className="depth-availability-note">
+                Deeper-zone geometry is shown for orientation only; this source has no verified level below {deepestVerifiedDepth.toFixed(1)} m.
+              </p>
+            )}
+          </div>
         )}
       </section>
 
