@@ -224,8 +224,8 @@ export function ControlPanel({
           onChange={(event) => onTimeChange(Number(event.target.value))}
         />
         {!catalog.capabilities.time_animation && (
-          <p className="microcopy warning">
-            Playback is intentionally disabled—no synthetic second timestamp is created.
+          <p className="microcopy">
+            Single verified model timestamp available. Playback requires additional verified timesteps.
           </p>
         )}
       </section>
