@@ -1,4 +1,5 @@
-import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import { gradientCss, paletteLabel } from "../colorScale";
+import type { Catalog, ColorPaletteId, ColorScaleMode, ColorTransfer, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
@@ -10,6 +11,7 @@ interface Props {
   depthIndex: number;
   timeIndex: number;
   verticalExaggeration: number;
+  colorTransfer: ColorTransfer;
   selectedProfileId: string;
   playing: boolean;
   mobileOpen: boolean;
@@ -20,6 +22,11 @@ interface Props {
   onDepthChange: (value: number) => void;
   onTimeChange: (value: number) => void;
   onVerticalExaggerationChange: (value: number) => void;
+  onColorPaletteChange: (value: ColorPaletteId) => void;
+  onColorScaleChange: (value: ColorScaleMode) => void;
+  onColorMinimumChange: (value: number) => void;
+  onColorMaximumChange: (value: number) => void;
+  onIsosurfaceValueChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
 }
@@ -34,6 +41,7 @@ export function ControlPanel({
   depthIndex,
   timeIndex,
   verticalExaggeration,
+  colorTransfer,
   selectedProfileId,
   playing,
   mobileOpen,
@@ -44,6 +52,11 @@ export function ControlPanel({
   onDepthChange,
   onTimeChange,
   onVerticalExaggerationChange,
+  onColorPaletteChange,
+  onColorScaleChange,
+  onColorMinimumChange,
+  onColorMaximumChange,
+  onIsosurfaceValueChange,
   onProfileChange,
   onPlayingChange
 }: Props) {
@@ -111,7 +124,7 @@ export function ControlPanel({
             </div>
 
             {visualizationMode === "globe" && (
-              <div className="segmented field-mode-selector" aria-label="Globe field mode">
+              <div className="segmented field-mode-selector three-way" aria-label="Globe field mode">
                 <button
                   className={viewMode === "slice" ? "active" : ""}
                   disabled={!scalar}
@@ -125,6 +138,13 @@ export function ControlPanel({
                   onClick={() => onViewModeChange("volume")}
                 >
                   3D field
+                </button>
+                <button
+                  className={viewMode === "isosurface" ? "active" : ""}
+                  disabled={!scalar}
+                  onClick={() => onViewModeChange("isosurface")}
+                >
+                  Isosurface
                 </button>
               </div>
             )}
@@ -143,6 +163,87 @@ export function ControlPanel({
                   onChange={(event) => onWaterColumnOpacityChange(Number(event.target.value))}
                 />
               </label>
+            )}
+
+            {scalar && (
+              <div className="transfer-editor" data-scale={colorTransfer.scale}>
+                <div className="section-kicker visualization-kicker">Colorbar & isosurface</div>
+                <div
+                  className="transfer-gradient"
+                  style={{ background: gradientCss(colorTransfer.palette) }}
+                  aria-label={`${paletteLabel(colorTransfer.palette)} color palette preview`}
+                />
+                <div className="transfer-grid">
+                  <label>
+                    Palette
+                    <select
+                      aria-label="Color palette"
+                      value={colorTransfer.palette}
+                      onChange={(event) => onColorPaletteChange(event.target.value as ColorPaletteId)}
+                    >
+                      <option value="thermal">Thermal</option>
+                      <option value="haline">Haline</option>
+                      <option value="viridis">Viridis</option>
+                      <option value="icefire">Ice–Fire</option>
+                    </select>
+                  </label>
+                  <label>
+                    Scale
+                    <select
+                      aria-label="Color scale"
+                      value={colorTransfer.scale}
+                      onChange={(event) => onColorScaleChange(event.target.value as ColorScaleMode)}
+                    >
+                      <option value="linear">Linear</option>
+                      <option value="log" disabled={colorTransfer.minimum <= 0}>Logarithmic</option>
+                    </select>
+                  </label>
+                  <label>
+                    Minimum
+                    <input
+                      aria-label="Color minimum"
+                      type="number"
+                      step="any"
+                      value={colorTransfer.minimum}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        if (Number.isFinite(value) && value < colorTransfer.maximum) onColorMinimumChange(value);
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Maximum
+                    <input
+                      aria-label="Color maximum"
+                      type="number"
+                      step="any"
+                      value={colorTransfer.maximum}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        if (Number.isFinite(value) && value > colorTransfer.minimum) onColorMaximumChange(value);
+                      }}
+                    />
+                  </label>
+                </div>
+                <label className="isosurface-control">
+                  <span className="label-row">
+                    <span>Isosurface threshold</span>
+                    <strong>{colorTransfer.isosurfaceValue.toFixed(3)} {catalog.variables.find((item) => item.id === variable)?.units}</strong>
+                  </span>
+                  <input
+                    aria-label="Isosurface threshold"
+                    type="range"
+                    min={colorTransfer.minimum}
+                    max={colorTransfer.maximum}
+                    step={Math.max((colorTransfer.maximum - colorTransfer.minimum) / 200, 0.000001)}
+                    value={Math.min(colorTransfer.maximum, Math.max(colorTransfer.minimum, colorTransfer.isosurfaceValue))}
+                    onChange={(event) => onIsosurfaceValueChange(Number(event.target.value))}
+                  />
+                </label>
+                <p className="microcopy">
+                  Color mapping changes presentation only. Isosurface geometry is extracted from neighboring model values at the selected threshold.
+                </p>
+              </div>
             )}
 
             <label>
