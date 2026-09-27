@@ -278,7 +278,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".render-quality-line")).toContainText("HD canvas");
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
-  await expect(page.locator(".profile-panel")).toHaveCount(0);
+  await expect(page.locator(".profile-panel")).toHaveAttribute("data-context-open", "false");
 
   const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
   await expect(modeDock).toBeVisible();
