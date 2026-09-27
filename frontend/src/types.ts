@@ -1,6 +1,8 @@
 export type VariableKind = "scalar" | "vector";
 export type ViewMode = "slice" | "volume";
 export type VisualizationMode = "globe" | "water-column";
+export type ColorPalette = "thermal" | "viridis" | "icefire";
+export type ColorScaleMode = "linear" | "log";
 
 export interface VariableCard {
   id: "thetao" | "so" | "currents";

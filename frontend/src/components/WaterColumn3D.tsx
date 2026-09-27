@@ -8,13 +8,19 @@ import {
   type WheelEvent
 } from "react";
 
-import type { VolumeResponse } from "../types";
+import type { ColorPalette, ColorScaleMode, VolumeResponse } from "../types";
 
 interface Props {
   volume: VolumeResponse | null;
   selectedDepthM: number;
   verticalExaggeration: number;
   opacity: number;
+  colorPalette: ColorPalette;
+  colorScale: ColorScaleMode;
+  colorMinimum: number;
+  colorMaximum: number;
+  isoSurfaceEnabled: boolean;
+  isoValue: number;
   theme: "dark" | "light";
 }
 
@@ -42,11 +48,122 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function colourFor(value: number, minimum: number, maximum: number, variable: string, alpha: number): string {
-  const t = clamp((value - minimum) / Math.max(maximum - minimum, 1e-12), 0, 1);
-  const hue = variable === "so" ? 173 - 86 * t : 220 - 173 * t;
-  const lightness = 49 + 10 * t;
-  return "hsla(" + hue.toFixed(1) + ", 82%, " + lightness.toFixed(1) + "%, " + alpha.toFixed(3) + ")";
+function colourFor(
+  value: number,
+  minimum: number,
+  maximum: number,
+  palette: ColorPalette,
+  scale: ColorScaleMode,
+  alpha: number
+): string {
+  const safeMin = Number.isFinite(minimum) ? minimum : value;
+  const safeMax = Number.isFinite(maximum) && maximum > safeMin ? maximum : safeMin + 1e-12;
+  const useLog = scale === "log" && safeMin > 0 && safeMax > 0 && value > 0;
+  const raw = useLog
+    ? (Math.log(value) - Math.log(safeMin)) / Math.max(Math.log(safeMax) - Math.log(safeMin), 1e-12)
+    : (value - safeMin) / Math.max(safeMax - safeMin, 1e-12);
+  const t = clamp(raw, 0, 1);
+  let hue = 220 - 173 * t;
+  let saturation = 82;
+  let lightness = 49 + 10 * t;
+  if (palette === "viridis") {
+    hue = 275 - 225 * t;
+    saturation = 72;
+    lightness = 36 + 20 * t;
+  } else if (palette === "icefire") {
+    hue = t < 0.5 ? 220 - 40 * (t / 0.5) : 185 - 170 * ((t - 0.5) / 0.5);
+    saturation = 82;
+    lightness = 47 + 10 * Math.abs(t - 0.5);
+  }
+  return "hsla(" + hue.toFixed(1) + ", " + saturation + "%, " + lightness.toFixed(1) + "%, " + alpha.toFixed(3) + ")";
+}
+
+type ScientificVertex = [number, number, number];
+type IsoTriangle = [ScientificVertex, ScientificVertex, ScientificVertex];
+
+function vertexKey(vertex: ScientificVertex): string {
+  return vertex.map((value) => value.toPrecision(12)).join("|");
+}
+
+function buildIsoTriangles(volume: VolumeResponse, isoValue: number, limit = 12000): IsoTriangle[] {
+  const longitudes = Array.from(new Set(volume.points.map((point) => point[0]))).sort((a, b) => a - b);
+  const latitudes = Array.from(new Set(volume.points.map((point) => point[1]))).sort((a, b) => a - b);
+  const depths = Array.from(new Set(volume.points.map((point) => point[2]))).sort((a, b) => a - b);
+  const values = new Map<string, number>();
+  for (const [lon, lat, depth, value] of volume.points) {
+    values.set(vertexKey([lon, lat, depth]), value);
+  }
+
+  const tetrahedra = [
+    [0, 1, 2, 6],
+    [0, 2, 3, 6],
+    [0, 3, 7, 6],
+    [0, 7, 4, 6],
+    [0, 4, 5, 6],
+    [0, 5, 1, 6]
+  ] as const;
+  const edges = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]] as const;
+  const triangles: IsoTriangle[] = [];
+
+  const interpolate = (a: ScientificVertex, b: ScientificVertex, va: number, vb: number): ScientificVertex => {
+    const denominator = vb - va;
+    const t = Math.abs(denominator) < 1e-12 ? 0.5 : clamp((isoValue - va) / denominator, 0, 1);
+    return [
+      a[0] + (b[0] - a[0]) * t,
+      a[1] + (b[1] - a[1]) * t,
+      a[2] + (b[2] - a[2]) * t
+    ];
+  };
+
+  for (let di = 0; di < depths.length - 1 && triangles.length < limit; di += 1) {
+    for (let yi = 0; yi < latitudes.length - 1 && triangles.length < limit; yi += 1) {
+      for (let xi = 0; xi < longitudes.length - 1 && triangles.length < limit; xi += 1) {
+        const x0 = longitudes[xi], x1 = longitudes[xi + 1];
+        const y0 = latitudes[yi], y1 = latitudes[yi + 1];
+        const z0 = depths[di], z1 = depths[di + 1];
+        const corners: ScientificVertex[] = [
+          [x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0],
+          [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]
+        ];
+        const cornerValues = corners.map((vertex) => values.get(vertexKey(vertex)));
+        if (cornerValues.some((value) => value == null || !Number.isFinite(value))) continue;
+
+        for (const tetra of tetrahedra) {
+          const vertices = tetra.map((index) => corners[index]);
+          const tetraValues = tetra.map((index) => cornerValues[index] as number);
+          const intersections: ScientificVertex[] = [];
+          const seen = new Set<string>();
+
+          for (const [ea, eb] of edges) {
+            const va = tetraValues[ea];
+            const vb = tetraValues[eb];
+            const da = va - isoValue;
+            const db = vb - isoValue;
+            let point: ScientificVertex | null = null;
+            if (Math.abs(da) < 1e-12) point = vertices[ea];
+            else if (Math.abs(db) < 1e-12) point = vertices[eb];
+            else if (da * db < 0) point = interpolate(vertices[ea], vertices[eb], va, vb);
+            if (point) {
+              const key = vertexKey(point);
+              if (!seen.has(key)) {
+                seen.add(key);
+                intersections.push(point);
+              }
+            }
+          }
+
+          if (intersections.length === 3) {
+            triangles.push([intersections[0], intersections[1], intersections[2]]);
+          } else if (intersections.length === 4) {
+            triangles.push([intersections[0], intersections[1], intersections[2]]);
+            if (triangles.length < limit) triangles.push([intersections[0], intersections[2], intersections[3]]);
+          }
+          if (triangles.length >= limit) break;
+        }
+      }
+    }
+  }
+  return triangles;
 }
 
 export function WaterColumn3D({
@@ -54,6 +171,12 @@ export function WaterColumn3D({
   selectedDepthM,
   verticalExaggeration,
   opacity,
+  colorPalette,
+  colorScale,
+  colorMinimum,
+  colorMaximum,
+  isoSurfaceEnabled,
+  isoValue,
   theme
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -67,6 +190,11 @@ export function WaterColumn3D({
     if (!volume) return [];
     return Array.from(new Set(volume.points.map((point) => point[2]))).sort((a, b) => a - b);
   }, [volume]);
+
+  const isoTriangles = useMemo(
+    () => (volume && isoSurfaceEnabled ? buildIsoTriangles(volume, isoValue) : []),
+    [volume, isoSurfaceEnabled, isoValue]
+  );
 
   const selectedDepth = useMemo(() => {
     if (depthLevels.length === 0) return selectedDepthM;
@@ -212,6 +340,15 @@ export function WaterColumn3D({
       const selectedFraction = clamp((selectedDepth - depthMin) / depthSpan, 0, 1);
       drawPolygon(boxAt(selectedFraction), selectedStroke, selectedFill, 1.5);
 
+      if (isoSurfaceEnabled && isoTriangles.length > 0) {
+        const isoFill = colourFor(isoValue, colorMinimum, colorMaximum, colorPalette, colorScale, 0.15);
+        const isoStroke = colourFor(isoValue, colorMinimum, colorMaximum, colorPalette, colorScale, 0.72);
+        for (const triangle of isoTriangles) {
+          const screen = triangle.map(([longitude, latitude, depth]) => projectScientific(longitude, latitude, depth));
+          drawPolygon(screen, isoStroke, isoFill, 0.7);
+        }
+      }
+
       const projected: ProjectedPoint[] = volume.points.map(([longitude, latitude, depth, value]) => {
         const screen = projectScientific(longitude, latitude, depth);
         return {
@@ -231,7 +368,7 @@ export function WaterColumn3D({
         const pointAlpha = point.selected ? Math.min(1, opacity + 0.28) : opacity;
         context.beginPath();
         context.arc(point.x, point.y, point.selected ? 3.2 : 1.65, 0, Math.PI * 2);
-        context.fillStyle = colourFor(point.value, volume.minimum, volume.maximum, volume.variable, pointAlpha);
+        context.fillStyle = colourFor(point.value, colorMinimum, colorMaximum, colorPalette, colorScale, pointAlpha);
         context.fill();
         if (point.selected) {
           context.strokeStyle = dark ? "rgba(244, 253, 255, 0.55)" : "rgba(18, 65, 82, 0.42)";
@@ -259,7 +396,7 @@ export function WaterColumn3D({
       disposed = true;
       observer.disconnect();
     };
-  }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme]);
+  }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme, colorPalette, colorScale, colorMinimum, colorMaximum, isoSurfaceEnabled, isoValue, isoTriangles]);
 
   const smoothWaterZoomTo = (targetZoom: number) => {
     if (zoomAnimationRef.current != null) {
@@ -404,6 +541,10 @@ export function WaterColumn3D({
       data-opacity={opacity.toFixed(2)}
       data-yaw={orbit.yaw.toFixed(3)}
       data-zoom={orbit.zoom.toFixed(3)}
+      data-color-palette={colorPalette}
+      data-color-scale={colorScale}
+      data-iso-enabled={isoSurfaceEnabled ? "true" : "false"}
+      data-iso-triangles={isoTriangles.length}
     >
       <canvas
         ref={canvasRef}
@@ -431,6 +572,9 @@ export function WaterColumn3D({
         </div>
         <span>{volume.label} · {volume.units}</span>
         <small>{depthLevels.length} genuine depth levels · {volume.time.replace("T", " ").replace("Z", " UTC")}</small>
+        {isoSurfaceEnabled && (
+          <small>Isosurface {isoValue.toFixed(3)} {volume.units} · {isoTriangles.length.toLocaleString()} extracted triangles</small>
+        )}
       </div>
 
       <div className="globe-overlay water-column-selected">
@@ -441,11 +585,11 @@ export function WaterColumn3D({
 
       <div className="globe-overlay water-column-legend">
         <span>{volume.label}</span>
-        <div className="gradient-bar" />
+        <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
-          <span>{volume.minimum.toFixed(3)}</span>
+          <span>{colorMinimum.toFixed(3)}</span>
           <span>{volume.units}</span>
-          <span>{volume.maximum.toFixed(3)}</span>
+          <span>{colorMaximum.toFixed(3)}</span>
         </div>
       </div>
 

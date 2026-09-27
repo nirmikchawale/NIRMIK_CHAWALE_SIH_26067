@@ -1,4 +1,4 @@
-import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
@@ -12,6 +12,12 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
+  colorPalette: ColorPalette;
+  colorScale: ColorScaleMode;
+  colorMinimum: number;
+  colorMaximum: number;
+  isoSurfaceEnabled: boolean;
+  isoValue: number;
   mobileOpen: boolean;
   onMobileClose: () => void;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
@@ -22,6 +28,12 @@ interface Props {
   onVerticalExaggerationChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
+  onColorPaletteChange: (value: ColorPalette) => void;
+  onColorScaleChange: (value: ColorScaleMode) => void;
+  onColorMinimumChange: (value: number) => void;
+  onColorMaximumChange: (value: number) => void;
+  onIsoSurfaceEnabledChange: (value: boolean) => void;
+  onIsoValueChange: (value: number) => void;
 }
 
 export function ControlPanel({
@@ -36,6 +48,12 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
+  colorPalette,
+  colorScale,
+  colorMinimum,
+  colorMaximum,
+  isoSurfaceEnabled,
+  isoValue,
   mobileOpen,
   onMobileClose,
   onVariableChange,
@@ -45,7 +63,13 @@ export function ControlPanel({
   onTimeChange,
   onVerticalExaggerationChange,
   onProfileChange,
-  onPlayingChange
+  onPlayingChange,
+  onColorPaletteChange,
+  onColorScaleChange,
+  onColorMinimumChange,
+  onColorMaximumChange,
+  onIsoSurfaceEnabledChange,
+  onIsoValueChange
 }: Props) {
   const depth = catalog.coordinates.depth[depthIndex] ?? 0;
   const time = catalog.coordinates.time[timeIndex] ?? "Unavailable";
@@ -158,6 +182,92 @@ export function ControlPanel({
                 onChange={(event) => onVerticalExaggerationChange(Number(event.target.value))}
               />
             </label>
+
+            {scalar && (
+              <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
+                <div className="section-kicker visualization-kicker">Colorbar</div>
+                <label>
+                  Palette
+                  <select
+                    value={colorPalette}
+                    onChange={(event) => onColorPaletteChange(event.target.value as ColorPalette)}
+                  >
+                    <option value="thermal">Thermal</option>
+                    <option value="viridis">Viridis</option>
+                    <option value="icefire">Ice–Fire</option>
+                  </select>
+                </label>
+                <div className="color-range-grid">
+                  <label>
+                    Minimum
+                    <input
+                      type="number"
+                      step="any"
+                      value={Number.isFinite(colorMinimum) ? colorMinimum : ""}
+                      onChange={(event) => onColorMinimumChange(Number(event.target.value))}
+                    />
+                  </label>
+                  <label>
+                    Maximum
+                    <input
+                      type="number"
+                      step="any"
+                      value={Number.isFinite(colorMaximum) ? colorMaximum : ""}
+                      onChange={(event) => onColorMaximumChange(Number(event.target.value))}
+                    />
+                  </label>
+                </div>
+                <div className="segmented color-scale-selector" aria-label="Color scale">
+                  <button
+                    className={colorScale === "linear" ? "active" : ""}
+                    onClick={() => onColorScaleChange("linear")}
+                  >
+                    Linear
+                  </button>
+                  <button
+                    className={colorScale === "log" ? "active" : ""}
+                    disabled={colorMinimum <= 0 || colorMaximum <= 0}
+                    title={colorMinimum <= 0 || colorMaximum <= 0 ? "Log scale requires a positive range" : "Logarithmic color mapping"}
+                    onClick={() => onColorScaleChange("log")}
+                  >
+                    Log
+                  </button>
+                </div>
+                <label className="iso-toggle">
+                  <span className="label-row">
+                    <span>Isosurface</span>
+                    <input
+                      type="checkbox"
+                      checked={isoSurfaceEnabled}
+                      onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
+                    />
+                  </span>
+                </label>
+                {isoSurfaceEnabled && (
+                  <label>
+                    <span className="label-row">
+                      <span>Iso value</span>
+                      <strong>{isoValue.toFixed(3)} {catalog.variables.find((item) => item.id === variable)?.units}</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min={catalog.variables.find((item) => item.id === variable)?.minimum ?? 0}
+                      max={catalog.variables.find((item) => item.id === variable)?.maximum ?? 1}
+                      step={Math.max(
+                        ((catalog.variables.find((item) => item.id === variable)?.maximum ?? 1) -
+                          (catalog.variables.find((item) => item.id === variable)?.minimum ?? 0)) / 200,
+                        0.0001
+                      )}
+                      value={isoValue}
+                      onChange={(event) => onIsoValueChange(Number(event.target.value))}
+                    />
+                  </label>
+                )}
+                <p className="microcopy">
+                  Palette, range and scale affect rendering only. Isosurface geometry is extracted from the genuine scalar water-column values.
+                </p>
+              </div>
+            )}
 
             {!scalar ? (
               <p className="microcopy warning">

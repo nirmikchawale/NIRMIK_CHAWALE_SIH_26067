@@ -29,6 +29,8 @@ import {
 } from "cesium";
 
 import type {
+  ColorPalette,
+  ColorScaleMode,
   CurrentsResponse,
   FieldResponse,
   ProfileSummary,
@@ -56,18 +58,39 @@ interface Props {
   profiles: ProfileSummary[];
   selectedProfileId: string;
   verticalExaggeration: number;
+  colorPalette: ColorPalette;
+  colorScale: ColorScaleMode;
+  colorMinimum: number;
+  colorMaximum: number;
   onSelectProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
 }
 
 const INTRO_SESSION_KEY = "oceantwin-intro-seen";
 
-function scalarColor(value: number, minimum: number, maximum: number, variable: string): Color {
-  const t = Math.max(0, Math.min(1, (value - minimum) / Math.max(maximum - minimum, 1e-12)));
-  if (variable === "so") {
-    return Color.fromHsl(0.48 - 0.24 * t, 0.78, 0.48 + 0.10 * t, 0.88);
+function scalarColor(
+  value: number,
+  minimum: number,
+  maximum: number,
+  palette: ColorPalette,
+  scale: ColorScaleMode
+): Color {
+  const safeMin = Number.isFinite(minimum) ? minimum : value;
+  const safeMax = Number.isFinite(maximum) && maximum > safeMin ? maximum : safeMin + 1e-12;
+  const useLog = scale === "log" && safeMin > 0 && safeMax > 0 && value > 0;
+  const raw = useLog
+    ? (Math.log(value) - Math.log(safeMin)) / Math.max(Math.log(safeMax) - Math.log(safeMin), 1e-12)
+    : (value - safeMin) / Math.max(safeMax - safeMin, 1e-12);
+  const t = Math.max(0, Math.min(1, raw));
+
+  if (palette === "viridis") {
+    return Color.fromHsl((275 - 225 * t) / 360, 0.72, 0.36 + 0.20 * t, 0.88);
   }
-  return Color.fromHsl(0.61 - 0.48 * t, 0.82, 0.50 + 0.08 * t, 0.88);
+  if (palette === "icefire") {
+    const hue = t < 0.5 ? 220 - 40 * (t / 0.5) : 185 - 170 * ((t - 0.5) / 0.5);
+    return Color.fromHsl(hue / 360, 0.82, 0.47 + 0.10 * Math.abs(t - 0.5), 0.88);
+  }
+  return Color.fromHsl((220 - 173 * t) / 360, 0.82, 0.50 + 0.08 * t, 0.88);
 }
 
 export function OceanGlobe({
@@ -77,6 +100,10 @@ export function OceanGlobe({
   profiles,
   selectedProfileId,
   verticalExaggeration,
+  colorPalette,
+  colorScale,
+  colorMinimum,
+  colorMaximum,
   onSelectProfile,
   onEnterWaterColumn
 }: Props) {
@@ -605,7 +632,7 @@ export function OceanGlobe({
               -field.depth_m * verticalExaggeration
             ),
             pixelSize: 7,
-            color: scalarColor(value, field.minimum, field.maximum, field.variable),
+            color: scalarColor(value, colorMinimum, colorMaximum, colorPalette, colorScale),
             outlineColor: Color.fromCssColorString("#00111c"),
             outlineWidth: 1,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
@@ -627,7 +654,7 @@ export function OceanGlobe({
 
       for (let index = 0; index < volume.points.length; index += cellStride) {
         const [lon, lat, depth, value] = volume.points[index];
-        const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.36);
+        const color = scalarColor(value, colorMinimum, colorMaximum, colorPalette, colorScale).withAlpha(0.36);
         instances.push(
           new GeometryInstance({
             id: {
@@ -748,12 +775,12 @@ export function OceanGlobe({
     }
 
     viewer.scene.requestRender();
-  }, [field, volume, currents, verticalExaggeration]);
+  }, [field, volume, currents, verticalExaggeration, colorPalette, colorScale, colorMinimum, colorMaximum]);
 
   const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
   const scalar = field ?? volume;
-  const legendMin = scalar?.minimum ?? currents?.minimum;
-  const legendMax = scalar?.maximum ?? currents?.maximum;
+  const legendMin = scalar ? colorMinimum : currents?.minimum;
+  const legendMax = scalar ? colorMaximum : currents?.maximum;
   const legendUnits = scalar?.units ?? currents?.units;
   const legendLabel = scalar?.label ?? (currents ? "Current speed" : "Ocean field");
 
@@ -876,6 +903,10 @@ export function OceanGlobe({
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
       data-imagery-failsafe="online-hd+offline-natural-earth"
+      data-color-palette={colorPalette}
+      data-color-scale={colorScale}
+      data-color-min={colorMinimum}
+      data-color-max={colorMaximum}
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
@@ -1018,7 +1049,7 @@ export function OceanGlobe({
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
-        <div className="gradient-bar" />
+        <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
           <span>{legendMin?.toFixed(3) ?? "—"}</span>
           <span>{legendUnits ?? ""}</span>

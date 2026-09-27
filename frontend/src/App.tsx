@@ -16,6 +16,8 @@ import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import type {
   Catalog,
+  ColorPalette,
+  ColorScaleMode,
   CurrentsResponse,
   FieldResponse,
   ProfileDetail,
@@ -62,6 +64,12 @@ export default function App() {
   const [timeIndex, setTimeIndex] = useState(0);
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
   const [playing, setPlaying] = useState(false);
+  const [colorPalette, setColorPalette] = useState<ColorPalette>("thermal");
+  const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
+  const [colorMinimum, setColorMinimum] = useState(0);
+  const [colorMaximum, setColorMaximum] = useState(1);
+  const [isoSurfaceEnabled, setIsoSurfaceEnabled] = useState(false);
+  const [isoValue, setIsoValue] = useState(0.5);
 
   const [field, setField] = useState<FieldResponse | null>(null);
   const [volume, setVolume] = useState<VolumeResponse | null>(null);
@@ -157,6 +165,13 @@ export default function App() {
 
         const catalogPayload = catalogResult.value;
         setCatalog(catalogPayload);
+        const initialScalar = catalogPayload.variables.find((item) => item.id === "thetao")
+          ?? catalogPayload.variables.find((item) => item.kind === "scalar");
+        if (initialScalar) {
+          setColorMinimum(initialScalar.minimum);
+          setColorMaximum(initialScalar.maximum);
+          setIsoValue((initialScalar.minimum + initialScalar.maximum) / 2);
+        }
         const safeDepth = Math.min(18, catalogPayload.coordinates.depth.length - 1);
         setDepthIndex(Math.max(0, safeDepth));
 
@@ -268,12 +283,20 @@ export default function App() {
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents") => {
       setVariable(value);
+      const nextVariable = catalog?.variables.find((item) => item.id === value);
+      if (nextVariable && nextVariable.kind === "scalar") {
+        setColorMinimum(nextVariable.minimum);
+        setColorMaximum(nextVariable.maximum);
+        setIsoValue((nextVariable.minimum + nextVariable.maximum) / 2);
+        setColorScale("linear");
+      }
       if (value === "currents") {
         setViewMode("slice");
         setVisualizationMode("globe");
+        setIsoSurfaceEnabled(false);
       }
     },
-    []
+    [catalog]
   );
 
   const handleEnterWaterColumn = useCallback(() => {
@@ -387,6 +410,12 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
+                colorPalette={colorPalette}
+                colorScale={colorScale}
+                colorMinimum={colorMinimum}
+                colorMaximum={colorMaximum}
+                isoSurfaceEnabled={isoSurfaceEnabled}
+                isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
                 onMobileClose={() => setMobileSheet("none")}
                 onVariableChange={handleVariableChange}
@@ -397,6 +426,12 @@ export default function App() {
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
+                onColorPaletteChange={setColorPalette}
+                onColorScaleChange={setColorScale}
+                onColorMinimumChange={setColorMinimum}
+                onColorMaximumChange={setColorMaximum}
+                onIsoSurfaceEnabledChange={setIsoSurfaceEnabled}
+                onIsoValueChange={setIsoValue}
               />
 
               <VisualizationDock
@@ -433,6 +468,10 @@ export default function App() {
                     profiles={profiles}
                     selectedProfileId={selectedProfileId}
                     verticalExaggeration={verticalExaggeration}
+                    colorPalette={colorPalette}
+                    colorScale={colorScale}
+                    colorMinimum={colorMinimum}
+                    colorMaximum={colorMaximum}
                     onSelectProfile={handleProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
                   />
@@ -446,6 +485,12 @@ export default function App() {
                     selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
                     verticalExaggeration={verticalExaggeration}
                     opacity={waterColumnOpacity / 100}
+                    colorPalette={colorPalette}
+                    colorScale={colorScale}
+                    colorMinimum={colorMinimum}
+                    colorMaximum={colorMaximum}
+                    isoSurfaceEnabled={isoSurfaceEnabled}
+                    isoValue={isoValue}
                     theme={theme}
                   />
                 </div>
