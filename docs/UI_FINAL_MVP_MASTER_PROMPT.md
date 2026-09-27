@@ -1,3 +1,25 @@
+# Major Redesign Overlay — read before execution
+
+This original final-MVP prompt remains the scientific and product baseline. For the current major visual-redesign pass, also treat these repository files as mandatory execution inputs:
+
+- `docs/FINAL_MVP_MAJOR_VISUAL_REDESIGN_GUIDE.md` — camera, Earth→region intro, connected Geographic/Water Column architecture, progressive disclosure, responsive redesign and phase order.
+- `docs/FINAL_MVP_REDESIGN_STATE.md` — authoritative live checkpoint, rollback commit, validation state and NEXT_EXACT_ACTION.
+
+Before every new implementation session, reconcile those files against Git branch HEAD, PR state and current CI. Repository evidence wins if the checkpoint is stale. Work in atomic validated slices and never merge to main without explicit user approval.
+
+New interaction contract:
+- first-session Explore may use one short, interruptible Earth→verified-region orientation flight;
+- reduced motion skips the flight;
+- desktop camera must expose explicit Earth, Fit Study Region, zoom and selected-observation focus actions;
+- Geographic View and Water Column 3D are connected states of one workspace;
+- preserve Cesium camera context across the view switch;
+- keep rendering-only controls behind explicit View settings;
+- keep the right observation inspector selection-driven rather than permanently occupying space.
+
+Do not interpret the opening camera flight as permission for decorative autoplay elsewhere. Normal data changes preserve camera and remain fast.
+
+---
+
 # OceanTwin 3D — Final MVP UI Master Prompt
 
 ## Role
