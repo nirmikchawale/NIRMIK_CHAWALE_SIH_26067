@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { api } from "../api";
+import type { ConnectorRegistryResponse } from "../types";
 
 const REQUIRED_FIELDS = [
   "longitude",
@@ -526,6 +528,22 @@ export function DataLabPage() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [processingError, setProcessingError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [connectorRegistry, setConnectorRegistry] = useState<ConnectorRegistryResponse | null>(null);
+  const [connectorError, setConnectorError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    api.connectors()
+      .then((payload) => {
+        if (!cancelled) setConnectorRegistry(payload);
+      })
+      .catch((reason: Error) => {
+        if (!cancelled) setConnectorError(reason.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const errorIssues = useMemo(
     () => result?.issues.filter((issue) => issue.severity === "error") ?? [],
