@@ -5,6 +5,7 @@ import {
   OBSERVATION_PLUGINS,
   type ObservationProfile
 } from "../observationPlugins";
+import { loadUserObservations, type UserObservationRecord } from "../userIngestion";
 
 interface LoadedSource {
   plugin: (typeof OBSERVATION_PLUGINS)[number];
@@ -16,7 +17,8 @@ const SENSOR_CLASS: Record<string, string> = {
   Argo: "argo",
   Glider: "glider",
   CTD: "ctd",
-  BGC: "bgc"
+  BGC: "bgc",
+  Imported: "imported"
 };
 
 function mapX(longitude: number): number {
@@ -25,6 +27,48 @@ function mapX(longitude: number): number {
 
 function mapY(latitude: number): number {
   return ((90 - latitude) / 180) * 460;
+}
+
+function profileFromUserRecords(records: UserObservationRecord[]): ObservationProfile | null {
+  if (!records.length) return null;
+  const latestTime = [...new Set(records.map((record) => record.timestamp))].sort().at(-1);
+  if (!latestTime) return null;
+  const timed = records.filter((record) => record.timestamp === latestTime);
+  const platform = timed.find((record) => record.platform_id)?.platform_id ?? "Session import";
+  const selected = timed.filter((record) => (record.platform_id ?? "Session import") === platform);
+  if (!selected.length) return null;
+
+  const variables = [...new Map(selected.map((record) => [
+    record.variable,
+    { id: record.variable, label: record.variable, units: record.units }
+  ])).values()];
+  const byDepth = new Map<number, Record<string, number | null>>();
+  for (const record of selected) {
+    const values = byDepth.get(record.depth_m) ?? {};
+    values[record.variable] = record.value;
+    byDepth.set(record.depth_m, values);
+  }
+  const latitude = selected.reduce((sum, record) => sum + record.latitude, 0) / selected.length;
+  const longitude = selected.reduce((sum, record) => sum + record.longitude, 0) / selected.length;
+
+  return {
+    id: "session-import-" + latestTime,
+    sensor: "Imported",
+    provider: selected[0].source,
+    platform,
+    time: latestTime,
+    latitude,
+    longitude,
+    verticalLabel: "Depth",
+    verticalUnits: "m",
+    variables,
+    samples: [...byDepth.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([vertical, values]) => ({ vertical, values })),
+    protocol: "Browser-local validated session layer",
+    endpoint: "Data Lab → sessionStorage",
+    provenance: "User-supplied rows passed OceanTwin schema, coordinate, timestamp, units and provenance validation before visualization."
+  };
 }
 
 function compactTime(value: string): string {
@@ -38,6 +82,9 @@ export function ObservationsPage() {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState("");
   const [variableId, setVariableId] = useState("");
+  const [importedProfile, setImportedProfile] = useState<ObservationProfile | null>(() =>
+    profileFromUserRecords(loadUserObservations())
+  );
 
   const load = async () => {
     setLoading(true);
@@ -54,11 +101,17 @@ export function ObservationsPage() {
 
   useEffect(() => {
     void load();
+    const refreshImported = () => setImportedProfile(profileFromUserRecords(loadUserObservations()));
+    window.addEventListener("oceantwin:user-observations-updated", refreshImported);
+    return () => window.removeEventListener("oceantwin:user-observations-updated", refreshImported);
   }, []);
 
   const loadedProfiles = useMemo(
-    () => sources.flatMap((item) => (item.profile ? [item.profile] : [])),
-    [sources]
+    () => [
+      ...sources.flatMap((item) => (item.profile ? [item.profile] : [])),
+      ...(importedProfile ? [importedProfile] : [])
+    ],
+    [sources, importedProfile]
   );
   const selected = loadedProfiles.find((profile) => profile.id === selectedId) ?? loadedProfiles[0] ?? null;
 
@@ -144,6 +197,23 @@ export function ObservationsPage() {
             {error && <em className="source-error">{error}</em>}
           </button>
         ))}
+        {importedProfile && (
+          <button
+            type="button"
+            className={`observation-source-card imported-source-card ${selected?.id === importedProfile.id ? "active" : ""}`}
+            data-source-status="ready"
+            onClick={() => setSelectedId(importedProfile.id)}
+          >
+            <div className="observation-source-heading">
+              <span className="sensor-badge imported">Imported</span>
+              <span className="source-health ready">● SESSION READY</span>
+            </div>
+            <strong>{importedProfile.provider}</strong>
+            <p>Validated browser-local dataset promoted from Data Lab into the common observation profile contract.</p>
+            <small>Session-scoped · no server upload</small>
+            <em>{importedProfile.samples.length} depth samples · {compactTime(importedProfile.time)}</em>
+          </button>
+        )}
       </section>
 
       <div className="observations-actions">
@@ -201,6 +271,7 @@ export function ObservationsPage() {
             {OBSERVATION_PLUGINS.map((plugin) => (
               <span key={plugin.id}><i className={SENSOR_CLASS[plugin.sensor]} />{plugin.sensor}</span>
             ))}
+            {importedProfile && <span><i className="imported" />Imported</span>}
           </div>
         </article>
 
