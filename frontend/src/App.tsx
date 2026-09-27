@@ -515,8 +515,17 @@ export default function App() {
     );
   }
 
+  const activeExploreCatalog = exploreCatalog ?? catalog;
+  const activeComparisonProfiles = sourceMode === "glorys" ? profiles : [];
+  const activeSelectedProfile = sourceMode === "glorys" ? selectedProfile : null;
+
   return (
-    <div className={`app-shell ocean-workbench ${focusMode ? "focus-mode" : ""}`} data-theme={theme} data-page={page}>
+    <div
+      className={`app-shell ocean-workbench ${focusMode ? "focus-mode" : ""}`}
+      data-theme={theme}
+      data-page={page}
+      data-explore-source={sourceMode}
+    >
       <header className="app-header">
         <div className="brand">
           <div className="brand-mark small">OT</div>
@@ -533,7 +542,7 @@ export default function App() {
           </div>
           <div>
             <span>MODEL</span>
-            <strong>GLORYS12V1</strong>
+            <strong>{page === "explore" && sourceMode === "incois" ? "INCOIS MULTI-TIME" : "GLORYS12V1"}</strong>
           </div>
           {focusMode && (
             <button className="evidence-button focus-exit-header" onClick={() => setFocusMode(false)}>
@@ -580,7 +589,7 @@ export default function App() {
           }} />}
           {page === "explore" ? (
             <>
-              <EvidenceRail catalog={catalog} variable={selectedVariable} depth={catalog.coordinates.depth[depthIndex] ?? 0} time={catalog.coordinates.time[timeIndex] ?? "Unavailable"} profile={selectedProfile} loading={scienceLoading} error={error} onInspect={() => selectedProfile && handleProfileSelection(selectedProfile.profile_id)} onCompare={() => navigate("compare")} onSources={() => setProvenanceOpen(true)} />
+              <EvidenceRail catalog={activeExploreCatalog} variable={selectedVariable} depth={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0} time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"} profile={activeSelectedProfile} loading={scienceLoading} error={error} onInspect={() => activeSelectedProfile && handleProfileSelection(activeSelectedProfile.profile_id)} onCompare={() => navigate("compare")} onSources={() => setProvenanceOpen(true)} />
               {mobileSheet !== "none" && (
                 <button
                   type="button"
@@ -594,8 +603,10 @@ export default function App() {
               )}
 
               <ControlPanel
-                catalog={catalog}
-                profiles={profiles}
+                catalog={activeExploreCatalog}
+                profiles={activeComparisonProfiles}
+                sourceMode={sourceMode}
+                operationalAvailable={Boolean(operationalCatalog) && !operationalError}
                 variable={variable}
                 viewMode={viewMode}
                 visualizationMode={visualizationMode}
@@ -613,6 +624,7 @@ export default function App() {
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
                 onMobileClose={() => setMobileSheet("none")}
+                onSourceModeChange={handleSourceModeChange}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
@@ -633,16 +645,16 @@ export default function App() {
                 mode={visualizationMode}
                 scalarAvailable={variable !== "currents"}
                 variableLabel={selectedVariable?.label ?? variable}
-                depthM={catalog.coordinates.depth[depthIndex] ?? 0}
-                timeLabel={catalog.coordinates.time[timeIndex] ?? "Unavailable"}
-                regionLabel={catalog.dataset.region}
-                modelLabel={catalog.dataset.product}
+                depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
+                timeLabel={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
+                regionLabel={activeExploreCatalog.dataset.region}
+                modelLabel={activeExploreCatalog.dataset.product}
                 observationLabel={
                   selectedImportedProfile
                     ? `${selectedImportedProfile.sensor_type.toUpperCase()} · ${selectedImportedProfile.platform_id}`
-                    : selectedProfile
-                      ? `${selectedProfile.platform_id} · cycle ${selectedProfile.cycle} ${selectedProfile.direction}`
-                      : profiles.length === 0 && importedProfiles.length === 0
+                    : activeSelectedProfile
+                      ? `${activeSelectedProfile.platform_id} · cycle ${activeSelectedProfile.cycle} ${activeSelectedProfile.direction}`
+                      : activeComparisonProfiles.length === 0 && importedProfiles.length === 0
                         ? "Unavailable"
                         : "Not selected"
                 }
@@ -662,8 +674,8 @@ export default function App() {
                     field={visualizationMode === "globe" ? field : null}
                     volume={visualizationMode === "globe" ? volume : null}
                     currents={visualizationMode === "globe" ? currents : null}
-                    profiles={profiles}
-                    selectedProfileId={selectedProfileId}
+                    profiles={activeComparisonProfiles}
+                    selectedProfileId={sourceMode === "glorys" ? selectedProfileId : ""}
                     importedProfiles={importedProfiles}
                     selectedImportedProfileId={selectedImportedProfileId}
                     verticalExaggeration={verticalExaggeration}
@@ -682,7 +694,7 @@ export default function App() {
                 >
                   <WaterColumn3D
                     volume={visualizationMode === "water-column" ? volume : null}
-                    selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                    selectedDepthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                     verticalExaggeration={verticalExaggeration}
                     opacity={waterColumnOpacity / 100}
                     colorPalette={colorPalette}
@@ -706,7 +718,7 @@ export default function App() {
                     setMobileSheet("none");
                   }}
                 />
-              ) : (
+              ) : sourceMode === "glorys" ? (
                 <ProfilePanel
                   detail={profileDetail}
                   loading={profileLoading}
@@ -718,7 +730,7 @@ export default function App() {
                     setMobileSheet("none");
                   }}
                 />
-              )}
+              ) : null}
 
               <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
                 <button
@@ -735,7 +747,7 @@ export default function App() {
                   onClick={() => setMobileSheet("controls")}
                 >
                   <span>Time</span>
-                  <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
+                  <strong>{activeExploreCatalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
                 </button>
                 <button
                   type="button"
@@ -743,12 +755,12 @@ export default function App() {
                   onClick={() => setMobileSheet("controls")}
                 >
                   <span>Depth</span>
-                  <strong>{(catalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
+                  <strong>{(activeExploreCatalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
                 </button>
                 <button
                   type="button"
                   aria-pressed={mobileSheet === "observation"}
-                  disabled={!selectedProfile && !selectedImportedProfile}
+                  disabled={!activeSelectedProfile && !selectedImportedProfile}
                   onClick={() => {
                     setProfilePanelOpen(true);
                     setMobileSheet("observation");
@@ -758,8 +770,8 @@ export default function App() {
                   <strong>{
                     selectedImportedProfile
                       ? selectedImportedProfile.platform_id
-                      : selectedProfile
-                        ? selectedProfile.platform_id
+                      : activeSelectedProfile
+                        ? activeSelectedProfile.platform_id
                         : "None"
                   }</strong>
                 </button>
