@@ -4,7 +4,7 @@ PROJECT: OceanTwin 3D
 BRANCH: main  
 STATUS: **COMPLETE — FINAL VERIFIED SIH26067 MVP BASELINE**  
 FINAL_VALIDATED_CODE_COMMIT: `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8`  
-CURRENT_DOCUMENTED_MAIN: `cc5c6eb9ee35ba6105a436cda7d7dd13a6ace67d`
+VALIDATION_SNAPSHOT: pre-documentation-sync baseline; current GitHub Actions/Pages state is authoritative
 
 This file previously tracked the active compliance upgrade slice. That execution program is complete and must no longer be used as an "ACTIVE" continuation checkpoint.
 
@@ -16,7 +16,7 @@ This file previously tracked the active compliance upgrade slice. That execution
 
 ## Final validated gates
 
-At current documented `main`:
+Recorded validation snapshot:
 
 - tests #772 — PASS;
 - final-mvp #289 — PASS;
