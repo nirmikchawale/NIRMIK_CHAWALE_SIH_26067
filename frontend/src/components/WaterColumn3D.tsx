@@ -8,13 +8,16 @@ import {
   type WheelEvent
 } from "react";
 
-import type { VolumeResponse } from "../types";
+import { cssColorFor, gradientCss } from "../colorScale";
+import type { ColorTransfer, ViewMode, VolumeResponse } from "../types";
 
 interface Props {
   volume: VolumeResponse | null;
   selectedDepthM: number;
   verticalExaggeration: number;
   opacity: number;
+  viewMode: ViewMode;
+  colorTransfer: ColorTransfer;
   theme: "dark" | "light";
 }
 
@@ -42,11 +45,99 @@ function clamp(value: number, minimum: number, maximum: number): number {
   return Math.min(maximum, Math.max(minimum, value));
 }
 
-function colourFor(value: number, minimum: number, maximum: number, variable: string, alpha: number): string {
-  const t = clamp((value - minimum) / Math.max(maximum - minimum, 1e-12), 0, 1);
-  const hue = variable === "so" ? 173 - 86 * t : 220 - 173 * t;
-  const lightness = 49 + 10 * t;
-  return "hsla(" + hue.toFixed(1) + ", 82%, " + lightness.toFixed(1) + "%, " + alpha.toFixed(3) + ")";
+interface ScientificPoint {
+  longitude: number;
+  latitude: number;
+  depth: number;
+  value: number;
+}
+
+type ScientificTriangle = [ScientificPoint, ScientificPoint, ScientificPoint];
+
+const TETRAHEDRA: number[][] = [
+  [0, 5, 1, 6],
+  [0, 1, 2, 6],
+  [0, 2, 3, 6],
+  [0, 3, 7, 6],
+  [0, 7, 4, 6],
+  [0, 4, 5, 6]
+];
+
+function scientificKey(longitude: number, latitude: number, depth: number): string {
+  return longitude.toFixed(8) + "|" + latitude.toFixed(8) + "|" + depth.toFixed(8);
+}
+
+function interpolateIso(a: ScientificPoint, b: ScientificPoint, threshold: number): ScientificPoint | null {
+  const av = a.value - threshold;
+  const bv = b.value - threshold;
+  if (!Number.isFinite(av) || !Number.isFinite(bv)) return null;
+  if (Math.abs(av) < 1e-12 && Math.abs(bv) < 1e-12) return null;
+  if (av * bv > 0) return null;
+  const denominator = b.value - a.value;
+  if (Math.abs(denominator) < 1e-12) return null;
+  const t = clamp((threshold - a.value) / denominator, 0, 1);
+  return {
+    longitude: a.longitude + (b.longitude - a.longitude) * t,
+    latitude: a.latitude + (b.latitude - a.latitude) * t,
+    depth: a.depth + (b.depth - a.depth) * t,
+    value: threshold
+  };
+}
+
+function extractIsosurface(volume: VolumeResponse, threshold: number): ScientificTriangle[] {
+  const longitudes = Array.from(new Set(volume.points.map(([lon]) => lon))).sort((a, b) => a - b);
+  const latitudes = Array.from(new Set(volume.points.map(([, lat]) => lat))).sort((a, b) => a - b);
+  const depths = Array.from(new Set(volume.points.map(([, , depth]) => depth))).sort((a, b) => a - b);
+  const values = new Map<string, number>();
+  for (const [longitude, latitude, depth, value] of volume.points) {
+    values.set(scientificKey(longitude, latitude, depth), value);
+  }
+
+  const triangles: ScientificTriangle[] = [];
+  const tetraEdges: Array<[number, number]> = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+
+  for (let zi = 0; zi < depths.length - 1; zi += 1) {
+    for (let yi = 0; yi < latitudes.length - 1; yi += 1) {
+      for (let xi = 0; xi < longitudes.length - 1; xi += 1) {
+        const coordinates: Array<[number, number, number]> = [
+          [longitudes[xi], latitudes[yi], depths[zi]],
+          [longitudes[xi + 1], latitudes[yi], depths[zi]],
+          [longitudes[xi + 1], latitudes[yi + 1], depths[zi]],
+          [longitudes[xi], latitudes[yi + 1], depths[zi]],
+          [longitudes[xi], latitudes[yi], depths[zi + 1]],
+          [longitudes[xi + 1], latitudes[yi], depths[zi + 1]],
+          [longitudes[xi + 1], latitudes[yi + 1], depths[zi + 1]],
+          [longitudes[xi], latitudes[yi + 1], depths[zi + 1]]
+        ];
+        const cube = coordinates.map(([longitude, latitude, depth]) => {
+          const value = values.get(scientificKey(longitude, latitude, depth));
+          return value == null ? null : { longitude, latitude, depth, value };
+        });
+        if (cube.some((point) => point == null)) continue;
+
+        for (const tetra of TETRAHEDRA) {
+          const vertices = tetra.map((index) => cube[index] as ScientificPoint);
+          const intersections: ScientificPoint[] = [];
+          const seen = new Set<string>();
+          for (const [aIndex, bIndex] of tetraEdges) {
+            const point = interpolateIso(vertices[aIndex], vertices[bIndex], threshold);
+            if (!point) continue;
+            const key = scientificKey(point.longitude, point.latitude, point.depth);
+            if (seen.has(key)) continue;
+            seen.add(key);
+            intersections.push(point);
+          }
+          if (intersections.length === 3) {
+            triangles.push([intersections[0], intersections[1], intersections[2]]);
+          } else if (intersections.length >= 4) {
+            triangles.push([intersections[0], intersections[1], intersections[2]]);
+            triangles.push([intersections[0], intersections[2], intersections[3]]);
+          }
+        }
+      }
+    }
+  }
+  return triangles;
 }
 
 export function WaterColumn3D({
@@ -54,6 +145,8 @@ export function WaterColumn3D({
   selectedDepthM,
   verticalExaggeration,
   opacity,
+  viewMode,
+  colorTransfer,
   theme
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -67,6 +160,11 @@ export function WaterColumn3D({
     if (!volume) return [];
     return Array.from(new Set(volume.points.map((point) => point[2]))).sort((a, b) => a - b);
   }, [volume]);
+
+  const isosurfaceTriangles = useMemo(() => {
+    if (!volume || viewMode !== "isosurface") return [];
+    return extractIsosurface(volume, colorTransfer.isosurfaceValue);
+  }, [volume, viewMode, colorTransfer.isosurfaceValue]);
 
   const selectedDepth = useMemo(() => {
     if (depthLevels.length === 0) return selectedDepthM;
@@ -227,16 +325,44 @@ export function WaterColumn3D({
       projected.sort((a, b) => b.cameraDepth - a.cameraDepth);
       projectedRef.current = projected;
 
-      for (const point of projected) {
-        const pointAlpha = point.selected ? Math.min(1, opacity + 0.28) : opacity;
-        context.beginPath();
-        context.arc(point.x, point.y, point.selected ? 3.2 : 1.65, 0, Math.PI * 2);
-        context.fillStyle = colourFor(point.value, volume.minimum, volume.maximum, volume.variable, pointAlpha);
-        context.fill();
-        if (point.selected) {
-          context.strokeStyle = dark ? "rgba(244, 253, 255, 0.55)" : "rgba(18, 65, 82, 0.42)";
-          context.lineWidth = 0.6;
+      if (viewMode === "isosurface") {
+        const triangles = isosurfaceTriangles
+          .map((triangle) => {
+            const points = triangle.map((point) => ({
+              ...projectScientific(point.longitude, point.latitude, point.depth),
+              scientific: point
+            }));
+            return {
+              points,
+              cameraDepth: points.reduce((sum, point) => sum + point.cameraDepth, 0) / points.length
+            };
+          })
+          .sort((a, b) => b.cameraDepth - a.cameraDepth);
+
+        for (const triangle of triangles) {
+          context.beginPath();
+          context.moveTo(triangle.points[0].x, triangle.points[0].y);
+          context.lineTo(triangle.points[1].x, triangle.points[1].y);
+          context.lineTo(triangle.points[2].x, triangle.points[2].y);
+          context.closePath();
+          context.fillStyle = cssColorFor(colorTransfer.isosurfaceValue, colorTransfer, Math.min(0.82, opacity + 0.2));
+          context.fill();
+          context.strokeStyle = dark ? "rgba(239, 253, 255, 0.26)" : "rgba(27, 73, 90, 0.22)";
+          context.lineWidth = 0.55;
           context.stroke();
+        }
+      } else {
+        for (const point of projected) {
+          const pointAlpha = point.selected ? Math.min(1, opacity + 0.28) : opacity;
+          context.beginPath();
+          context.arc(point.x, point.y, point.selected ? 3.2 : 1.65, 0, Math.PI * 2);
+          context.fillStyle = cssColorFor(point.value, colorTransfer, pointAlpha);
+          context.fill();
+          if (point.selected) {
+            context.strokeStyle = dark ? "rgba(244, 253, 255, 0.55)" : "rgba(18, 65, 82, 0.42)";
+            context.lineWidth = 0.6;
+            context.stroke();
+          }
         }
       }
 
@@ -259,7 +385,7 @@ export function WaterColumn3D({
       disposed = true;
       observer.disconnect();
     };
-  }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme]);
+  }, [volume, selectedDepth, verticalExaggeration, opacity, orbit, theme, viewMode, colorTransfer, isosurfaceTriangles]);
 
   const smoothWaterZoomTo = (targetZoom: number) => {
     if (zoomAnimationRef.current != null) {
@@ -404,6 +530,8 @@ export function WaterColumn3D({
       data-opacity={opacity.toFixed(2)}
       data-yaw={orbit.yaw.toFixed(3)}
       data-zoom={orbit.zoom.toFixed(3)}
+      data-render-mode={viewMode}
+      data-isosurface-triangles={isosurfaceTriangles.length}
     >
       <canvas
         ref={canvasRef}
@@ -427,10 +555,15 @@ export function WaterColumn3D({
       <div className="globe-overlay top-left water-column-summary">
         <div>
           <span className="live-dot" />
-          <strong>SCIENTIFIC WATER-COLUMN 3D</strong>
+          <strong>{viewMode === "isosurface" ? "EXTRACTED ISOSURFACE 3D" : "SCIENTIFIC WATER-COLUMN 3D"}</strong>
         </div>
         <span>{volume.label} · {volume.units}</span>
-        <small>{depthLevels.length} genuine depth levels · {volume.time.replace("T", " ").replace("Z", " UTC")}</small>
+        <small>
+          {viewMode === "isosurface"
+            ? `${isosurfaceTriangles.length.toLocaleString()} threshold triangles · ${colorTransfer.isosurfaceValue.toFixed(3)} ${volume.units}`
+            : `${depthLevels.length} genuine depth levels`}
+          {" · "}{volume.time.replace("T", " ").replace("Z", " UTC")}
+        </small>
       </div>
 
       <div className="globe-overlay water-column-selected">
@@ -441,11 +574,11 @@ export function WaterColumn3D({
 
       <div className="globe-overlay water-column-legend">
         <span>{volume.label}</span>
-        <div className="gradient-bar" />
+        <div className="gradient-bar" style={{ background: gradientCss(colorTransfer.palette) }} />
         <div className="legend-values">
-          <span>{volume.minimum.toFixed(3)}</span>
+          <span>{colorTransfer.minimum.toFixed(3)}</span>
           <span>{volume.units}</span>
-          <span>{volume.maximum.toFixed(3)}</span>
+          <span>{colorTransfer.maximum.toFixed(3)}</span>
         </div>
       </div>
 
@@ -486,7 +619,9 @@ export function WaterColumn3D({
       </div>
 
       <div className="globe-overlay volume-note water-column-note">
-        CANONICAL MODEL VALUES · visual depth ×{verticalExaggeration} · opacity {Math.round(opacity * 100)}% · geometry only
+        {viewMode === "isosurface"
+          ? `MARCHING-TETRAHEDRA ISOSURFACE · threshold ${colorTransfer.isosurfaceValue.toFixed(3)} ${volume.units} · ${isosurfaceTriangles.length.toLocaleString()} triangles`
+          : `CANONICAL MODEL VALUES · visual depth ×${verticalExaggeration} · opacity ${Math.round(opacity * 100)}% · geometry only`}
       </div>
     </main>
   );
