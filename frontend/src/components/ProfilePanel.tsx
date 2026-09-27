@@ -203,14 +203,16 @@ export function ProfilePanel({
   detail,
   loading,
   provenance,
+  open,
   mobileOpen,
-  onMobileClose
+  onClose
 }: {
   detail: ProfileDetail | null;
   loading: boolean;
   provenance: ProvenanceResponse | null;
+  open: boolean;
   mobileOpen: boolean;
-  onMobileClose: () => void;
+  onClose: () => void;
 }) {
   const mobileHeader = (
     <div className="mobile-sheet-header">
@@ -218,7 +220,7 @@ export function ProfilePanel({
         <span>SELECTED OBSERVATION</span>
         <strong>Argo profile · model comparison</strong>
       </div>
-      <button type="button" onClick={onMobileClose} aria-label="Close observation details">
+      <button type="button" onClick={onClose} aria-label="Close observation details">
         Close
       </button>
     </div>
@@ -228,6 +230,8 @@ export function ProfilePanel({
     return (
       <aside
         className="profile-panel panel-placeholder"
+        data-context-open={open ? "true" : "false"}
+        data-context-open={open ? "true" : "false"}
         data-mobile-open={mobileOpen ? "true" : "false"}
         aria-label="Observation details"
       >
@@ -255,10 +259,20 @@ export function ProfilePanel({
   return (
     <aside
       className="profile-panel"
+      data-context-open={open ? "true" : "false"}
       data-mobile-open={mobileOpen ? "true" : "false"}
       aria-label="Observation details"
     >
       {mobileHeader}
+      <button
+        type="button"
+        className="desktop-profile-close"
+        onClick={onClose}
+        aria-label="Close observation inspector"
+        title="Close observation inspector"
+      >
+        ×
+      </button>
       <div className="section-kicker">Selected observation</div>
       <div className="profile-heading">
         <div>
