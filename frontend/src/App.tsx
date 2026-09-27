@@ -403,25 +403,38 @@ export default function App() {
                 onChange={setVisualizationMode}
               />
 
-              {visualizationMode === "globe" ? (
-                <OceanGlobe
-                  field={field}
-                  volume={volume}
-                  currents={currents}
-                  profiles={profiles}
-                  selectedProfileId={selectedProfileId}
-                  verticalExaggeration={verticalExaggeration}
-                  onSelectProfile={handleProfileSelection}
-                />
-              ) : (
-                <WaterColumn3D
-                  volume={volume}
-                  selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
-                  verticalExaggeration={verticalExaggeration}
-                  opacity={waterColumnOpacity / 100}
-                  theme={theme}
-                />
-              )}
+              <div
+                className="visualization-stage"
+                data-visualization-mode={visualizationMode}
+                aria-label="Connected geographic and water-column visualization stage"
+              >
+                <div
+                  className={`visualization-layer globe-visualization-layer ${visualizationMode === "globe" ? "active" : ""}`}
+                  aria-hidden={visualizationMode !== "globe"}
+                >
+                  <OceanGlobe
+                    field={visualizationMode === "globe" ? field : null}
+                    volume={visualizationMode === "globe" ? volume : null}
+                    currents={visualizationMode === "globe" ? currents : null}
+                    profiles={profiles}
+                    selectedProfileId={selectedProfileId}
+                    verticalExaggeration={verticalExaggeration}
+                    onSelectProfile={handleProfileSelection}
+                  />
+                </div>
+                <div
+                  className={`visualization-layer water-column-visualization-layer ${visualizationMode === "water-column" ? "active" : ""}`}
+                  aria-hidden={visualizationMode !== "water-column"}
+                >
+                  <WaterColumn3D
+                    volume={visualizationMode === "water-column" ? volume : null}
+                    selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                    verticalExaggeration={verticalExaggeration}
+                    opacity={waterColumnOpacity / 100}
+                    theme={theme}
+                  />
+                </div>
+              </div>
 
               <ProfilePanel
                 detail={profileDetail}
