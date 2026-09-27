@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
+import { EvidenceRail } from "./components/EvidenceRail";
+import { PresentationGuide } from "./components/PresentationGuide";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
@@ -58,6 +60,7 @@ export default function App() {
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
@@ -375,7 +378,7 @@ export default function App() {
   }
 
   return (
-    <div className={`app-shell ${focusMode ? "focus-mode" : ""}`} data-theme={theme}>
+    <div className={`app-shell ocean-workbench ${focusMode ? "focus-mode" : ""}`} data-theme={theme} data-page={page}>
       <header className="app-header">
         <div className="brand">
           <div className="brand-mark small">OT</div>
@@ -385,6 +388,7 @@ export default function App() {
           </div>
         </div>
         <div className="header-status">
+          <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
           <div>
             <span>{page === "explore" ? "ACTIVE FIELD" : "PAGE"}</span>
             <strong>{page === "explore" ? (selectedVariable?.label ?? variable) : currentPage.label}</strong>
@@ -399,7 +403,7 @@ export default function App() {
             </button>
           )}
           <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
-            {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● SCIENCE API READY"}
+            {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● VERIFIED SNAPSHOT"}
           </span>
           <button
             className="theme-toggle"
@@ -425,8 +429,20 @@ export default function App() {
         />
 
         <div className="workspace">
+          {guideOpen && <PresentationGuide onClose={() => setGuideOpen(false)} onStep={(step) => {
+            setFocusMode(false);
+            setProfilePanelOpen(false);
+            setMobileSheet("none");
+            if (step === 0 || step === 1) {
+              navigate("explore");
+              handleVariableChange("thetao");
+              setVisualizationMode(step === 0 ? "globe" : "water-column");
+            } else if (step === 2) navigate("compare");
+            else { navigate("about"); setProvenanceOpen(true); }
+          }} />}
           {page === "explore" ? (
             <>
+              <EvidenceRail catalog={catalog} variable={selectedVariable} depth={catalog.coordinates.depth[depthIndex] ?? 0} time={catalog.coordinates.time[timeIndex] ?? "Unavailable"} profile={selectedProfile} loading={scienceLoading} error={error} onInspect={() => selectedProfile && handleProfileSelection(selectedProfile.profile_id)} onCompare={() => navigate("compare")} onSources={() => setProvenanceOpen(true)} />
               {mobileSheet !== "none" && (
                 <button
                   type="button"

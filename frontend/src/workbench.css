@@ -1,0 +1,196 @@
+/* Authoritative workspace composition. Scientific renderer values remain untouched. */
+:root {
+  --wb-bg: #10151f;
+  --wb-panel: #171e2b;
+  --wb-raised: #202a3b;
+  --wb-line: #344155;
+  --wb-text: #edf3fc;
+  --wb-muted: #a3b3c9;
+  --wb-accent: #67deeb;
+  --wb-left: 274px;
+  --wb-right: 264px;
+}
+:root[data-theme="light"] {
+  --wb-bg: #e8eef5;
+  --wb-panel: #f8fafd;
+  --wb-raised: #e7eef7;
+  --wb-line: #b7c6d7;
+  --wb-text: #182b43;
+  --wb-muted: #4b617b;
+  --wb-accent: #076b80;
+}
+.ocean-workbench { grid-template-rows: 72px minmax(0,1fr) 36px; background: var(--wb-bg); color: var(--wb-text); }
+.ocean-workbench .app-header { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 24px; }
+.ocean-workbench .brand p { color: var(--wb-muted); font-size: 12px; }
+.ocean-workbench .brand h1 { font-size: 22px; }
+.ocean-workbench .header-status { gap: 16px; }
+.ocean-workbench .header-status > div { display: none; }
+.ocean-workbench .system-pill { font-size: 11px; letter-spacing: .04em; color: var(--wb-accent); background: var(--wb-panel); }
+.ocean-workbench .theme-toggle { font-size: 12px; background: var(--wb-panel); color: var(--wb-text); }
+.present-button { border: 1px solid var(--wb-accent); border-radius: 7px; min-height: 40px; padding: 8px 16px; color: var(--wb-bg); background: var(--wb-accent); font-size: 14px; font-weight: 650; cursor: pointer; }
+.ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr) auto; grid-template-rows: 56px minmax(0,1fr); background: var(--wb-bg); overflow: hidden; }
+.ocean-workbench .workspace-frame > .workspace { grid-column: 1 / -1; grid-row: 2; min-height: 0; position: relative; padding: 0; overflow: hidden; }
+.ocean-workbench .feature-rail { position: static; flex-direction: row; align-items: center; padding: 6px 14px; gap: 5px; border: 0; border-bottom: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-bg); overflow-x: auto; }
+.ocean-workbench .feature-rail-left { grid-column: 1; grid-row: 1; width: auto; }
+.ocean-workbench .feature-rail-right { display: flex; grid-column: 2; grid-row: 1; }
+.ocean-workbench .rail-title,.ocean-workbench .rail-group-label { display: none; }
+.ocean-workbench .rail-group { display: contents; }
+.ocean-workbench .feature-rail button { display: flex; gap: 8px; min-width: max-content; min-height: 40px; padding: 8px 12px; border: 1px solid transparent; border-radius: 6px; color: var(--wb-muted); background: transparent; box-shadow: none; transform: none; }
+.ocean-workbench .feature-rail button span { display: block; font-size: 13px; line-height: 1.25; }
+.ocean-workbench .feature-rail button strong { display: none; }
+.ocean-workbench .feature-rail button.active { color: var(--wb-accent); border-color: var(--wb-line); background: var(--wb-raised); box-shadow: inset 0 -2px var(--wb-accent); }
+.ocean-workbench .feature-rail button:hover:not(:disabled) { color: var(--wb-text); background: var(--wb-raised); }
+.ocean-workbench .control-panel { top: 0; bottom: 0; left: 0; width: var(--wb-left); padding: 22px 18px; border: 0; border-right: 1px solid var(--wb-line); border-radius: 0; background: var(--wb-panel); box-shadow: none; backdrop-filter: none; }
+.ocean-workbench .control-panel section { padding: 20px 0; border-color: var(--wb-line); }
+.ocean-workbench .control-panel section:first-of-type { padding-top: 0; }
+.ocean-workbench .section-kicker { font-size: 12px; color: var(--wb-muted); letter-spacing: .09em; }
+.ocean-workbench .variable-switcher { display: grid; grid-template-columns: 1fr; gap: 7px; }
+.ocean-workbench .variable-switcher button { display: flex; flex-direction: row; justify-content: space-between; align-items: center; min-height: 44px; padding: 10px 12px; font-size: 14px; border: 1px solid var(--wb-line); border-radius: 6px; background: transparent; color: var(--wb-text); }
+.ocean-workbench .variable-switcher button.active { border-color: var(--wb-accent); background: color-mix(in srgb,var(--wb-accent) 12%,var(--wb-panel)); box-shadow: inset 3px 0 var(--wb-accent); }
+.ocean-workbench .variable-switcher button small { font-size: 12px; color: var(--wb-muted); }
+.ocean-workbench .control-panel :is(label,.label-row,.label-row strong,select,.segmented button) { font-size: 14px; color: var(--wb-text); }
+.ocean-workbench .control-panel :is(select,input[type="number"]) { min-height: 42px; background: var(--wb-bg); border-color: var(--wb-line); color: var(--wb-text); }
+.ocean-workbench .control-panel :is(.microcopy,.active-range,.source-card > span,.source-card small,.verified-time-card span,.advanced-control-group summary small,.active-3d-mode-card span,.active-3d-mode-card small) { font-size: 12px; line-height: 1.55; color: var(--wb-muted); }
+.ocean-workbench .control-panel :is(.source-card > strong,.verified-time-card strong,.advanced-control-group summary span) { font-size: 13px; color: var(--wb-text); }
+.ocean-workbench .advanced-control-group { background: var(--wb-bg); border-color: var(--wb-line); border-radius: 6px; }
+.ocean-workbench .advanced-control-group summary { padding: 12px; }
+.ocean-workbench .advanced-control-body { padding: 14px 10px; }
+.ocean-workbench .visualization-stage { left: var(--wb-left); right: var(--wb-right); top: 154px; bottom: 0; background: var(--wb-bg); }
+.ocean-workbench .visualization-dock { top: 0 !important; left: var(--wb-left) !important; right: var(--wb-right) !important; width: auto !important; min-width: 0; height: 154px; transform: none; padding: 14px 20px !important; display: grid !important; grid-template-columns: minmax(0,1fr); gap: 8px; border: 0 !important; border-bottom: 1px solid var(--wb-line) !important; border-radius: 0 !important; background: var(--wb-panel) !important; box-shadow: none; backdrop-filter: none; }
+.ocean-workbench .visualization-dock-copy { display: none; }
+.ocean-workbench .visualization-dock-modes { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.ocean-workbench .visualization-dock-modes button { min-width: 0; width: auto; height: 48px; display: flex; align-items: center; gap: 10px; padding: 8px 12px; color: var(--wb-muted); background: var(--wb-bg); border: 1px solid var(--wb-line); border-radius: 6px; box-shadow: none; transform: none; }
+.ocean-workbench .visualization-dock-modes button.active { border-color: var(--wb-accent); color: var(--wb-accent); background: color-mix(in srgb,var(--wb-accent) 10%,var(--wb-panel)); }
+.ocean-workbench .mode-number { display: none; }
+.ocean-workbench .mode-icon { flex: 0 0 24px; width: 24px; height: 24px; border: 0; background: transparent; }
+.ocean-workbench .mode-label { display: block; min-width: 0; }
+.ocean-workbench .mode-label strong { display: block; font-size: 14px; }
+.ocean-workbench .mode-label small { display: none; }
+.ocean-workbench .visualization-context-row { display: grid; grid-template-columns: 1fr 1fr; border: 0; background: transparent; gap: 6px 16px; padding: 0; }
+.ocean-workbench .visualization-context-row > div { border: 0; padding: 0; min-width: 0; }
+.ocean-workbench .visualization-context-row > div:nth-child(n+3) { display: none; }
+.ocean-workbench .visualization-context-row span { font-size: 10px; color: var(--wb-muted); }
+.ocean-workbench .visualization-context-row strong { font-size: 12px; color: var(--wb-text); }
+.evidence-rail { position: absolute; right: 0; top: 0; bottom: 0; width: var(--wb-right); padding: 24px 20px; overflow-y: auto; scrollbar-width: thin; background: var(--wb-panel); border-left: 1px solid var(--wb-line); }
+.eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--wb-accent); font-weight: 700; }
+.evidence-heading h2 { margin: 8px 0 12px; font-size: 21px; letter-spacing: -.035em; }
+.snapshot-badge { display: inline-flex; font-size: 11px; padding: 5px 8px; border: 1px solid var(--wb-line); border-radius: 4px; color: var(--wb-muted); }
+.evidence-readout { padding: 24px 0 16px; border-bottom: 1px solid var(--wb-line); }
+.evidence-readout > span { font-size: 12px; color: var(--wb-muted); }
+.evidence-readout > strong { display: block; font-size: 38px; font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.045em; margin: 6px 0; }
+.evidence-readout small { font-size: 18px; color: var(--wb-accent); }
+.evidence-rail p { color: var(--wb-muted); font-size: 12px; line-height: 1.6; margin: 6px 0; }
+.evidence-facts { display: grid; gap: 15px; margin: 20px 0; }
+.evidence-facts dt { color: var(--wb-muted); font-size: 11px; margin-bottom: 4px; }
+.evidence-facts dd { margin: 0; font-size: 13px; overflow-wrap: anywhere; }
+.evidence-comparison { border-top: 1px solid var(--wb-line); padding-top: 20px; }
+.evidence-comparison h3 { font-size: 16px; margin: 9px 0 4px; }
+.evidence-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+.evidence-metrics strong { display: block; font-size: 24px; color: #efbf79; font-variant-numeric: tabular-nums; }
+:root[data-theme="light"] .evidence-metrics strong { color: #86510a; }
+.evidence-metrics strong small { font-size: 12px; }
+.evidence-metrics span { font-size: 11px; color: var(--wb-muted); }
+.evidence-rail button { display: flex; width: 100%; align-items: center; justify-content: space-between; min-height: 42px; padding: 9px 10px; margin-top: 8px; background: var(--wb-raised); border: 1px solid var(--wb-line); border-radius: 5px; color: var(--wb-text); font-size: 13px; cursor: pointer; }
+.evidence-rail button:hover { border-color: var(--wb-accent); }
+.evidence-footnote { padding-top: 18px; }
+.evidence-footnote button { background: transparent; color: var(--wb-accent); border: 0; padding-left: 0; }
+.ocean-workbench .profile-panel { z-index: 22; top: 0; right: 0; bottom: 0; width: min(360px,100%); border-radius: 0; background: var(--wb-panel); border-color: var(--wb-line); }
+/* Canvas overlays are relative to the canvas, never to the whole workspace. */
+.ocean-workbench .visualization-stage .globe-shell { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
+.ocean-workbench .top-left { top: 14px; left: 14px; right: auto; width: auto; max-width: calc(100% - 28px); }
+.ocean-workbench .judge-summary,.ocean-workbench .depth-indicator,.ocean-workbench .render-quality-line { display: none; }
+.ocean-workbench .imagery-control { left: 14px; right: auto; top: 14px; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
+.ocean-workbench .imagery-control > span,.ocean-workbench .imagery-control > small { display: none; }
+.ocean-workbench .imagery-control > strong { font-size: 11px; }
+.ocean-workbench .imagery-control button { min-height: 32px; font-size: 11px; }
+.ocean-workbench .cesium-smooth-zoom.camera-control-stack { left: 14px; right: auto; bottom: 65px; top: auto; width: 172px; min-width: 0; padding: 8px; }
+.ocean-workbench .camera-control-stack > small,.ocean-workbench .camera-control-stack > span { display: none; }
+.ocean-workbench .camera-control-stack button { min-height: 34px; }
+.ocean-workbench .camera-control-stack button strong { font-size: 11px; }
+.ocean-workbench .study-region-entry { top: 14px; right: 14px; left: auto; bottom: auto; width: 190px; min-height: 65px; padding: 10px; transform: none; }
+.ocean-workbench .study-region-entry strong { font-size: 13px; }
+.ocean-workbench .study-region-entry small { display: none; }
+.ocean-workbench .legend-card,.ocean-workbench .water-column-legend { right: 14px; left: auto; bottom: 64px; width: 190px; transform: none; }
+.ocean-workbench .legend-values,.ocean-workbench .legend-card > span,.ocean-workbench .water-column-legend > span { font-size: 11px; }
+.ocean-workbench .interaction-hint { bottom: 20px; left: 14px; right: 14px; max-width: none; width: auto; transform: none; text-align: center; font-size: 11px; }
+.ocean-workbench .water-column-summary { max-width: calc(100% - 155px); }
+.ocean-workbench .water-column-summary strong { font-size: 11px; }
+.ocean-workbench .water-column-summary span,.ocean-workbench .water-column-summary small { font-size: 11px; }
+.ocean-workbench .water-column-selected { top: 14px; right: 14px; left: auto; width: 118px; }
+.ocean-workbench .water-column-axis-key { left: 14px; right: 14px; bottom: 58px; max-width: none; width: auto; transform: none; }
+.ocean-workbench .water-column-axis-key small { display: none; }
+.ocean-workbench .water-column-smooth-zoom { left: 14px; right: auto; bottom: 106px; width: 145px; }
+.ocean-workbench .water-column-smooth-zoom small { display: none; }
+.ocean-workbench .water-column-legend { bottom: 106px; }
+.ocean-workbench .water-column-note { left: 14px; right: 14px; bottom: 0; width: auto; max-width: none; transform: none; font-size: 9px; }
+.ocean-workbench .inspection-card,.ocean-workbench .water-column-hover { left: 14px; right: auto; top: 110px; bottom: auto; width: 220px; max-width: calc(100% - 28px); }
+.ocean-workbench .imported-observation-chips { left: 14px; right: 14px; top: 94px; bottom: auto; max-width: none; }
+.ocean-workbench .science-footer { background: var(--wb-bg); border-color: var(--wb-line); padding-inline: 16px; gap: 20px; color: var(--wb-muted); font-size: 11px; }
+.ocean-workbench .science-footer span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { background: var(--wb-bg); color: var(--wb-text); padding: 32px clamp(20px,4vw,64px) 64px; }
+.ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) :is(p,label,select,button) { font-size: 14px; line-height: 1.55; }
+.ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) :is(small,dt,td,th) { font-size: 12px; }
+.presentation-guide { position: absolute; z-index: 27; top: 12px; left: max(12px,calc((100% - 720px)/2)); right: max(12px,calc((100% - 720px)/2)); padding: 20px; border: 1px solid var(--wb-accent); border-radius: 10px; background: var(--wb-panel); box-shadow: 0 20px 70px #0008; }
+.presentation-guide h2 { font-size: 20px; margin: 8px 0; }
+.presentation-guide p { font-size: 14px; line-height: 1.6; color: var(--wb-muted); margin: 8px 0 16px; }
+.guide-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.guide-actions button { min-height: 40px; border: 1px solid var(--wb-line); border-radius: 5px; color: var(--wb-text); background: var(--wb-raised); padding: 8px 12px; font-size: 13px; cursor: pointer; }
+.guide-actions button:disabled { opacity: .4; cursor: default; }
+.ocean-workbench.focus-mode .workspace-frame { grid-template-columns: 1fr; grid-template-rows: 0 minmax(0,1fr); }
+.ocean-workbench.focus-mode .feature-rail,.ocean-workbench.focus-mode .control-panel,.ocean-workbench.focus-mode .evidence-rail { visibility: hidden; }
+.ocean-workbench.focus-mode .visualization-stage { left: 0; right: 0; }
+.ocean-workbench.focus-mode .visualization-dock { left: 0 !important; right: 0 !important; }
+.ocean-workbench button { transition: background-color 180ms ease,border-color 180ms ease,color 180ms ease; }
+@media (max-width: 1150px) {
+  :root { --wb-left: 250px; --wb-right: 0px; }
+  .evidence-rail { display: none; }
+  .ocean-workbench .feature-rail button { padding-inline: 9px; }
+  .ocean-workbench .feature-rail button span { font-size: 12px; }
+  .ocean-workbench .feature-rail-right { padding-left: 0; }
+}
+@media (max-width: 760px) {
+  .ocean-workbench { display: grid; height: 100dvh; min-height: 0; grid-template-rows: 64px minmax(0,1fr) 28px; }
+  .ocean-workbench .app-header { padding: 8px 12px; }
+  .ocean-workbench .brand h1 { font-size: 17px; }
+  .ocean-workbench .brand-mark { display: none; }
+  .ocean-workbench .header-status { gap: 6px; }
+  .ocean-workbench .present-button { min-height: 36px; font-size: 12px; padding: 7px 9px; }
+  .ocean-workbench .theme-toggle { min-width: 48px; min-height: 36px; padding: 6px; font-size: 10px; }
+  .ocean-workbench .workspace-frame { display: grid; grid-template-columns: minmax(0,1fr); grid-template-rows: 52px minmax(0,1fr); overflow: hidden; }
+  .ocean-workbench .feature-rail-left { width: 100%; padding: 6px 8px; flex-wrap: nowrap; }
+  .ocean-workbench .feature-rail-left button { flex: 0 0 auto; min-width: max-content; min-height: 38px; }
+  .ocean-workbench .feature-rail-right { display: none; }
+  .ocean-workbench .workspace-frame > .workspace { display: block; position: relative; overflow: hidden; height: 100%; min-height: 0; }
+  .ocean-workbench .visualization-dock { left: 0 !important; right: 0 !important; top: 0 !important; height: 125px; padding: 10px !important; }
+  .ocean-workbench .visualization-dock-modes button { padding: 6px; gap: 5px; height: 42px; }
+  .ocean-workbench .mode-label strong { font-size: 12px; }
+  .ocean-workbench .visualization-stage { position: absolute; left: 0; right: 0; top: 125px; bottom: 72px; height: auto; min-height: 0; width: 100%; }
+  .ocean-workbench .control-panel { position: absolute; display: block; top: 0; bottom: 0; left: 0; width: min(360px,100%); max-height: 100%; z-index: 35; transform: translateX(-105%); visibility: hidden; }
+  .ocean-workbench .control-panel[data-mobile-open="true"] { transform: none; visibility: visible; }
+  .ocean-workbench .profile-panel { position: absolute; inset: 0 0 0 auto; max-height: 100%; width: min(360px,100%); z-index: 35; }
+  .ocean-workbench .mobile-sheet-header { display: flex; gap: 12px; margin-bottom: 16px; }
+  .ocean-workbench .mobile-sheet-header button { min-height: 40px; font-size: 13px; }
+  .ocean-workbench .mobile-explore-tray { position: absolute; left: 0; right: 0; bottom: 0; min-height: 72px; padding: 6px; border-radius: 0; background: var(--wb-panel); border-color: var(--wb-line); z-index: 23; }
+  .ocean-workbench .mobile-explore-tray span { font-size: 10px; }
+  .ocean-workbench .mobile-explore-tray strong { font-size: 11px; }
+  .ocean-workbench .imagery-control { width: 160px; top: 10px; left: 10px; }
+  .ocean-workbench .study-region-entry { top: 10px; right: 10px; width: 128px; }
+  .ocean-workbench .study-region-entry > span { font-size: 8px; }
+  .ocean-workbench .study-region-entry strong { font-size: 11px; }
+  .ocean-workbench .cesium-smooth-zoom.camera-control-stack { left: 10px; bottom: 20px; width: 146px; }
+  .ocean-workbench .legend-card { right: 10px; bottom: 20px; width: 138px; }
+  .ocean-workbench .water-column-smooth-zoom { left: 10px; bottom: 62px; width: 130px; }
+  .ocean-workbench .water-column-legend { right: 10px; bottom: 62px; width: 145px; }
+  .ocean-workbench .water-column-axis-key { bottom: 25px; left: 10px; right: 10px; }
+  .ocean-workbench .water-column-summary { left: 10px; top: 10px; max-width: calc(100% - 145px); }
+  .ocean-workbench .water-column-summary small { display: none; }
+  .ocean-workbench .water-column-summary strong { font-size: 9px; }
+  .ocean-workbench .water-column-selected { top: 10px; right: 10px; }
+  .ocean-workbench .interaction-hint { display: none; }
+  .ocean-workbench .science-footer { min-height: 0; font-size: 10px; padding: 5px 10px; }
+  .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { position: absolute; inset: 0; min-height: 0; overflow-y: auto; padding: 24px 16px 48px; }
+  .presentation-guide { max-height: calc(100% - 24px); overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ocean-workbench *, .ocean-workbench *::before, .ocean-workbench *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}

@@ -39,6 +39,7 @@ export function AppNavigation({
                   onClick={() => onNavigate(item.id)}
                   title={item.description}
                   aria-label={item.label}
+                  aria-current={page === item.id ? "page" : undefined}
                 >
                   <strong>{item.short}</strong>
                   <span>{item.label}</span>

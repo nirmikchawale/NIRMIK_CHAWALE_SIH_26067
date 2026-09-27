@@ -1,0 +1,24 @@
+import type { Catalog, ProfileSummary, VariableCard } from "../types";
+
+interface Props {
+  catalog: Catalog;
+  variable: VariableCard | undefined;
+  depth: number;
+  time: string;
+  profile: ProfileSummary | null;
+  loading: boolean;
+  error: string;
+  onInspect: () => void;
+  onCompare: () => void;
+  onSources: () => void;
+}
+
+export function EvidenceRail({ catalog, variable, depth, time, profile, loading, error, onInspect, onCompare, onSources }: Props) {
+  return <aside className="evidence-rail" aria-label="Ocean data telemetry">
+    <div className="evidence-heading"><span className="eyebrow">Ocean intelligence</span><h2>Field overview</h2><span className="snapshot-badge">{error ? "Field unavailable" : loading ? "Updating field…" : "Verified snapshot"}</span></div>
+    <section className="evidence-readout"><span>Selected depth</span><strong>{depth.toFixed(2)}<small> m</small></strong><p>{variable?.label ?? "Ocean field"} · depth positive down</p></section>
+    <dl className="evidence-facts"><div><dt>Model time · UTC</dt><dd>{time.replace("T", " ").replace("Z", "")}</dd></div><div><dt>Study region</dt><dd>{catalog.dataset.region}</dd></div><div><dt>Vertical coverage</dt><dd>{catalog.coordinates.depth.length} actual depth levels</dd></div><div><dt>Source</dt><dd>{catalog.dataset.source}</dd></div></dl>
+    <section className="evidence-comparison"><span className="eyebrow">Model ↔ observation</span><h3>{profile ? `Argo ${profile.platform_id}` : "No eligible profile"}</h3>{profile ? <><p>Cycle {profile.cycle} {profile.direction} · temperature comparison</p><div className="evidence-metrics"><div><strong>{profile.mae_celsius.toFixed(3)}<small> °C</small></strong><span>Mean absolute error</span></div><div><strong>{profile.matched_level_count}</strong><span>Matched levels</span></div></div><button type="button" onClick={onInspect}>Inspect profile <span aria-hidden="true">↗</span></button><button type="button" onClick={onCompare}>Open comparison <span aria-hidden="true">→</span></button></> : <p>Comparison evidence is unavailable for this dataset.</p>}</section>
+    <div className="evidence-footnote"><p>Diagnostic comparison, not independent validation.</p><button type="button" onClick={onSources}>Sources & methodology ↗</button></div>
+  </aside>;
+}
