@@ -352,3 +352,45 @@ export interface ConnectorRegistryResponse {
   connectors: ConnectorSpec[];
   principle: string;
 }
+
+
+export interface IncoisOperationalRecord {
+  time: string;
+  depth_m: number;
+  latitude: number;
+  longitude: number;
+  temperature: number;
+  salinity: number;
+}
+
+export interface IncoisOperationalSnapshot {
+  schema: "oceantwin-incois-operational-v1";
+  source: {
+    provider: "INCOIS";
+    dataset_id: string;
+    title: string;
+    service: string;
+    query_url: string;
+    official_metadata: string;
+    conventions: string[];
+    runtime_policy: string;
+  };
+  coverage: {
+    times: string[];
+    depths_m: number[];
+    latitudes: number[];
+    longitudes: number[];
+  };
+  variables: {
+    temperature: { source_name: string; units: string; minimum: number; maximum: number };
+    salinity: { source_name: string; units: string; minimum: number; maximum: number };
+  };
+  records: IncoisOperationalRecord[];
+  record_count: number;
+  integrity: {
+    genuine_time_count: number;
+    genuine_depth_count: number;
+    synthetic_timestamps: false;
+    source_values_modified: false;
+  };
+}

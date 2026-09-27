@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { api } from "../api";
+import { IncoisOperationalPanel } from "../components/IncoisOperationalPanel";
 import type {
   Catalog,
   ProvenanceResponse,
@@ -536,6 +537,8 @@ export function TelemetryPage({ catalog, provenance }: Props) {
           <small>{catalog.dataset.freshness_class} · {catalog.dataset.runtime_mode}</small>
         </div>
       </section>
+
+      <IncoisOperationalPanel />
 
       <section className="telemetry-toolbar">
         <div>

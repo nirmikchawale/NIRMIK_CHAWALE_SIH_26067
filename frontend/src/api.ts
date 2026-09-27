@@ -4,6 +4,7 @@ import type {
   ConnectorRegistryResponse,
   CurrentsResponse,
   FieldResponse,
+  IncoisOperationalSnapshot,
   ProfileDetail,
   ProfilesResponse,
   ProvenanceResponse,
@@ -36,6 +37,15 @@ async function getJson<T>(path: string, staticPath: string): Promise<T> {
     throw new Error(`${response.status} ${response.statusText}: ${body}`);
   }
   return response.json() as Promise<T>;
+}
+
+export async function fetchIncoisOperational(): Promise<IncoisOperationalSnapshot> {
+  const target = `${import.meta.env.BASE_URL}operational/incois-argo-10d-vam.json`;
+  const response = await fetch(target, { headers: { Accept: "application/json" } });
+  if (!response.ok) {
+    throw new Error(`INCOIS operational snapshot unavailable: ${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<IncoisOperationalSnapshot>;
 }
 
 export const api = {
