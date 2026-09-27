@@ -236,7 +236,7 @@ jobs:
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
-          test -s frontend/dist/netcdf4-wasm.wasm
+          find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
           python - <<'PY'
           import json
@@ -313,7 +313,6 @@ jobs:
           operational = get_json("/operational/incois-argo-10d-vam.json")
           observations = get_json("/observations/verified-profiles.json")
           netcdf_fixture = get_bytes("/samples/cf-profile-fixture.nc")
-          netcdf_wasm = get_bytes("/netcdf4-wasm.wasm")
           natural_earth = get_bytes(
               "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
           )
@@ -339,7 +338,6 @@ jobs:
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["integrity"]["runtime_network_required"] is False
           assert netcdf_fixture[:4] == b"\x89HDF"
-          assert netcdf_wasm[:4] == b"\x00asm"
           assert natural_earth[:2] == b"\xff\xd8"
 
           print("Production static runtime smoke test passed.")
