@@ -98,6 +98,18 @@ def export_static_science(output: Path) -> dict[str, Any]:
                     )
                 )
 
+        records.append(
+            _write_json(
+                output,
+                f"currents-volume/t{time_index}.json",
+                api.currents_volume(
+                    time_index=time_index,
+                    horizontal_stride=4,
+                    depth_stride=1,
+                ),
+            )
+        )
+
         for depth_index in range(depth_count):
             records.append(
                 _write_json(
