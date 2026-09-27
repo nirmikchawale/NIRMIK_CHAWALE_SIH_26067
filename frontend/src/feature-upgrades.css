@@ -1819,7 +1819,7 @@
   .mobile-explore-tray {
     position: fixed;
     right: 10px;
-    bottom: 10px;
+    bottom: 42px;
     left: 10px;
     z-index: 48;
     display: flex;
@@ -1993,10 +1993,6 @@
     text-align: center;
   }
 
-  .science-footer {
-    display: none;
-  }
-
   :root[data-theme="light"] .mobile-explore-tray {
     border-color: #b8d0d9;
     background: rgba(249, 252, 253, .96);
@@ -2057,7 +2053,7 @@
 @media (max-width: 420px) {
   .mobile-explore-tray {
     right: 6px;
-    bottom: 6px;
+    bottom: 38px;
     left: 6px;
     padding: 6px;
   }
