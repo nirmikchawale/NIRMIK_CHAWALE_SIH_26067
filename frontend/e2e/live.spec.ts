@@ -320,7 +320,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".legend-card")).toContainText("mg/m^3");
   await expect(page.locator(".surface-only-control")).toContainText("Surface field only");
   await expect(page.locator(".evidence-readout")).toContainText("SURFACE");
-  const chlorophyllWaterColumn = page.getByRole("button", { name: /Water Column 3D/ });
+  const chlorophyllWaterColumn = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(chlorophyllWaterColumn).toBeDisabled();
   const chlorophyllTime = page.getByLabel("Explore genuine timestamp");
   await expect(chlorophyllTime).toBeVisible();
@@ -342,7 +342,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  const currentWaterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
+  const currentWaterColumnButton = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(currentWaterColumnButton).toBeEnabled();
   await currentWaterColumnButton.click();
   const currentWaterColumnShell = page.locator(".water-column-shell");
@@ -352,7 +352,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await page.getByRole("button", { name: /Geographic View/ }).click();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
-  const waterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
+  const waterColumnButton = page.getByRole("button", { name: "Water Column 3D", exact: true });
   await expect(waterColumnButton).toBeEnabled();
   await waterColumnButton.click();
 
