@@ -244,7 +244,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
-  await page.getByRole("button", { name: "Zoom in Cesium Globe" }).click();
+  await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
 
   await expect(page.locator(".play-button")).toHaveCount(0);
@@ -258,10 +258,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Water-column 3D" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /Water Column 3D/ })).toBeDisabled();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
-  const waterColumnButton = page.getByRole("button", { name: "Water-column 3D" });
+  const waterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
   await expect(waterColumnButton).toBeEnabled();
   await waterColumnButton.click();
 
