@@ -335,7 +335,6 @@ export function ControlPanel({
                       ? "Isosurface geometry is extracted from the genuine scalar water-column values."
                       : "Current colour represents genuine horizontal speed magnitude."}
                 </p>
-              </div>
 
             {surfaceOnly ? (
               <p className="microcopy">
