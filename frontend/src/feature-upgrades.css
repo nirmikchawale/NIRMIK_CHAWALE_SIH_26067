@@ -2569,3 +2569,168 @@
     min-height: 48px;
   }
 }
+
+
+/* Final MVP major redesign — Phase 5 desktop readability and hierarchy.
+   Additive typography normalization only; no scientific or renderer geometry changes. */
+@media (min-width: 761px) {
+  .control-panel {
+    padding-top: 18px;
+  }
+
+  .control-panel .section-kicker {
+    font-size: 10px;
+    letter-spacing: .13em;
+  }
+
+  .variable-switcher button {
+    min-height: 46px;
+    font-size: 10px;
+  }
+
+  .variable-switcher button small {
+    font-size: 8px;
+  }
+
+  .active-range,
+  .microcopy,
+  .source-card > span,
+  .source-card small,
+  .time-row span {
+    font-size: 10px;
+  }
+
+  .label-row strong,
+  .time-row strong,
+  .source-card > strong {
+    font-size: 12px;
+  }
+
+  .advanced-control-group > summary span {
+    font-size: 10px;
+  }
+
+  .advanced-control-group > summary small {
+    font-size: 8px;
+  }
+
+  .active-3d-mode-card strong {
+    font-size: 11px;
+  }
+
+  .active-3d-mode-card span,
+  .active-3d-mode-card small {
+    font-size: 9px;
+  }
+
+  .visualization-dock-copy > span {
+    font-size: 8px;
+  }
+
+  .visualization-dock-copy > strong {
+    font-size: 12px;
+  }
+
+  .visualization-dock-copy > small {
+    font-size: 8px;
+  }
+
+  .mode-label strong {
+    font-size: 11px;
+  }
+
+  .mode-label small {
+    font-size: 8px;
+  }
+
+  .visualization-context-row span {
+    font-size: 7px;
+    letter-spacing: .11em;
+  }
+
+  .visualization-context-row strong {
+    font-size: 9px;
+  }
+
+  .judge-summary {
+    gap: 5px;
+    padding: 10px 12px;
+  }
+
+  .judge-summary > div strong {
+    font-size: 10px;
+  }
+
+  .judge-summary > span,
+  .judge-summary > small,
+  .render-quality-line {
+    font-size: 9px !important;
+  }
+
+  .inspection-title strong {
+    font-size: 11px;
+  }
+
+  .inspection-card > span,
+  .inspection-card small,
+  .inspection-grid,
+  .legend-values,
+  .interaction-hint,
+  .depth-indicator,
+  .volume-note {
+    font-size: 9px;
+  }
+
+  .legend-card {
+    font-size: 10px;
+  }
+
+  .camera-control-stack > span {
+    font-size: 8px;
+  }
+
+  .camera-control-stack .camera-preset-button span,
+  .camera-control-stack .camera-observation-button span {
+    font-size: 7px;
+  }
+
+  .camera-control-stack .camera-preset-button strong,
+  .camera-control-stack .camera-observation-button strong,
+  .camera-control-stack > small {
+    font-size: 9px;
+  }
+
+  .study-region-entry > span,
+  .globe-intro-status span {
+    font-size: 8px;
+  }
+
+  .study-region-entry strong {
+    font-size: 12px;
+  }
+
+  .study-region-entry small,
+  .globe-intro-status small {
+    font-size: 9px;
+  }
+
+  .metric-grid span,
+  .observation-meta span {
+    font-size: 9px;
+  }
+
+  .chart-title-row,
+  .observation-meta strong,
+  .diagnostic-note {
+    font-size: 10px;
+  }
+
+  .science-footer {
+    font-size: 9px;
+  }
+
+  .feature-rail .rail-title,
+  .feature-rail button span {
+    font-size: 8px;
+  }
+}
