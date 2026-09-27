@@ -573,14 +573,20 @@ export function DataLabPage() {
       }
 
       const extension = file.name.toLowerCase().split(".").pop();
-      if (extension !== "csv" && extension !== "json") {
-        throw new Error("Unsupported file type. Use .csv or .json.");
+      if (!extension || !["csv", "tsv", "txt", "asc", "json"].includes(extension)) {
+        throw new Error("Unsupported file type. Use CSV, TSV/ASCII text, or JSON.");
       }
 
       const text = await file.text();
       if (!text.trim()) throw new Error("File is empty.");
-      const records = extension === "csv" ? parseCsv(text) : parseJson(text);
-      setResult(validateRecords(file.name, extension, records));
+      const format = extension === "json" ? "json" : "csv";
+      const delimiter =
+        extension === "tsv" ? "\t"
+          : extension === "txt" || extension === "asc"
+            ? (text.includes("\t") ? "\t" : text.includes(";") ? ";" : ",")
+            : ",";
+      const records = extension === "json" ? parseJson(text) : parseDelimited(text, delimiter);
+      setResult(validateRecords(file.name, format, records));
     } catch (reason) {
       setProcessingError(reason instanceof Error ? reason.message : String(reason));
     } finally {
@@ -672,18 +678,18 @@ export function DataLabPage() {
           <div className="data-lab-card-heading">
             <div>
               <span>1 · LOAD</span>
-              <h3>CSV / JSON validator</h3>
+              <h3>CSV / TSV / ASCII / JSON validator</h3>
             </div>
             <button type="button" onClick={downloadSchema}>Download schema CSV</button>
           </div>
           <label className="data-lab-file-picker">
             <strong>{processing ? "Reading file…" : "Choose an ocean dataset"}</strong>
-            <span>CSV or JSON · max 5 MB · max 100,000 records</span>
+            <span>CSV, TSV/ASCII or JSON · max 5 MB · max 100,000 records</span>
             <input
               ref={inputRef}
               aria-label="Ocean dataset file"
               type="file"
-              accept=".csv,.json,text/csv,application/json"
+              accept=".csv,.tsv,.txt,.asc,.json,text/csv,text/tab-separated-values,text/plain,application/json"
               disabled={processing}
               onChange={handleFile}
             />
