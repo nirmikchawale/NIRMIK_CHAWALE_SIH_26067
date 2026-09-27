@@ -757,6 +757,7 @@ export default function App() {
               <VisualizationDock
                 mode={visualizationMode}
                 waterColumnAvailable={sourceMode !== "chlorophyll" && (sourceMode === "glorys" || variable !== "currents")}
+                surfaceOnly={activeExploreCatalog.capabilities.surface_only === true}
                 variableLabel={selectedVariable?.label ?? variable}
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 timeLabel={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
