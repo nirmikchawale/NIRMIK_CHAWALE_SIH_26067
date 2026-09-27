@@ -543,6 +543,62 @@ def scalar_volume(
     }
 
 
+@app.get("/api/currents-volume")
+def currents_volume(
+    time_index: int = 0,
+    horizontal_stride: int = Query(4, ge=1, le=12),
+    depth_stride: int = Query(1, ge=1, le=8),
+) -> dict[str, Any]:
+    dataset = _dataset()
+    if "uo" not in dataset["variables"] or "vo" not in dataset["variables"]:
+        raise HTTPException(status_code=404, detail="Current components uo/vo are unavailable.")
+
+    _ensure_index("time", time_index, len(dataset["time"]))
+    u_values = dataset["variables"]["uo"]["values"][time_index]
+    v_values = dataset["variables"]["vo"]["values"][time_index]
+
+    vectors: list[list[float]] = []
+    speeds: list[float] = []
+    represented_depths: list[float] = []
+
+    for di in range(0, len(dataset["depth"]), depth_stride):
+        depth = float(dataset["depth"][di])
+        represented = False
+        u_layer = u_values[di]
+        v_layer = v_values[di]
+        for yi in range(0, len(dataset["latitude"]), horizontal_stride):
+            lat = float(dataset["latitude"][yi])
+            for xi in range(0, len(dataset["longitude"]), horizontal_stride):
+                uu = float(u_layer[yi, xi])
+                vv = float(v_layer[yi, xi])
+                if not (math.isfinite(uu) and math.isfinite(vv)):
+                    continue
+                speed = math.hypot(uu, vv)
+                vectors.append([float(dataset["longitude"][xi]), lat, depth, uu, vv, speed])
+                speeds.append(speed)
+                represented = True
+        if represented:
+            represented_depths.append(depth)
+
+    return {
+        "variable": "currents",
+        "units": "m s-1",
+        "time_index": time_index,
+        "time": dataset["time_iso"][time_index],
+        "vectors": vectors,
+        "minimum": min(speeds) if speeds else 0.0,
+        "maximum": max(speeds) if speeds else 0.0,
+        "depths_m": represented_depths,
+        "depth_positive": "down",
+        "components": ["uo", "vo"],
+        "vertical_component_available": False,
+        "rendering_note": (
+            "Each vector uses genuine horizontal uo/vo values at its scientific model depth. "
+            "No vertical-current component is inferred. Browser vertical exaggeration changes display geometry only."
+        ),
+    }
+
+
 @app.get("/api/currents")
 def currents(
     time_index: int = 0,
