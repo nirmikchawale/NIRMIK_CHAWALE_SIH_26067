@@ -201,6 +201,9 @@ jobs:
       - name: Fetch verified Glider CTD BGC profiles for hosted build
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
+      - name: Create browser NetCDF ingestion test fixture
+        run: python scripts/create_netcdf_browser_fixture.py --output frontend/public/samples/cf-profile-fixture.nc
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -232,6 +235,8 @@ jobs:
           test -s frontend/dist/science-static/health.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/observations/verified-profiles.json
+          test -s frontend/dist/samples/cf-profile-fixture.nc
+          find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
           python - <<'PY'
           import json
@@ -307,6 +312,7 @@ jobs:
           provenance = get_json("/science-static/provenance.json")
           operational = get_json("/operational/incois-argo-10d-vam.json")
           observations = get_json("/observations/verified-profiles.json")
+          netcdf_fixture = get_bytes("/samples/cf-profile-fixture.nc")
           natural_earth = get_bytes(
               "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
           )
@@ -331,6 +337,7 @@ jobs:
           assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["integrity"]["runtime_network_required"] is False
+          assert netcdf_fixture[:4] == b"\x89HDF"
           assert natural_earth[:2] == b"\xff\xd8"
 
           print("Production static runtime smoke test passed.")

@@ -167,6 +167,30 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Data Lab", exact: true }).click();
   await expect(page).toHaveURL(/#\/data-lab$/);
 
+  const netcdfFixtureUrl = new URL("samples/cf-profile-fixture.nc", page.url()).toString();
+  const netcdfResponse = await page.request.get(netcdfFixtureUrl);
+  expect(netcdfResponse.ok()).toBeTruthy();
+  const netcdfBuffer = await netcdfResponse.body();
+  await dataLabPage.getByLabel("Ocean dataset file").setInputFiles({
+    name: "cf-profile-fixture.nc",
+    mimeType: "application/x-netcdf",
+    buffer: netcdfBuffer
+  });
+  await expect(dataLabPage.locator(".netcdf-inspection-card")).toBeVisible();
+  await expect(dataLabPage.locator(".netcdf-inspection-card")).toContainText("CF-1.10");
+  await expect(dataLabPage.locator(".netcdf-inspection-card")).toContainText("8 canonical rows");
+  await expect(dataLabPage.locator(".data-lab-status.valid")).toContainText("VALIDATED");
+  await expect(dataLabPage).toHaveAttribute("data-row-count", "8");
+  await expect(dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" })).toBeEnabled();
+  await dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" }).click();
+  await expect(page).toHaveURL(/#\/explore$/);
+  await expect(page.locator(".imported-observation-chips")).toContainText("test-ctd-profile-001");
+  await page.locator(".imported-observation-chips").getByRole("button", { name: /CTD.*test-ctd-profile-001/i }).click();
+  await expect(page.locator(".imported-profile-panel")).toContainText("CTD");
+  await expect(page.locator(".imported-profile-panel")).toContainText("sea_water_temperature vs depth");
+  await page.getByRole("button", { name: "Data Lab", exact: true }).click();
+  await expect(page).toHaveURL(/#\/data-lab$/);
+
   const invalidCsv = [
     "longitude,latitude,depth_m,timestamp,variable,value,units,source",
     "68.10,95,10,2020-07-01T00:00:00Z,temperature,28.2,,judge_sample"
