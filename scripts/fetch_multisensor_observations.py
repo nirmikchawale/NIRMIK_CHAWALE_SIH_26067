@@ -234,7 +234,17 @@ def _discover_ctd_profile() -> tuple[str, str]:
             ],
         )
         candidates = []
-        for row in _rows(url):
+        try:
+            discovery_rows = _rows(url)
+        except RuntimeError as exc:
+            # ERDDAP tabledap reports an empty constrained selection as HTTP 404.
+            # That means "no profile in this search window", not a reason to
+            # fabricate a station or abort before trying the next genuine window.
+            if "HTTP Error 404" in str(exc):
+                discovery_rows = []
+            else:
+                raise
+        for row in discovery_rows:
             profile_id = str(row.get("profile_id") or "").strip()
             timestamp = _iso(row.get("time"))
             lat = _finite(row.get("latitude"), max_abs=1000)
