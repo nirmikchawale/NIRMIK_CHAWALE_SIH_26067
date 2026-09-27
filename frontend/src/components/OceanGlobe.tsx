@@ -157,6 +157,8 @@ export function OceanGlobe({
     viewer.scene.globe.translucency.frontFaceAlpha = 0.95;
     viewer.scene.globe.translucency.backFaceAlpha = 0.28;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
+    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 18_000_000;
+    viewer.scene.screenSpaceCameraController.inertiaZoom = 0.65;
 
     // Judge-first framing: keep the verified model window central while also
     // revealing India's west coast and enough globe curvature to read as geography,
@@ -659,6 +661,7 @@ export function OceanGlobe({
     viewer.scene.requestRender();
   }, [field, volume, currents, verticalExaggeration]);
 
+  const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
   const scalar = field ?? volume;
   const legendMin = scalar?.minimum ?? currents?.minimum;
   const legendMax = scalar?.maximum ?? currents?.maximum;
@@ -718,21 +721,58 @@ export function OceanGlobe({
     zoomAnimationRef.current = window.requestAnimationFrame(animate);
   };
 
-  const resetGlobeView = () => {
+  const cancelCameraAnimation = () => {
     const viewer = viewerRef.current;
-    if (!viewer || viewer.isDestroyed()) return;
+    if (!viewer || viewer.isDestroyed()) return null;
     if (zoomAnimationRef.current != null) {
       window.cancelAnimationFrame(zoomAnimationRef.current);
       zoomAnimationRef.current = null;
     }
+    viewer.camera.cancelFlight();
+    return viewer;
+  };
+
+  const fitStudyRegion = () => {
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+      destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.58,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  };
+
+  const showEarthView = () => {
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
       orientation: {
-        heading: CesiumMath.toRadians(248),
+        heading: 0,
+        pitch: CesiumMath.toRadians(-90),
+        roll: 0
+      },
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.7,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  };
+
+  const focusSelectedObservation = () => {
+    if (!selectedProfile) return;
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(
+        selectedProfile.observation_longitude,
+        selectedProfile.observation_latitude,
+        520_000
+      ),
+      orientation: {
+        heading: 0,
         pitch: CesiumMath.toRadians(-76),
         roll: 0
       },
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.75,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.5,
       complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
@@ -836,18 +876,34 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
-      <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom" aria-label="Cesium Globe smooth zoom">
-        <span>GLOBE ZOOM</span>
-        <div>
-          <button type="button" aria-label="Zoom out Cesium Globe" onClick={() => smoothGlobeZoom("out")}>−</button>
-          <button type="button" aria-label="Reset Cesium Globe view" onClick={resetGlobeView}>◎</button>
-          <button type="button" aria-label="Zoom in Cesium Globe" onClick={() => smoothGlobeZoom("in")}>+</button>
+      <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom camera-control-stack" aria-label="Ocean Globe camera controls">
+        <span>CAMERA</span>
+        <div className="camera-zoom-row">
+          <button type="button" aria-label="Zoom out Ocean Globe" title="Zoom out" onClick={() => smoothGlobeZoom("out")}>−</button>
+          <button type="button" aria-label="Zoom in Ocean Globe" title="Zoom in" onClick={() => smoothGlobeZoom("in")}>+</button>
         </div>
-        <small>420 ms eased camera motion</small>
+        <div className="camera-preset-row">
+          <button type="button" className="camera-preset-button" onClick={fitStudyRegion}>
+            <span>FIT</span><strong>Study region</strong>
+          </button>
+          <button type="button" className="camera-preset-button" onClick={showEarthView}>
+            <span>EARTH</span><strong>Global view</strong>
+          </button>
+        </div>
+        <button
+          type="button"
+          className="camera-observation-button"
+          disabled={!selectedProfile}
+          onClick={focusSelectedObservation}
+        >
+          <span>ARGO</span>
+          <strong>{selectedProfile ? `Focus ${selectedProfile.platform_id}` : "No observation selected"}</strong>
+        </button>
+        <small>Wheel to zoom · drag to orbit · one-click geographic presets</small>
       </div>
 
       <div className="globe-overlay interaction-hint">
-        Drag to orbit · scroll to zoom · use smooth zoom buttons · click evidence to inspect
+        Drag to orbit · wheel to zoom · Fit returns to the verified study area · click evidence to inspect
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
