@@ -31,6 +31,7 @@ from src.comparison_loader import (
     select_profile,
 )
 from src.ocean_dataset import load_ocean_dataset
+from src.source_registry import registry_payload
 
 
 def _env_flag(name: str, default: bool = False) -> bool:
@@ -119,6 +120,12 @@ def health() -> dict[str, Any]:
         "runtime_mode": RUNTIME_MODE,
         "streamlit_reference_preserved": True,
     }
+
+
+@app.get("/api/connectors")
+def connectors() -> dict[str, Any]:
+    """Discover registered model/observation/standards adapters."""
+    return registry_payload()
 
 
 @app.get("/api/catalog")
