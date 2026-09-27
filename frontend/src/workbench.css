@@ -46,7 +46,7 @@
 .ocean-workbench .control-panel {
   position: absolute;
   z-index: 25;
-  top: 14px;
+  top: 130px;
   bottom: 14px;
   left: 14px;
   width: min(var(--wb-control-width), calc(100% - 28px));
@@ -99,7 +99,7 @@
   position: absolute;
   z-index: 26;
   right: 14px;
-  top: 14px;
+  top: 130px;
   bottom: 14px;
   width: min(var(--wb-evidence-width), calc(100% - 28px));
   padding: 18px 18px 22px;
@@ -198,6 +198,42 @@
 .ocean-workbench .water-column-legend { bottom: 106px; }
 .ocean-workbench .water-column-note { left: 14px; right: 14px; bottom: 0; width: auto; max-width: none; transform: none; font-size: 9px; }
 .ocean-workbench .inspection-card,.ocean-workbench .water-column-hover { left: 14px; right: auto; top: 110px; bottom: auto; width: 220px; max-width: calc(100% - 28px); }
+
+@media (min-width: 761px) {
+  .ocean-workbench .imagery-control,
+  .ocean-workbench .cesium-smooth-zoom.camera-control-stack,
+  .ocean-workbench .inspection-card,
+  .ocean-workbench .water-column-hover,
+  .ocean-workbench .water-column-smooth-zoom,
+  .ocean-workbench .water-column-axis-key,
+  .ocean-workbench .water-column-note,
+  .ocean-workbench .interaction-hint,
+  .ocean-workbench .imported-observation-chips {
+    transition: left 200ms ease, right 200ms ease, max-width 200ms ease;
+  }
+
+  .ocean-workbench[data-control-dock="open"] .imagery-control,
+  .ocean-workbench[data-control-dock="open"] .cesium-smooth-zoom.camera-control-stack,
+  .ocean-workbench[data-control-dock="open"] .inspection-card,
+  .ocean-workbench[data-control-dock="open"] .water-column-hover,
+  .ocean-workbench[data-control-dock="open"] .water-column-smooth-zoom {
+    left: calc(var(--wb-control-width) + 28px);
+  }
+
+  .ocean-workbench[data-control-dock="open"] .water-column-axis-key,
+  .ocean-workbench[data-control-dock="open"] .water-column-note,
+  .ocean-workbench[data-control-dock="open"] .interaction-hint,
+  .ocean-workbench[data-control-dock="open"] .imported-observation-chips {
+    left: calc(var(--wb-control-width) + 28px);
+  }
+
+  .ocean-workbench[data-evidence-inspector="open"] .study-region-entry,
+  .ocean-workbench[data-evidence-inspector="open"] .legend-card,
+  .ocean-workbench[data-evidence-inspector="open"] .water-column-legend,
+  .ocean-workbench[data-evidence-inspector="open"] .water-column-selected {
+    right: calc(var(--wb-evidence-width) + 28px);
+  }
+}
 .ocean-workbench .imported-observation-chips {
   left: 14px;
   right: 14px;
