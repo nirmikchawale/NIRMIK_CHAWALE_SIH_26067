@@ -202,24 +202,63 @@ function ProfileChart({ detail }: { detail: ProfileDetail }) {
 export function ProfilePanel({
   detail,
   loading,
-  provenance
+  provenance,
+  mobileOpen,
+  onMobileClose
 }: {
   detail: ProfileDetail | null;
   loading: boolean;
   provenance: ProvenanceResponse | null;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }) {
+  const mobileHeader = (
+    <div className="mobile-sheet-header">
+      <div>
+        <span>SELECTED OBSERVATION</span>
+        <strong>Argo profile · model comparison</strong>
+      </div>
+      <button type="button" onClick={onMobileClose} aria-label="Close observation details">
+        Close
+      </button>
+    </div>
+  );
+
   if (loading) {
-    return <aside className="profile-panel panel-placeholder">Loading verified profile…</aside>;
+    return (
+      <aside
+        className="profile-panel panel-placeholder"
+        data-mobile-open={mobileOpen ? "true" : "false"}
+        aria-label="Observation details"
+      >
+        {mobileHeader}
+        <span>Loading verified profile…</span>
+      </aside>
+    );
   }
 
   if (!detail) {
-    return <aside className="profile-panel panel-placeholder">Select an Argo profile.</aside>;
+    return (
+      <aside
+        className="profile-panel panel-placeholder"
+        data-mobile-open={mobileOpen ? "true" : "false"}
+        aria-label="Observation details"
+      >
+        {mobileHeader}
+        <span>Select an Argo profile.</span>
+      </aside>
+    );
   }
 
   const { summary } = detail;
 
   return (
-    <aside className="profile-panel">
+    <aside
+      className="profile-panel"
+      data-mobile-open={mobileOpen ? "true" : "false"}
+      aria-label="Observation details"
+    >
+      {mobileHeader}
       <div className="section-kicker">Selected observation</div>
       <div className="profile-heading">
         <div>
