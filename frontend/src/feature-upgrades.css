@@ -2062,3 +2062,114 @@
     min-width: 86px;
   }
 }
+
+
+/* Final MVP major redesign — Phase 1 camera ergonomics.
+   Keep geographic navigation explicit so judges never need tedious camera dragging. */
+.camera-control-stack {
+  min-width: 214px;
+  gap: 7px;
+  padding: 9px 10px;
+}
+
+.camera-control-stack > .camera-zoom-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.camera-control-stack > .camera-preset-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.camera-control-stack .camera-zoom-row button {
+  width: auto;
+  min-width: 0;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.camera-control-stack .camera-preset-button,
+.camera-control-stack .camera-observation-button {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  place-items: start;
+  align-content: center;
+  gap: 2px;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.camera-control-stack .camera-preset-button span,
+.camera-control-stack .camera-observation-button span {
+  color: #61d4e9;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.camera-control-stack .camera-preset-button strong,
+.camera-control-stack .camera-observation-button strong {
+  color: #dff7fc;
+  font-size: 8px;
+  line-height: 1.3;
+}
+
+.camera-control-stack .camera-observation-button {
+  border-color: rgba(235, 174, 71, .5);
+}
+
+.camera-control-stack .camera-observation-button span {
+  color: #f0b24c;
+}
+
+.camera-control-stack button:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+  transform: none;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-preset-button span {
+  color: #167f9b;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-observation-button span {
+  color: #a66a12;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-preset-button strong,
+:root[data-theme="light"] .camera-control-stack .camera-observation-button strong {
+  color: #214b5d;
+}
+
+@media (max-width: 760px) {
+  .cesium-smooth-zoom.camera-control-stack {
+    bottom: 112px;
+    min-width: 166px;
+  }
+
+  .camera-control-stack {
+    padding: 7px;
+  }
+
+  .camera-control-stack .camera-zoom-row button {
+    min-height: 44px;
+  }
+
+  .camera-control-stack .camera-preset-button {
+    min-height: 42px;
+    padding: 6px 7px;
+  }
+
+  .camera-control-stack .camera-observation-button {
+    display: none;
+  }
+
+  .camera-control-stack > small {
+    display: none;
+  }
+}
