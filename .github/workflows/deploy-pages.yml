@@ -44,6 +44,9 @@ jobs:
       - name: Fetch verified INCOIS chlorophyll ocean-colour snapshot
         run: python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json
 
+      - name: Verify INCOIS OPeNDAP DAP2 endpoints
+        run: python scripts/verify_incois_opendap.py --output frontend/public/operational/opendap-verification.json
+
       - name: Fetch verified Glider CTD BGC observation profiles
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
@@ -80,6 +83,7 @@ jobs:
           test -s frontend/dist/science-static/anomalies/so/t0_d18.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/operational/incois-chlorophyll.json
+          test -s frontend/dist/operational/opendap-verification.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
           find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
@@ -189,6 +193,7 @@ jobs:
           provenance = get_json("/science-static/provenance.json")
           operational = get_json("/operational/incois-argo-10d-vam.json")
           chlorophyll = get_json("/operational/incois-chlorophyll.json")
+          opendap = get_json("/operational/opendap-verification.json")
           observations = get_json("/observations/verified-profiles.json")
           earth = get_bytes("/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg")
 
@@ -217,6 +222,11 @@ jobs:
           assert chlorophyll["integrity"]["synthetic_depths"] is False
           assert chlorophyll["record_count"] > 0
           assert chlorophyll["variable"]["units"] == "mg/m^3"
+          assert opendap["protocol"] == "OPeNDAP DAP2"
+          assert opendap["provider"] == "INCOIS"
+          assert opendap["integrity"]["real_network_endpoints_checked"] is True
+          assert opendap["integrity"]["placeholder_endpoints"] is False
+          assert opendap["integrity"]["dataset_count"] >= 2
           assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["integrity"]["synthetic_timestamps"] is False
