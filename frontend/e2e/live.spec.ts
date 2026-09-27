@@ -268,7 +268,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
   await page.getByRole("button", { name: "Switch to light theme" }).click();
   await expect(documentRoot).toHaveAttribute("data-theme", "light");
-  await expect(page).toHaveURL(/#\/explore$/);
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-page", "explore");
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
   const globeShell = page.locator(".globe-shell:not(.water-column-shell)");
