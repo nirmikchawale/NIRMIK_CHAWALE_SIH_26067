@@ -28,10 +28,13 @@ import {
   Viewer
 } from "cesium";
 
+import { cssColorFor, gradientCss } from "../colorScale";
 import type {
+  ColorTransfer,
   CurrentsResponse,
   FieldResponse,
   ProfileSummary,
+  ViewMode,
   VolumeResponse
 } from "../types";
 
@@ -56,18 +59,42 @@ interface Props {
   profiles: ProfileSummary[];
   selectedProfileId: string;
   verticalExaggeration: number;
+  viewMode: ViewMode;
+  colorTransfer: ColorTransfer;
   onSelectProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
 }
 
 const INTRO_SESSION_KEY = "oceantwin-intro-seen";
 
-function scalarColor(value: number, minimum: number, maximum: number, variable: string): Color {
-  const t = Math.max(0, Math.min(1, (value - minimum) / Math.max(maximum - minimum, 1e-12)));
-  if (variable === "so") {
-    return Color.fromHsl(0.48 - 0.24 * t, 0.78, 0.48 + 0.10 * t, 0.88);
+function scalarColor(value: number, transfer: ColorTransfer, alpha = 0.88): Color {
+  return Color.fromCssColorString(cssColorFor(value, transfer, alpha));
+}
+
+function extractColumnCrossings(volume: VolumeResponse, threshold: number): Array<[number, number, number, number]> {
+  const columns = new Map<string, Array<[number, number]>>();
+  const coordinates = new Map<string, [number, number]>();
+  for (const [lon, lat, depth, value] of volume.points) {
+    const key = lon.toFixed(8) + "|" + lat.toFixed(8);
+    if (!columns.has(key)) columns.set(key, []);
+    columns.get(key)?.push([depth, value]);
+    coordinates.set(key, [lon, lat]);
   }
-  return Color.fromHsl(0.61 - 0.48 * t, 0.82, 0.50 + 0.08 * t, 0.88);
+  const crossings: Array<[number, number, number, number]> = [];
+  for (const [key, samples] of columns) {
+    samples.sort((a, b) => a[0] - b[0]);
+    const [lon, lat] = coordinates.get(key) as [number, number];
+    for (let index = 0; index < samples.length - 1; index += 1) {
+      const [d0, v0] = samples[index];
+      const [d1, v1] = samples[index + 1];
+      const a = v0 - threshold;
+      const b = v1 - threshold;
+      if (!Number.isFinite(a) || !Number.isFinite(b) || a * b > 0 || Math.abs(v1 - v0) < 1e-12) continue;
+      const t = Math.max(0, Math.min(1, (threshold - v0) / (v1 - v0)));
+      crossings.push([lon, lat, d0 + (d1 - d0) * t, threshold]);
+    }
+  }
+  return crossings;
 }
 
 export function OceanGlobe({
@@ -77,6 +104,8 @@ export function OceanGlobe({
   profiles,
   selectedProfileId,
   verticalExaggeration,
+  viewMode,
+  colorTransfer,
   onSelectProfile,
   onEnterWaterColumn
 }: Props) {
@@ -605,7 +634,7 @@ export function OceanGlobe({
               -field.depth_m * verticalExaggeration
             ),
             pixelSize: 7,
-            color: scalarColor(value, field.minimum, field.maximum, field.variable),
+            color: scalarColor(value, colorTransfer),
             outlineColor: Color.fromCssColorString("#00111c"),
             outlineWidth: 1,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
@@ -621,13 +650,16 @@ export function OceanGlobe({
       const latitudes = Array.from(new Set(volume.points.map(([, lat]) => lat))).sort((a, b) => a - b);
       const lonStep = longitudes.length > 1 ? Math.abs(longitudes[1] - longitudes[0]) : 0.15;
       const latStep = latitudes.length > 1 ? Math.abs(latitudes[1] - latitudes[0]) : 0.15;
-      const maxCells = 5000;
-      const cellStride = Math.max(1, Math.ceil(volume.points.length / maxCells));
+      const sourcePoints = viewMode === "isosurface"
+        ? extractColumnCrossings(volume, colorTransfer.isosurfaceValue)
+        : volume.points;
+      const maxCells = viewMode === "isosurface" ? 7000 : 5000;
+      const cellStride = Math.max(1, Math.ceil(sourcePoints.length / maxCells));
       const instances: GeometryInstance[] = [];
 
-      for (let index = 0; index < volume.points.length; index += cellStride) {
-        const [lon, lat, depth, value] = volume.points[index];
-        const color = scalarColor(value, volume.minimum, volume.maximum, volume.variable).withAlpha(0.36);
+      for (let index = 0; index < sourcePoints.length; index += cellStride) {
+        const [lon, lat, depth, value] = sourcePoints[index];
+        const color = scalarColor(value, colorTransfer, viewMode === "isosurface" ? 0.72 : 0.36);
         instances.push(
           new GeometryInstance({
             id: {
@@ -748,12 +780,12 @@ export function OceanGlobe({
     }
 
     viewer.scene.requestRender();
-  }, [field, volume, currents, verticalExaggeration]);
+  }, [field, volume, currents, verticalExaggeration, viewMode, colorTransfer]);
 
   const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
   const scalar = field ?? volume;
-  const legendMin = scalar?.minimum ?? currents?.minimum;
-  const legendMax = scalar?.maximum ?? currents?.maximum;
+  const legendMin = scalar ? colorTransfer.minimum : currents?.minimum;
+  const legendMax = scalar ? colorTransfer.maximum : currents?.maximum;
   const legendUnits = scalar?.units ?? currents?.units;
   const legendLabel = scalar?.label ?? (currents ? "Current speed" : "Ocean field");
 
@@ -1018,7 +1050,7 @@ export function OceanGlobe({
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
-        <div className="gradient-bar" />
+        <div className="gradient-bar" style={scalar ? { background: gradientCss(colorTransfer.palette) } : undefined} />
         <div className="legend-values">
           <span>{legendMin?.toFixed(3) ?? "—"}</span>
           <span>{legendUnits ?? ""}</span>
@@ -1027,7 +1059,9 @@ export function OceanGlobe({
       </div>
       {volume && (
         <div className="globe-overlay volume-note">
-          3D WATER COLUMN · stacked verified model layers · visual depth ×{verticalExaggeration}
+          {viewMode === "isosurface"
+            ? `ISOSURFACE · threshold ${colorTransfer.isosurfaceValue.toFixed(3)} ${volume.units} · vertically interpolated crossings`
+            : `3D WATER COLUMN · stacked verified model layers · visual depth ×${verticalExaggeration}`}
         </div>
       )}
       {currents && (

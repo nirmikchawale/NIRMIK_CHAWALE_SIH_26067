@@ -1,8 +1,13 @@
-import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import { gradientCss, paletteLabel } from "../colorScale";
+import type { ScientificSourceMode } from "../incois";
+import type { Catalog, ColorPaletteId, ColorScaleMode, ColorTransfer, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
+  sourceMode: ScientificSourceMode;
+  sourceStatus: "idle" | "connecting" | "ready" | "error";
+  sourceError: string;
   variable: "thetao" | "so" | "currents";
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
@@ -10,16 +15,23 @@ interface Props {
   depthIndex: number;
   timeIndex: number;
   verticalExaggeration: number;
+  colorTransfer: ColorTransfer;
   selectedProfileId: string;
   playing: boolean;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onSourceModeChange: (value: ScientificSourceMode) => void | Promise<void>;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
   onDepthChange: (value: number) => void;
   onTimeChange: (value: number) => void;
   onVerticalExaggerationChange: (value: number) => void;
+  onColorPaletteChange: (value: ColorPaletteId) => void;
+  onColorScaleChange: (value: ColorScaleMode) => void;
+  onColorMinimumChange: (value: number) => void;
+  onColorMaximumChange: (value: number) => void;
+  onIsosurfaceValueChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
 }
@@ -27,6 +39,9 @@ interface Props {
 export function ControlPanel({
   catalog,
   profiles,
+  sourceMode,
+  sourceStatus,
+  sourceError,
   variable,
   viewMode,
   visualizationMode,
@@ -34,16 +49,23 @@ export function ControlPanel({
   depthIndex,
   timeIndex,
   verticalExaggeration,
+  colorTransfer,
   selectedProfileId,
   playing,
   mobileOpen,
   onMobileClose,
+  onSourceModeChange,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
   onDepthChange,
   onTimeChange,
   onVerticalExaggerationChange,
+  onColorPaletteChange,
+  onColorScaleChange,
+  onColorMinimumChange,
+  onColorMaximumChange,
+  onIsosurfaceValueChange,
   onProfileChange,
   onPlayingChange
 }: Props) {
@@ -66,6 +88,38 @@ export function ControlPanel({
           Close
         </button>
       </div>
+      <section className="source-mode-section">
+        <div className="section-kicker">Scientific source</div>
+        <div className="source-mode-switcher" aria-label="Scientific data source">
+          <button
+            type="button"
+            className={sourceMode === "copernicus" ? "active" : ""}
+            aria-pressed={sourceMode === "copernicus"}
+            onClick={() => onSourceModeChange("copernicus")}
+          >
+            <strong>Copernicus Verified</strong>
+            <small>Offline GLORYS12V1 · deterministic</small>
+          </button>
+          <button
+            type="button"
+            className={sourceMode === "incois" ? "active" : ""}
+            aria-pressed={sourceMode === "incois"}
+            disabled={sourceStatus === "connecting"}
+            onClick={() => onSourceModeChange("incois")}
+          >
+            <strong>{sourceStatus === "connecting" ? "Connecting INCOIS…" : "INCOIS Live"}</strong>
+            <small>Official ERDDAP · OPeNDAP · multi-time</small>
+          </button>
+        </div>
+        <p className={`microcopy ${sourceStatus === "error" ? "warning" : ""}`}>
+          {sourceMode === "incois"
+            ? "Operational TEMP/SAL objective-analysis fields are loaded directly from INCOIS. The verified Copernicus source remains one click away."
+            : sourceStatus === "error"
+              ? `INCOIS live probe failed: ${sourceError || "external service unavailable"}. Verified Copernicus data remains active.`
+              : "Switch to INCOIS Live for genuine multi-time Indian Ocean operational-source data."}
+        </p>
+      </section>
+
       <section>
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher" aria-label="Ocean variable">
@@ -111,7 +165,7 @@ export function ControlPanel({
             </div>
 
             {visualizationMode === "globe" && (
-              <div className="segmented field-mode-selector" aria-label="Globe field mode">
+              <div className="segmented field-mode-selector three-way" aria-label="Globe field mode">
                 <button
                   className={viewMode === "slice" ? "active" : ""}
                   disabled={!scalar}
@@ -125,6 +179,13 @@ export function ControlPanel({
                   onClick={() => onViewModeChange("volume")}
                 >
                   3D field
+                </button>
+                <button
+                  className={viewMode === "isosurface" ? "active" : ""}
+                  disabled={!scalar}
+                  onClick={() => onViewModeChange("isosurface")}
+                >
+                  Isosurface
                 </button>
               </div>
             )}
@@ -143,6 +204,87 @@ export function ControlPanel({
                   onChange={(event) => onWaterColumnOpacityChange(Number(event.target.value))}
                 />
               </label>
+            )}
+
+            {scalar && (
+              <div className="transfer-editor" data-scale={colorTransfer.scale}>
+                <div className="section-kicker visualization-kicker">Colorbar & isosurface</div>
+                <div
+                  className="transfer-gradient"
+                  style={{ background: gradientCss(colorTransfer.palette) }}
+                  aria-label={`${paletteLabel(colorTransfer.palette)} color palette preview`}
+                />
+                <div className="transfer-grid">
+                  <label>
+                    Palette
+                    <select
+                      aria-label="Color palette"
+                      value={colorTransfer.palette}
+                      onChange={(event) => onColorPaletteChange(event.target.value as ColorPaletteId)}
+                    >
+                      <option value="thermal">Thermal</option>
+                      <option value="haline">Haline</option>
+                      <option value="viridis">Viridis</option>
+                      <option value="icefire">Ice–Fire</option>
+                    </select>
+                  </label>
+                  <label>
+                    Scale
+                    <select
+                      aria-label="Color scale"
+                      value={colorTransfer.scale}
+                      onChange={(event) => onColorScaleChange(event.target.value as ColorScaleMode)}
+                    >
+                      <option value="linear">Linear</option>
+                      <option value="log" disabled={colorTransfer.minimum <= 0}>Logarithmic</option>
+                    </select>
+                  </label>
+                  <label>
+                    Minimum
+                    <input
+                      aria-label="Color minimum"
+                      type="number"
+                      step="any"
+                      value={colorTransfer.minimum}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        if (Number.isFinite(value) && value < colorTransfer.maximum) onColorMinimumChange(value);
+                      }}
+                    />
+                  </label>
+                  <label>
+                    Maximum
+                    <input
+                      aria-label="Color maximum"
+                      type="number"
+                      step="any"
+                      value={colorTransfer.maximum}
+                      onChange={(event) => {
+                        const value = Number(event.target.value);
+                        if (Number.isFinite(value) && value > colorTransfer.minimum) onColorMaximumChange(value);
+                      }}
+                    />
+                  </label>
+                </div>
+                <label className="isosurface-control">
+                  <span className="label-row">
+                    <span>Isosurface threshold</span>
+                    <strong>{colorTransfer.isosurfaceValue.toFixed(3)} {catalog.variables.find((item) => item.id === variable)?.units}</strong>
+                  </span>
+                  <input
+                    aria-label="Isosurface threshold"
+                    type="range"
+                    min={colorTransfer.minimum}
+                    max={colorTransfer.maximum}
+                    step={Math.max((colorTransfer.maximum - colorTransfer.minimum) / 200, 0.000001)}
+                    value={Math.min(colorTransfer.maximum, Math.max(colorTransfer.minimum, colorTransfer.isosurfaceValue))}
+                    onChange={(event) => onIsosurfaceValueChange(Number(event.target.value))}
+                  />
+                </label>
+                <p className="microcopy">
+                  Color mapping changes presentation only. Isosurface geometry is extracted from neighboring model values at the selected threshold.
+                </p>
+              </div>
             )}
 
             <label>
@@ -258,8 +400,17 @@ export function ControlPanel({
         <strong>{catalog.dataset.label}</strong>
         <span>{catalog.dataset.product}</span>
         <div className="badges">
-          <span className="badge">REANALYSIS</span>
-          <span className="badge success">CACHED VERIFIED</span>
+          {sourceMode === "incois" ? (
+            <>
+              <span className="badge success">INCOIS LIVE</span>
+              <span className="badge">ERDDAP / OPeNDAP</span>
+            </>
+          ) : (
+            <>
+              <span className="badge">REANALYSIS</span>
+              <span className="badge success">CACHED VERIFIED</span>
+            </>
+          )}
         </div>
         <small>{catalog.dataset.region}</small>
       </section>

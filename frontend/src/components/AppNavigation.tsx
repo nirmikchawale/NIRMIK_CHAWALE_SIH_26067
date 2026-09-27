@@ -11,7 +11,7 @@ interface Props {
 
 const NAV_GROUPS: Array<{ label: string; pages: PageId[] }> = [
   { label: "EXPLORE", pages: ["explore"] },
-  { label: "ANALYSIS", pages: ["telemetry", "compare", "anomaly"] },
+  { label: "ANALYSIS", pages: ["observations", "telemetry", "compare", "anomaly"] },
   { label: "EVIDENCE", pages: ["data-lab", "about"] }
 ];
 

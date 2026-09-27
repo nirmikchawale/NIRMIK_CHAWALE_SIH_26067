@@ -2922,3 +2922,662 @@
 :root[data-theme="light"] .static-time-row span {
   color: #587b8d;
 }
+
+
+/* SIH26067 compliance expansion — transfer-function and isosurface controls. */
+.field-mode-selector.three-way {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field-mode-selector.three-way button {
+  min-width: 0;
+  padding-inline: 6px;
+  font-size: 9px;
+}
+
+.transfer-editor {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid rgba(55, 109, 134, .7);
+  border-radius: 10px;
+  background: rgba(5, 25, 38, .72);
+}
+
+.transfer-gradient {
+  height: 10px;
+  border: 1px solid rgba(186, 225, 236, .2);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12);
+}
+
+.transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.transfer-grid label,
+.isosurface-control {
+  margin: 0;
+}
+
+.transfer-grid select,
+.transfer-grid input[type="number"] {
+  min-width: 0;
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid #285167;
+  border-radius: 7px;
+  color: #e6f7fb;
+  background: #092331;
+  font-size: 9px;
+}
+
+.transfer-grid input[type="number"]:focus,
+.transfer-grid select:focus {
+  outline: 1px solid #54d5ef;
+  border-color: #54d5ef;
+}
+
+.isosurface-control {
+  display: grid;
+  gap: 6px;
+}
+
+:root[data-theme="light"] .transfer-editor {
+  border-color: #bdd3dc;
+  background: rgba(246, 250, 252, .94);
+}
+
+:root[data-theme="light"] .transfer-grid select,
+:root[data-theme="light"] .transfer-grid input[type="number"] {
+  border-color: #bfd2da;
+  color: #173849;
+  background: #fff;
+}
+
+@media (max-width: 760px) {
+  .transfer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .field-mode-selector.three-way button {
+    padding-inline: 4px;
+    font-size: 8px;
+  }
+}
+
+
+/* SIH26067 compliance expansion — explicit sponsor-native scientific source switcher. */
+.source-mode-section {
+  padding-top: 0 !important;
+}
+
+.source-mode-switcher {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.source-mode-switcher button {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 9px 8px;
+  border: 1px solid #23485c;
+  border-radius: 9px;
+  color: #87a8b8;
+  background: rgba(6, 27, 40, .9);
+  cursor: pointer;
+  text-align: left;
+}
+
+.source-mode-switcher button:hover:not(:disabled) {
+  border-color: #45c9e7;
+  background: #0b3040;
+}
+
+.source-mode-switcher button.active {
+  border-color: #57d4ec;
+  color: #eefcff;
+  background: linear-gradient(180deg, #113f52, #092a3a);
+  box-shadow: inset 0 0 0 1px rgba(87, 212, 236, .14);
+}
+
+.source-mode-switcher button:disabled {
+  cursor: wait;
+  opacity: .6;
+}
+
+.source-mode-switcher strong {
+  overflow: hidden;
+  font-size: 9px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+}
+
+.source-mode-switcher small {
+  color: #688b9d;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+.source-mode-switcher button.active small {
+  color: #98dcea;
+}
+
+:root[data-theme="light"] .source-mode-switcher button {
+  border-color: #bfd3dc;
+  color: #4d7082;
+  background: #f6fafb;
+}
+
+:root[data-theme="light"] .source-mode-switcher button.active {
+  border-color: #2f9bb7;
+  color: #153e50;
+  background: #e4f4f8;
+}
+
+:root[data-theme="light"] .source-mode-switcher small {
+  color: #6a8796;
+}
+
+
+/* SIH26067 compliance expansion — multi-sensor observation network. */
+.observations-page {
+  padding-top: 22px;
+}
+
+.observations-hero {
+  max-width: 1050px;
+  padding-top: 12px;
+}
+
+.observation-network-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.observation-network-metrics > div {
+  display: grid;
+  gap: 5px;
+  padding: 10px 11px;
+  border: 1px solid rgba(51, 102, 128, .72);
+  border-radius: 9px;
+  background: rgba(5, 25, 38, .78);
+}
+
+.observation-network-metrics span,
+.observation-card-heading span {
+  color: #64cae2;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.observation-network-metrics strong {
+  color: #ebfaff;
+  font-size: 11px;
+}
+
+.observation-source-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 1180px;
+}
+
+.observation-source-card {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  min-height: 178px;
+  padding: 13px;
+  border: 1px solid #24475b;
+  border-radius: 11px;
+  color: #cfe5ee;
+  background: rgba(5, 24, 37, .88);
+  cursor: pointer;
+  text-align: left;
+}
+
+.observation-source-card:hover:not(:disabled),
+.observation-source-card.active {
+  border-color: #50cde8;
+  background: rgba(9, 43, 58, .94);
+}
+
+.observation-source-card:disabled {
+  cursor: default;
+  opacity: .78;
+}
+
+.observation-source-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sensor-badge {
+  display: inline-flex;
+  padding: 4px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.sensor-badge.argo { color: #f3b64d; }
+.sensor-badge.glider { color: #63d8ed; }
+.sensor-badge.ctd { color: #9edb77; }
+.sensor-badge.bgc { color: #df8cf2; }
+
+.source-health {
+  font-size: 7px;
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+
+.source-health.ready { color: #67e1af; }
+.source-health.loading { color: #74bdd1; }
+.source-health.error { color: #e3a86a; }
+
+.observation-source-card > strong {
+  font-size: 11px;
+}
+
+.observation-source-card p {
+  min-height: 45px;
+  margin: 0;
+  color: #7e9cad;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.observation-source-card small,
+.observation-source-card em {
+  color: #668798;
+  font-size: 8px;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}
+
+.observation-source-card em {
+  color: #a9cfdb;
+}
+
+.observation-source-card .source-error {
+  color: #d7a069;
+}
+
+.observations-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1180px;
+  margin: 12px 0;
+}
+
+.observations-actions button {
+  padding: 9px 12px;
+  border: 1px solid #2d7088;
+  border-radius: 8px;
+  color: #d8f7fc;
+  background: #0a3243;
+  cursor: pointer;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.observations-actions button:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.observations-actions span {
+  color: #708e9e;
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+.observation-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(420px, .9fr);
+  gap: 12px;
+  max-width: 1180px;
+}
+
+.observation-map-card,
+.observation-profile-card {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid rgba(47, 96, 120, .76);
+  border-radius: 12px;
+  background: rgba(4, 21, 33, .88);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, .2);
+}
+
+.observation-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.observation-card-heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.observation-card-heading strong {
+  color: #edfaff;
+  font-size: 12px;
+}
+
+.observation-card-heading small {
+  color: #6c8c9e;
+  font-size: 8px;
+  text-align: right;
+}
+
+.observation-world-map {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1000 / 460;
+  border: 1px solid rgba(64, 121, 145, .42);
+  border-radius: 9px;
+  overflow: hidden;
+}
+
+.observation-map-ocean {
+  fill: #061b28;
+}
+
+.observation-map-grid {
+  stroke: rgba(124, 169, 188, .14);
+  stroke-width: 1;
+}
+
+.observation-study-window {
+  fill: rgba(75, 213, 239, .08);
+  stroke: rgba(75, 213, 239, .75);
+  stroke-width: 1.5;
+}
+
+.observation-study-label {
+  fill: #72cfe2;
+  font-size: 10px;
+}
+
+.observation-map-marker {
+  cursor: pointer;
+  outline: none;
+}
+
+.observation-map-marker circle {
+  stroke: #effcff;
+  stroke-width: 1.5;
+}
+
+.observation-map-marker.argo circle { fill: #f3b64d; }
+.observation-map-marker.glider circle { fill: #63d8ed; }
+.observation-map-marker.ctd circle { fill: #9edb77; }
+.observation-map-marker.bgc circle { fill: #df8cf2; }
+
+.observation-map-marker.active circle {
+  stroke-width: 3;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, .45));
+}
+
+.observation-map-marker text {
+  fill: #dbeef4;
+  font-size: 10px;
+  font-weight: 800;
+  paint-order: stroke;
+  stroke: #04131d;
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.observation-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 9px;
+  color: #7797a8;
+  font-size: 8px;
+}
+
+.observation-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.observation-map-legend i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.observation-map-legend i.argo { background: #f3b64d; }
+.observation-map-legend i.glider { background: #63d8ed; }
+.observation-map-legend i.ctd { background: #9edb77; }
+.observation-map-legend i.bgc { background: #df8cf2; }
+
+.observation-variable-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.observation-variable-tabs button {
+  padding: 6px 8px;
+  border: 1px solid #28546a;
+  border-radius: 7px;
+  color: #84a6b7;
+  background: #082331;
+  cursor: pointer;
+  font-size: 8px;
+}
+
+.observation-variable-tabs button.active {
+  border-color: #53cfe9;
+  color: #eefcff;
+  background: #0e3a4c;
+}
+
+.observation-profile-chart {
+  width: 100%;
+  min-height: 280px;
+}
+
+.profile-axis {
+  stroke: rgba(177, 211, 223, .52);
+  stroke-width: 1;
+}
+
+.profile-grid-line {
+  stroke: rgba(130, 168, 184, .14);
+  stroke-width: 1;
+}
+
+.profile-axis-label,
+.profile-axis-title,
+.profile-range-label {
+  fill: #7697a8;
+  font-size: 10px;
+}
+
+.profile-axis-title {
+  fill: #aac8d4;
+  font-weight: 700;
+}
+
+.observation-profile-line {
+  fill: none;
+  stroke-width: 2.4;
+}
+
+.observation-profile-line.argo { stroke: #f3b64d; }
+.observation-profile-line.glider { stroke: #63d8ed; }
+.observation-profile-line.ctd { stroke: #9edb77; }
+.observation-profile-line.bgc { stroke: #df8cf2; }
+
+.observation-profile-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.observation-profile-meta > div {
+  display: grid;
+  gap: 3px;
+  padding: 8px 9px;
+  border: 1px solid #1f4153;
+  border-radius: 7px;
+  background: #071c29;
+}
+
+.observation-profile-meta span {
+  color: #66899b;
+  font-size: 7px;
+  letter-spacing: .08em;
+}
+
+.observation-profile-meta strong {
+  overflow-wrap: anywhere;
+  color: #dcedf4;
+  font-size: 9px;
+}
+
+.observation-provenance {
+  margin: 9px 0 0;
+  color: #7896a5;
+  font-size: 8px;
+  line-height: 1.5;
+}
+
+.observation-empty {
+  display: grid;
+  place-items: center;
+  min-height: 380px;
+  text-align: center;
+}
+
+.observation-empty strong {
+  color: #dceef4;
+}
+
+.observation-empty span {
+  max-width: 360px;
+  color: #7897a7;
+  font-size: 9px;
+}
+
+:root[data-theme="light"] .observation-network-metrics > div,
+:root[data-theme="light"] .observation-source-card,
+:root[data-theme="light"] .observation-map-card,
+:root[data-theme="light"] .observation-profile-card,
+:root[data-theme="light"] .observation-profile-meta > div {
+  border-color: #c4d7de;
+  background: rgba(249, 252, 253, .94);
+}
+
+:root[data-theme="light"] .observation-network-metrics strong,
+:root[data-theme="light"] .observation-source-card > strong,
+:root[data-theme="light"] .observation-card-heading strong,
+:root[data-theme="light"] .observation-profile-meta strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .observation-map-ocean {
+  fill: #e7f1f4;
+}
+
+:root[data-theme="light"] .observation-map-marker text {
+  fill: #173849;
+  stroke: #edf6f8;
+}
+
+@media (max-width: 1100px) {
+  .observation-source-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .observation-workbench {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .observation-network-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .observation-source-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .observations-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .observation-profile-meta {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* SIH26067 compliance expansion — ingestion handoff and imported observation layer. */
+.sensor-badge.imported { color: #f29b72; }
+.observation-map-marker.imported circle { fill: #f29b72; }
+.observation-map-legend i.imported { background: #f29b72; }
+.observation-profile-line.imported { stroke: #f29b72; }
+
+.data-lab-netcdf-meta {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+  padding: 10px 11px;
+  border: 1px solid #2e716b;
+  border-radius: 8px;
+  color: #a6dcd5;
+  background: rgba(7, 45, 41, .5);
+}
+
+.data-lab-netcdf-meta strong {
+  color: #c8f4ee;
+  font-size: 10px;
+}
+
+.data-lab-netcdf-meta span,
+.data-lab-netcdf-meta small {
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.data-lab-status-actions button.primary {
+  border-color: #47c8e3;
+  color: #edfcff;
+  background: #0d4255;
+}
+
+:root[data-theme="light"] .data-lab-netcdf-meta {
+  border-color: #9bc9bf;
+  color: #426e68;
+  background: #edf8f5;
+}
+
+:root[data-theme="light"] .data-lab-netcdf-meta strong {
+  color: #174b45;
+}

@@ -1,12 +1,20 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api } from "./api";
+import {
+  bootstrapIncois,
+  fetchIncoisVolume,
+  fieldFromIncoisVolume,
+  type IncoisTime,
+  type ScientificSourceMode
+} from "./incois";
 import { AppNavigation } from "./components/AppNavigation";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
+import { ObservationsPage } from "./pages/ObservationsPage";
 import { InfoPage } from "./pages/InfoPage";
 import { OceanGlobe } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
@@ -16,6 +24,9 @@ import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import type {
   Catalog,
+  ColorPaletteId,
+  ColorScaleMode,
+  ColorTransfer,
   CurrentsResponse,
   FieldResponse,
   ProfileDetail,
@@ -53,6 +64,11 @@ export default function App() {
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
+  const [sourceMode, setSourceMode] = useState<ScientificSourceMode>("copernicus");
+  const [incoisCatalog, setIncoisCatalog] = useState<Catalog | null>(null);
+  const [incoisTimes, setIncoisTimes] = useState<IncoisTime[]>([]);
+  const [incoisStatus, setIncoisStatus] = useState<"idle" | "connecting" | "ready" | "error">("idle");
+  const [incoisError, setIncoisError] = useState("");
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -62,6 +78,11 @@ export default function App() {
   const [timeIndex, setTimeIndex] = useState(0);
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
   const [playing, setPlaying] = useState(false);
+  const [colorPalette, setColorPalette] = useState<ColorPaletteId>("thermal");
+  const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
+  const [colorMinimum, setColorMinimum] = useState(0);
+  const [colorMaximum, setColorMaximum] = useState(1);
+  const [isosurfaceValue, setIsosurfaceValue] = useState(0.5);
 
   const [field, setField] = useState<FieldResponse | null>(null);
   const [volume, setVolume] = useState<VolumeResponse | null>(null);
@@ -157,6 +178,12 @@ export default function App() {
 
         const catalogPayload = catalogResult.value;
         setCatalog(catalogPayload);
+        const initialScalar = catalogPayload.variables.find((item) => item.id === "thetao");
+        if (initialScalar) {
+          setColorMinimum(initialScalar.minimum);
+          setColorMaximum(initialScalar.maximum);
+          setIsosurfaceValue((initialScalar.minimum + initialScalar.maximum) / 2);
+        }
         const safeDepth = Math.min(18, catalogPayload.coordinates.depth.length - 1);
         setDepthIndex(Math.max(0, safeDepth));
 
@@ -182,18 +209,20 @@ export default function App() {
     };
   }, []);
 
+  const activeCatalog = sourceMode === "incois" && incoisCatalog ? incoisCatalog : catalog;
+
   useEffect(() => {
-    if (!catalog) return;
-    if (!catalog.capabilities.time_animation) {
+    if (!activeCatalog) return;
+    if (!activeCatalog.capabilities.time_animation) {
       setPlaying(false);
       return;
     }
     if (!playing) return;
     const timer = window.setInterval(() => {
-      setTimeIndex((current) => (current + 1) % catalog.coordinates.time.length);
+      setTimeIndex((current) => (current + 1) % activeCatalog.coordinates.time.length);
     }, 1300);
     return () => window.clearInterval(timer);
-  }, [catalog, playing]);
+  }, [activeCatalog, playing]);
 
   useEffect(() => {
     if (!selectedProfileId) return;
@@ -223,7 +252,7 @@ export default function App() {
   }, [selectedProfileId]);
 
   useEffect(() => {
-    if (!catalog) return;
+    if (!activeCatalog) return;
     let cancelled = false;
     setScienceLoading(true);
     setError("");
@@ -232,17 +261,33 @@ export default function App() {
     setCurrents(null);
 
     const request =
-      variable === "currents"
-        ? api.currents(timeIndex, depthIndex).then((payload) => {
-            if (!cancelled) setCurrents(payload);
-          })
-        : visualizationMode === "water-column" || viewMode === "volume"
-          ? api.volume(variable, timeIndex).then((payload) => {
-              if (!cancelled) setVolume(payload);
-            })
-          : api.field(variable, timeIndex, depthIndex).then((payload) => {
-              if (!cancelled) setField(payload);
+      sourceMode === "incois"
+        ? (() => {
+            const time = incoisTimes[timeIndex];
+            if (!time) return Promise.reject(new Error("Selected INCOIS timestamp is unavailable."));
+            if (variable === "currents") {
+              return Promise.reject(new Error("INCOIS VAM exposes temperature/salinity; use Copernicus Verified for depth-resolved u/v currents."));
+            }
+            return fetchIncoisVolume(variable, time).then((payload) => {
+              if (cancelled) return;
+              if (visualizationMode === "water-column" || viewMode === "volume" || viewMode === "isosurface") {
+                setVolume(payload);
+              } else {
+                setField(fieldFromIncoisVolume(payload, variable, timeIndex, depthIndex));
+              }
             });
+          })()
+        : variable === "currents"
+          ? api.currents(timeIndex, depthIndex).then((payload) => {
+              if (!cancelled) setCurrents(payload);
+            })
+          : visualizationMode === "water-column" || viewMode === "volume" || viewMode === "isosurface"
+            ? api.volume(variable, timeIndex).then((payload) => {
+                if (!cancelled) setVolume(payload);
+              })
+            : api.field(variable, timeIndex, depthIndex).then((payload) => {
+                if (!cancelled) setField(payload);
+              });
 
     request
       .catch((reason: Error) => {
@@ -255,7 +300,57 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
+  }, [activeCatalog, sourceMode, incoisTimes, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
+
+  const handleSourceModeChange = useCallback(async (next: ScientificSourceMode) => {
+    if (next === "copernicus") {
+      setSourceMode("copernicus");
+      setPlaying(false);
+      setTimeIndex(0);
+      setDepthIndex(Math.min(18, (catalog?.coordinates.depth.length ?? 1) - 1));
+      setIncoisError("");
+      if (variable !== "currents") {
+        const meta = catalog?.variables.find((item) => item.id === variable);
+        if (meta) {
+          setColorMinimum(meta.minimum);
+          setColorMaximum(meta.maximum);
+          setIsosurfaceValue((meta.minimum + meta.maximum) / 2);
+        }
+      }
+      return;
+    }
+
+    setIncoisStatus("connecting");
+    setIncoisError("");
+    setPlaying(false);
+    try {
+      const bootstrap = await bootstrapIncois();
+      setIncoisCatalog(bootstrap.catalog);
+      setIncoisTimes(bootstrap.times);
+      setSourceMode("incois");
+      setVariable("thetao");
+      setTimeIndex(bootstrap.times.length - 1);
+      setDepthIndex(6);
+      setColorPalette("thermal");
+      setColorScale("linear");
+      setColorMinimum(bootstrap.temperature.minimum);
+      setColorMaximum(bootstrap.temperature.maximum);
+      setIsosurfaceValue((bootstrap.temperature.minimum + bootstrap.temperature.maximum) / 2);
+      setProfilePanelOpen(false);
+      setMobileSheet("none");
+      setIncoisStatus("ready");
+    } catch (reason) {
+      const message = reason instanceof Error ? reason.message : String(reason);
+      setIncoisStatus("error");
+      setIncoisError(message);
+      setSourceMode("copernicus");
+      setDegradedWarnings((current) =>
+        current.includes("INCOIS live service unavailable")
+          ? current
+          : [...current, "INCOIS live service unavailable"]
+      );
+    }
+  }, [catalog, variable]);
 
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedProfileId(profileId);
@@ -271,9 +366,18 @@ export default function App() {
       if (value === "currents") {
         setViewMode("slice");
         setVisualizationMode("globe");
+        return;
+      }
+      const next = catalog?.variables.find((item) => item.id === value);
+      if (next) {
+        setColorPalette(value === "so" ? "haline" : "thermal");
+        setColorScale("linear");
+        setColorMinimum(next.minimum);
+        setColorMaximum(next.maximum);
+        setIsosurfaceValue((next.minimum + next.maximum) / 2);
       }
     },
-    []
+    [catalog]
   );
 
   const handleEnterWaterColumn = useCallback(() => {
@@ -282,16 +386,27 @@ export default function App() {
   }, [variable]);
 
   const selectedVariable = useMemo(
-    () => catalog?.variables.find((item) => item.id === variable),
-    [catalog, variable]
+    () => activeCatalog?.variables.find((item) => item.id === variable),
+    [activeCatalog, variable]
   );
+  const colorTransfer = useMemo<ColorTransfer>(
+    () => ({
+      palette: colorPalette,
+      scale: colorScale,
+      minimum: colorMinimum,
+      maximum: colorMaximum,
+      isosurfaceValue
+    }),
+    [colorPalette, colorScale, colorMinimum, colorMaximum, isosurfaceValue]
+  );
+  const activeProfiles = sourceMode === "copernicus" ? profiles : [];
   const selectedProfile = useMemo(
-    () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
-    [profiles, selectedProfileId]
+    () => activeProfiles.find((item) => item.profile_id === selectedProfileId) ?? null,
+    [activeProfiles, selectedProfileId]
   );
   const currentPage = PAGE_ITEMS.find((item) => item.id === page) ?? PAGE_ITEMS[0];
 
-  if (!catalog) {
+  if (!catalog || !activeCatalog) {
     return (
       <div className="boot-screen" data-theme={theme}>
         <div className="brand-mark">OT</div>
@@ -327,7 +442,7 @@ export default function App() {
           </div>
           <div>
             <span>MODEL</span>
-            <strong>GLORYS12V1</strong>
+            <strong>{sourceMode === "incois" ? "INCOIS VAM" : "GLORYS12V1"}</strong>
           </div>
           {focusMode && (
             <button className="evidence-button focus-exit-header" onClick={() => setFocusMode(false)}>
@@ -376,8 +491,11 @@ export default function App() {
               )}
 
               <ControlPanel
-                catalog={catalog}
-                profiles={profiles}
+                catalog={activeCatalog}
+                profiles={activeProfiles}
+                sourceMode={sourceMode}
+                sourceStatus={incoisStatus}
+                sourceError={incoisError}
                 variable={variable}
                 viewMode={viewMode}
                 visualizationMode={visualizationMode}
@@ -385,16 +503,23 @@ export default function App() {
                 depthIndex={depthIndex}
                 timeIndex={timeIndex}
                 verticalExaggeration={verticalExaggeration}
+                colorTransfer={colorTransfer}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
                 mobileOpen={mobileSheet === "controls"}
                 onMobileClose={() => setMobileSheet("none")}
+                onSourceModeChange={handleSourceModeChange}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
                 onDepthChange={setDepthIndex}
                 onTimeChange={setTimeIndex}
                 onVerticalExaggerationChange={setVerticalExaggeration}
+                onColorPaletteChange={setColorPalette}
+                onColorScaleChange={setColorScale}
+                onColorMinimumChange={setColorMinimum}
+                onColorMaximumChange={setColorMaximum}
+                onIsosurfaceValueChange={setIsosurfaceValue}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
               />
@@ -403,16 +528,18 @@ export default function App() {
                 mode={visualizationMode}
                 scalarAvailable={variable !== "currents"}
                 variableLabel={selectedVariable?.label ?? variable}
-                depthM={catalog.coordinates.depth[depthIndex] ?? 0}
-                timeLabel={catalog.coordinates.time[timeIndex] ?? "Unavailable"}
-                regionLabel={catalog.dataset.region}
-                modelLabel={catalog.dataset.product}
+                depthM={activeCatalog.coordinates.depth[depthIndex] ?? 0}
+                timeLabel={activeCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
+                regionLabel={activeCatalog.dataset.region}
+                modelLabel={activeCatalog.dataset.product}
                 observationLabel={
                   selectedProfile
                     ? `${selectedProfile.platform_id} · cycle ${selectedProfile.cycle} ${selectedProfile.direction}`
-                    : profiles.length === 0
-                      ? "Unavailable"
-                      : "Not selected"
+                    : sourceMode === "incois"
+                      ? "Source-scoped · live observation plugins"
+                      : activeProfiles.length === 0
+                        ? "Unavailable"
+                        : "Not selected"
                 }
                 onChange={setVisualizationMode}
               />
@@ -430,9 +557,11 @@ export default function App() {
                     field={visualizationMode === "globe" ? field : null}
                     volume={visualizationMode === "globe" ? volume : null}
                     currents={visualizationMode === "globe" ? currents : null}
-                    profiles={profiles}
+                    profiles={activeProfiles}
                     selectedProfileId={selectedProfileId}
                     verticalExaggeration={verticalExaggeration}
+                    viewMode={viewMode}
+                    colorTransfer={colorTransfer}
                     onSelectProfile={handleProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
                   />
@@ -443,9 +572,11 @@ export default function App() {
                 >
                   <WaterColumn3D
                     volume={visualizationMode === "water-column" ? volume : null}
-                    selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                    selectedDepthM={activeCatalog.coordinates.depth[depthIndex] ?? 0}
                     verticalExaggeration={verticalExaggeration}
                     opacity={waterColumnOpacity / 100}
+                    viewMode={viewMode}
+                    colorTransfer={colorTransfer}
                     theme={theme}
                   />
                 </div>
@@ -478,7 +609,7 @@ export default function App() {
                   onClick={() => setMobileSheet("controls")}
                 >
                   <span>Time</span>
-                  <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
+                  <strong>{activeCatalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
                 </button>
                 <button
                   type="button"
@@ -486,7 +617,7 @@ export default function App() {
                   onClick={() => setMobileSheet("controls")}
                 >
                   <span>Depth</span>
-                  <strong>{(catalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
+                  <strong>{(activeCatalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
                 </button>
                 <button
                   type="button"
@@ -506,6 +637,8 @@ export default function App() {
                 </button>
               </div>
             </>
+          ) : page === "observations" ? (
+            <ObservationsPage />
           ) : page === "telemetry" ? (
             <TelemetryPage catalog={catalog} provenance={provenance} />
           ) : page === "compare" ? (
@@ -545,10 +678,12 @@ export default function App() {
 
       <footer className="science-footer">
         <span>
-          Reanalysis · Cached verified · No runtime scientific-data download
+          {sourceMode === "incois"
+            ? "INCOIS operational public service · live ERDDAP/OPeNDAP · verified Copernicus fallback retained"
+            : "Reanalysis · Cached verified · No runtime scientific-data download"}
           {degradedWarnings.length > 0 ? ` · Degraded: ${degradedWarnings.join(" · ")}` : ""}
         </span>
-        <span>{catalog.scientific_disclaimer}</span>
+        <span>{activeCatalog.scientific_disclaimer}</span>
       </footer>
     </div>
   );

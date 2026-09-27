@@ -1,5 +1,7 @@
 import { useMemo, useRef, useState, type ChangeEvent } from "react";
 
+import { clearUserObservations, parseNetcdfClassic, saveUserObservations } from "../userIngestion";
+
 const REQUIRED_FIELDS = [
   "longitude",
   "latitude",
@@ -119,7 +121,7 @@ interface VariableSummary {
 
 interface ValidationResult {
   filename: string;
-  format: "csv" | "json";
+  format: "csv" | "json" | "tsv" | "txt" | "netcdf";
   status: "validated" | "rejected";
   totalRows: number;
   validRows: number;
@@ -218,6 +220,35 @@ function parseCsv(text: string): Array<Record<string, unknown>> {
   });
 }
 
+function parseSimpleDelimited(text: string, delimiter: "\t" | ";" | "whitespace"): Array<Record<string, unknown>> {
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (lines.length < 2) throw new Error("Delimited text must include a header and at least one data row.");
+  const split = (line: string) =>
+    delimiter === "whitespace"
+      ? line.trim().split(/\s+/)
+      : line.split(delimiter).map((cell) => cell.trim());
+  const headers = split(lines[0]).map((cell, index) => {
+    const clean = cell.replace(/^\uFEFF/, "").trim().toLowerCase();
+    if (!clean) throw new Error(`Delimited header ${index + 1} is empty.`);
+    return clean;
+  });
+  if (new Set(headers).size !== headers.length) throw new Error("Delimited text contains duplicate column names.");
+  return lines.slice(1).map((line) => {
+    const cells = split(line);
+    const record: Record<string, unknown> = {};
+    headers.forEach((header, index) => {
+      record[header] = cells[index] ?? "";
+    });
+    return record;
+  });
+}
+
+function parseAscii(text: string, extension: "tsv" | "txt"): Array<Record<string, unknown>> {
+  if (extension === "tsv" || text.includes("\t")) return parseSimpleDelimited(text, "\t");
+  if (text.split(/\r?\n/, 1)[0]?.includes(";")) return parseSimpleDelimited(text, ";");
+  return parseSimpleDelimited(text, "whitespace");
+}
+
 function parseJson(text: string): Array<Record<string, unknown>> {
   const payload: unknown = JSON.parse(text);
   const candidate =
@@ -247,7 +278,7 @@ function numberValue(value: unknown): number | null {
 
 function validateRecords(
   filename: string,
-  format: "csv" | "json",
+  format: "csv" | "json" | "tsv" | "txt" | "netcdf",
   rawRecords: Array<Record<string, unknown>>
 ): ValidationResult {
   if (rawRecords.length > MAX_RECORDS) {
@@ -526,6 +557,7 @@ export function DataLabPage() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [processingError, setProcessingError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [netcdfMeta, setNetcdfMeta] = useState<{ conventions: string; version: string; variables: string[] } | null>(null);
 
   const errorIssues = useMemo(
     () => result?.issues.filter((issue) => issue.severity === "error") ?? [],
@@ -555,14 +587,30 @@ export function DataLabPage() {
       }
 
       const extension = file.name.toLowerCase().split(".").pop();
-      if (extension !== "csv" && extension !== "json") {
-        throw new Error("Unsupported file type. Use .csv or .json.");
-      }
+      setNetcdfMeta(null);
 
-      const text = await file.text();
-      if (!text.trim()) throw new Error("File is empty.");
-      const records = extension === "csv" ? parseCsv(text) : parseJson(text);
-      setResult(validateRecords(file.name, extension, records));
+      if (extension === "nc" || extension === "cdf") {
+        const parsed = parseNetcdfClassic(await file.arrayBuffer(), file.name, MAX_RECORDS);
+        setNetcdfMeta({
+          conventions: parsed.conventions,
+          version: parsed.version,
+          variables: parsed.variables
+        });
+        setResult(validateRecords(file.name, "netcdf", parsed.records as unknown as Array<Record<string, unknown>>));
+      } else {
+        if (extension !== "csv" && extension !== "json" && extension !== "tsv" && extension !== "txt") {
+          throw new Error("Unsupported file type. Use CSV, TSV/ASCII, JSON or classic NetCDF (.nc/.cdf).");
+        }
+        const text = await file.text();
+        if (!text.trim()) throw new Error("File is empty.");
+        const records =
+          extension === "csv"
+            ? parseCsv(text)
+            : extension === "json"
+              ? parseJson(text)
+              : parseAscii(text, extension);
+        setResult(validateRecords(file.name, extension, records));
+      }
     } catch (reason) {
       setProcessingError(reason instanceof Error ? reason.message : String(reason));
     } finally {
@@ -573,7 +621,15 @@ export function DataLabPage() {
   const clear = () => {
     setResult(null);
     setProcessingError("");
+    setNetcdfMeta(null);
+    clearUserObservations();
     if (inputRef.current) inputRef.current.value = "";
+  };
+
+  const visualizeValidated = () => {
+    if (!result || result.status !== "validated" || result.records.length === 0) return;
+    saveUserObservations(result.records);
+    window.location.hash = "#/observations";
   };
 
   return (
@@ -588,7 +644,7 @@ export function DataLabPage() {
           <div className="section-kicker">GUARDED USER DATA</div>
           <h2>Additional dataset lab</h2>
           <p>
-            Validate a small ocean-observation CSV or JSON before analysis. OceanTwin checks
+            Validate ocean observations from CSV, TSV/ASCII, JSON or CF-style classic NetCDF before analysis. OceanTwin checks
             coordinates, depth convention, timezone-aware timestamps, values, units, provenance,
             duplicates and missingness. It never guesses missing scientific metadata.
           </p>
@@ -607,7 +663,7 @@ export function DataLabPage() {
             <h3 id="official-data-launchpad-title">Official data launchpad</h3>
             <p>
               Open a trusted ocean-data source, subset the measurements you need, then map them
-              into OceanTwin&apos;s guarded CSV/JSON contract for local validation.
+              into OceanTwin&apos;s guarded observation contract, or inspect compatible NetCDF directly in the browser.
             </p>
           </div>
           <button type="button" onClick={downloadSchema}>Download import schema</button>
@@ -654,18 +710,18 @@ export function DataLabPage() {
           <div className="data-lab-card-heading">
             <div>
               <span>1 · LOAD</span>
-              <h3>CSV / JSON validator</h3>
+              <h3>CSV · TSV/ASCII · JSON · NetCDF ingestion</h3>
             </div>
             <button type="button" onClick={downloadSchema}>Download schema CSV</button>
           </div>
           <label className="data-lab-file-picker">
             <strong>{processing ? "Reading file…" : "Choose an ocean dataset"}</strong>
-            <span>CSV or JSON · max 5 MB · max 100,000 records</span>
+            <span>CSV · TSV/TXT · JSON · NetCDF-3/64-bit classic · max 5 MB · max 100,000 records</span>
             <input
               ref={inputRef}
               aria-label="Ocean dataset file"
               type="file"
-              accept=".csv,.json,text/csv,application/json"
+              accept=".csv,.tsv,.txt,.json,.nc,.cdf,text/csv,text/tab-separated-values,text/plain,application/json,application/x-netcdf"
               disabled={processing}
               onChange={handleFile}
             />
@@ -685,6 +741,14 @@ export function DataLabPage() {
             <div className="data-lab-processing-error" role="alert">
               <strong>File rejected before schema validation</strong>
               <span>{processingError}</span>
+            </div>
+          )}
+          {netcdfMeta && (
+            <div className="data-lab-netcdf-meta" role="status">
+              <strong>NetCDF structure accepted · {netcdfMeta.version}</strong>
+              <span>Conventions: {netcdfMeta.conventions}</span>
+              <span>Depth-resolved variables: {netcdfMeta.variables.join(", ")}</span>
+              <small>Browser ingestion supports NetCDF v3 classic/64-bit. NetCDF4/HDF5 remains supported by OceanTwin&apos;s local Python scientific adapter.</small>
             </div>
           )}
         </article>
@@ -732,6 +796,11 @@ export function DataLabPage() {
             </div>
             <div className="data-lab-status-actions">
               <button type="button" onClick={() => downloadReport(result)}>Download validation report</button>
+              {result.status === "validated" && result.records.length > 0 && (
+                <button type="button" className="primary" onClick={visualizeValidated}>
+                  Visualize in Observation Network
+                </button>
+              )}
               <button type="button" onClick={clear}>Clear dataset</button>
             </div>
           </section>
