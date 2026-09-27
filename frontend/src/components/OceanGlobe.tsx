@@ -962,6 +962,8 @@ export function OceanGlobe({
       data-color-scale={colorScale}
       data-color-min={colorMinimum}
       data-color-max={colorMaximum}
+      data-imported-profile-count={importedProfiles.length}
+      data-selected-imported-profile={selectedImportedProfileId}
     >
       <div ref={containerRef} className="cesium-host" />
       {rendererError && (
