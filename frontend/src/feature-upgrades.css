@@ -2922,3 +2922,89 @@
 :root[data-theme="light"] .static-time-row span {
   color: #587b8d;
 }
+
+
+/* SIH26067 compliance expansion — transfer-function and isosurface controls. */
+.field-mode-selector.three-way {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field-mode-selector.three-way button {
+  min-width: 0;
+  padding-inline: 6px;
+  font-size: 9px;
+}
+
+.transfer-editor {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+  padding: 11px;
+  border: 1px solid rgba(55, 109, 134, .7);
+  border-radius: 10px;
+  background: rgba(5, 25, 38, .72);
+}
+
+.transfer-gradient {
+  height: 10px;
+  border: 1px solid rgba(186, 225, 236, .2);
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12);
+}
+
+.transfer-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.transfer-grid label,
+.isosurface-control {
+  margin: 0;
+}
+
+.transfer-grid select,
+.transfer-grid input[type="number"] {
+  min-width: 0;
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid #285167;
+  border-radius: 7px;
+  color: #e6f7fb;
+  background: #092331;
+  font-size: 9px;
+}
+
+.transfer-grid input[type="number"]:focus,
+.transfer-grid select:focus {
+  outline: 1px solid #54d5ef;
+  border-color: #54d5ef;
+}
+
+.isosurface-control {
+  display: grid;
+  gap: 6px;
+}
+
+:root[data-theme="light"] .transfer-editor {
+  border-color: #bdd3dc;
+  background: rgba(246, 250, 252, .94);
+}
+
+:root[data-theme="light"] .transfer-grid select,
+:root[data-theme="light"] .transfer-grid input[type="number"] {
+  border-color: #bfd2da;
+  color: #173849;
+  background: #fff;
+}
+
+@media (max-width: 760px) {
+  .transfer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .field-mode-selector.three-way button {
+    padding-inline: 4px;
+    font-size: 8px;
+  }
+}
