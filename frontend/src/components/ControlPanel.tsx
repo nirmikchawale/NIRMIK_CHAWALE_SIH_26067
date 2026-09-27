@@ -3,6 +3,8 @@ import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, V
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
+  sourceMode: "glorys" | "incois";
+  operationalAvailable: boolean;
   variable: "thetao" | "so" | "currents";
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
@@ -20,6 +22,7 @@ interface Props {
   isoValue: number;
   mobileOpen: boolean;
   onMobileClose: () => void;
+  onSourceModeChange: (value: "glorys" | "incois") => void;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
@@ -39,6 +42,8 @@ interface Props {
 export function ControlPanel({
   catalog,
   profiles,
+  sourceMode,
+  operationalAvailable,
   variable,
   viewMode,
   visualizationMode,
@@ -56,6 +61,7 @@ export function ControlPanel({
   isoValue,
   mobileOpen,
   onMobileClose,
+  onSourceModeChange,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
@@ -90,6 +96,34 @@ export function ControlPanel({
           Close
         </button>
       </div>
+      <section className="explore-source-section">
+        <div className="section-kicker">Scientific source</div>
+        <div className="segmented explore-source-selector" aria-label="Explore scientific source">
+          <button
+            type="button"
+            className={sourceMode === "glorys" ? "active" : ""}
+            aria-pressed={sourceMode === "glorys"}
+            onClick={() => onSourceModeChange("glorys")}
+          >
+            GLORYS baseline
+          </button>
+          <button
+            type="button"
+            className={sourceMode === "incois" ? "active" : ""}
+            aria-pressed={sourceMode === "incois"}
+            disabled={!operationalAvailable}
+            onClick={() => onSourceModeChange("incois")}
+          >
+            INCOIS multi-time
+          </button>
+        </div>
+        <p className="microcopy">
+          {sourceMode === "incois"
+            ? "Build-verified INCOIS analysis · genuine timestamps and depths · source values unchanged."
+            : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
+        </p>
+      </section>
+
       <section>
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher" aria-label="Ocean variable">
