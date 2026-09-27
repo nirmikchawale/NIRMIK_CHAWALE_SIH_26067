@@ -4444,3 +4444,50 @@ select:hover,
     grid-template-columns: 1fr;
   }
 }
+
+
+/* SIH26067 completion — first-class INCOIS surface chlorophyll source. */
+.explore-source-selector {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.explore-source-selector button {
+  min-width: 0;
+  padding-inline: 6px;
+  line-height: 1.2;
+}
+
+.surface-only-control {
+  display: grid;
+  gap: 4px;
+  padding: 10px 11px;
+  border: 1px solid rgba(72, 180, 144, .42);
+  border-radius: 8px;
+  background: rgba(7, 45, 42, .5);
+}
+
+.surface-only-control strong {
+  color: #bff4d7;
+  font-size: 11px;
+}
+
+.surface-only-control span {
+  color: #7fa99e;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+:root[data-theme="light"] .surface-only-control {
+  border-color: #b7d9cb;
+  background: #f3fbf7;
+}
+
+:root[data-theme="light"] .surface-only-control strong {
+  color: #225b49;
+}
+
+@media (max-width: 760px) {
+  .explore-source-selector {
+    grid-template-columns: 1fr;
+  }
+}
