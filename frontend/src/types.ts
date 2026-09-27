@@ -84,6 +84,21 @@ export interface VolumeResponse {
   rendering_note: string;
 }
 
+export interface CurrentsVolumeResponse {
+  variable: "currents";
+  units: string;
+  time_index: number;
+  time: string;
+  vectors: Array<[number, number, number, number, number, number]>;
+  minimum: number;
+  maximum: number;
+  depths_m: number[];
+  depth_positive: string;
+  components: ["uo", "vo"];
+  vertical_component_available: false;
+  rendering_note: string;
+}
+
 export interface CurrentsResponse {
   variable: "currents";
   units: string;

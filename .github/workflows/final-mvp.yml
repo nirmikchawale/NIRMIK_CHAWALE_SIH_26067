@@ -95,7 +95,7 @@ jobs:
           assert operational["source"]["provider"] == "INCOIS"
           assert operational["integrity"]["genuine_time_count"] >= 2
           assert operational["integrity"]["genuine_depth_count"] >= 2
-          expected_files = 5 + manifest["profiles"] + manifest["time_steps"] * (2 + 7 * manifest["depth_levels"])
+          expected_files = 5 + manifest["profiles"] + manifest["time_steps"] * (3 + 7 * manifest["depth_levels"])
           assert len(manifest["files"]) == expected_files
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
           assert (root / "telemetry/so/t0_d18.json").is_file()
@@ -127,6 +127,7 @@ jobs:
           curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=thetao&depth_index=0' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/field?variable=so&depth_index=0' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/currents?depth_index=0' >/dev/null
+          curl --fail --silent 'http://127.0.0.1:8000/api/currents-volume?horizontal_stride=6&depth_stride=1' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/telemetry?variable=thetao&depth_index=18' >/dev/null
           curl --fail --silent 'http://127.0.0.1:8000/api/anomalies?variable=thetao&depth_index=18' >/dev/null
           curl --fail --silent http://127.0.0.1:8000/api/profiles >/dev/null
@@ -257,6 +258,7 @@ jobs:
           assert (root / "fields/thetao/t0_d18.json").is_file()
           assert (root / "fields/so/t0_d18.json").is_file()
           assert (root / "currents/t0_d18.json").is_file()
+          assert (root / "currents-volume/t0.json").is_file()
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
           assert (root / "telemetry/so/t0_d18.json").is_file()
           print("Hosted static fail-safe artifact verified.")
@@ -306,6 +308,7 @@ jobs:
           thetao = get_json("/science-static/fields/thetao/t0_d18.json")
           salinity = get_json("/science-static/fields/so/t0_d18.json")
           currents = get_json("/science-static/currents/t0_d18.json")
+          currents_volume = get_json("/science-static/currents-volume/t0.json")
           telemetry = get_json("/science-static/telemetry/thetao/t0_d18.json")
           anomaly = get_json("/science-static/anomalies/thetao/t0_d18.json")
           profiles = get_json("/science-static/profiles/index.json")
@@ -322,6 +325,9 @@ jobs:
           assert thetao["variable"] == "thetao"
           assert salinity["variable"] == "so"
           assert currents["variable"] == "currents"
+          assert currents_volume["variable"] == "currents"
+          assert len(currents_volume["depths_m"]) == 31
+          assert currents_volume["vertical_component_available"] is False
           assert telemetry["variable"] == "thetao"
           assert len(telemetry["depth_stats"]) == 31
           assert len(telemetry["time_stats"]) == 1

@@ -305,7 +305,14 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: /Currents/i }).click();
   await expect(page.locator(".current-note")).toContainText("HORIZONTAL u/v FLOW");
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: /Water Column 3D/ })).toBeDisabled();
+  const currentWaterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });
+  await expect(currentWaterColumnButton).toBeEnabled();
+  await currentWaterColumnButton.click();
+  const currentWaterColumnShell = page.locator(".water-column-shell");
+  await expect(currentWaterColumnShell).toHaveAttribute("data-current-depth-count", "31");
+  await expect.poll(async () => Number(await currentWaterColumnShell.getAttribute("data-current-vector-count"))).toBeGreaterThan(0);
+  await expect(page.locator(".water-column-note")).toContainText("NO VERTICAL w INFERRED");
+  await page.getByRole("button", { name: /Geographic View/ }).click();
 
   await page.getByRole("button", { name: /Temperature/i }).click();
   const waterColumnButton = page.getByRole("button", { name: /Water Column 3D/ });

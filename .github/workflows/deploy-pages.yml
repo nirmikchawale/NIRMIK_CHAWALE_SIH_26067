@@ -73,6 +73,7 @@ jobs:
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/profiles/index.json
           test -s frontend/dist/science-static/anomalies/thetao/t0_d18.json
+          test -s frontend/dist/science-static/currents-volume/t0.json
           test -s frontend/dist/science-static/anomalies/so/t0_d18.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/observations/verified-profiles.json
@@ -178,6 +179,7 @@ jobs:
           thetao = get_json("/science-static/fields/thetao/t0_d18.json")
           salinity = get_json("/science-static/fields/so/t0_d18.json")
           currents = get_json("/science-static/currents/t0_d18.json")
+          currents_volume = get_json("/science-static/currents-volume/t0.json")
           anomaly = get_json("/science-static/anomalies/thetao/t0_d18.json")
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
@@ -190,6 +192,8 @@ jobs:
           assert thetao["variable"] == "thetao"
           assert salinity["variable"] == "so"
           assert currents["variable"] == "currents"
+          assert len(currents_volume["depths_m"]) == 31
+          assert currents_volume["vertical_component_available"] is False
           assert anomaly["method"]["absolute_threshold"] == 3.5
           assert anomaly["temporal_screen"]["status"] == "locked"
           assert anomaly["residual_screen"]["flagged_count"] > 0

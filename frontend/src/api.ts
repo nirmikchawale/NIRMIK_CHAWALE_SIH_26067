@@ -3,6 +3,7 @@ import type {
   Catalog,
   ConnectorRegistryResponse,
   CurrentsResponse,
+  CurrentsVolumeResponse,
   FieldResponse,
   IncoisOperationalSnapshot,
   ProfileDetail,
@@ -94,5 +95,10 @@ export const api = {
     getJson<CurrentsResponse>(
       `/api/currents?time_index=${timeIndex}&depth_index=${depthIndex}&stride=2`,
       `/currents/t${timeIndex}_d${depthIndex}.json`
+    ),
+  currentsVolume: (timeIndex: number) =>
+    getJson<CurrentsVolumeResponse>(
+      `/api/currents-volume?time_index=${timeIndex}&horizontal_stride=4&depth_stride=1`,
+      `/currents-volume/t${timeIndex}.json`
     )
 };

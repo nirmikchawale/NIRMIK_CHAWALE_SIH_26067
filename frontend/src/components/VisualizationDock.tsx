@@ -2,7 +2,7 @@ import type { VisualizationMode } from "../types";
 
 interface Props {
   mode: VisualizationMode;
-  scalarAvailable: boolean;
+  waterColumnAvailable: boolean;
   variableLabel: string;
   depthM: number;
   timeLabel: string;
@@ -37,7 +37,7 @@ function compactUtc(value: string): string {
 
 export function VisualizationDock({
   mode,
-  scalarAvailable,
+  waterColumnAvailable,
   variableLabel,
   depthM,
   timeLabel,
@@ -76,15 +76,15 @@ export function VisualizationDock({
           type="button"
           className={mode === "water-column" ? "active" : ""}
           aria-pressed={mode === "water-column"}
-          disabled={!scalarAvailable}
-          title={scalarAvailable ? "Open scientific water-column 3D" : "Water-column 3D requires a scalar field"}
+          disabled={!waterColumnAvailable}
+          title={waterColumnAvailable ? "Open scientific water-column 3D" : "Water-column 3D is unavailable for this source"}
           onClick={() => onChange("water-column")}
         >
           <span className="mode-number">VIEW 2</span>
           <span className="mode-icon"><ColumnIcon /></span>
           <span className="mode-label">
             <strong>Water Column 3D</strong>
-            <small>{scalarAvailable ? "actual lon · lat · positive-down depth" : "scalar fields only"}</small>
+            <small>{waterColumnAvailable ? "actual lon · lat · positive-down depth" : "unavailable for selected source"}</small>
           </span>
         </button>
       </div>

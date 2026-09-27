@@ -34,6 +34,7 @@ import type {
   ColorPalette,
   ColorScaleMode,
   CurrentsResponse,
+  CurrentsVolumeResponse,
   FieldResponse,
   ImportedObservationProfile,
   IncoisOperationalSnapshot,
@@ -106,6 +107,7 @@ export default function App() {
   const [field, setField] = useState<FieldResponse | null>(null);
   const [volume, setVolume] = useState<VolumeResponse | null>(null);
   const [currents, setCurrents] = useState<CurrentsResponse | null>(null);
+  const [currentsVolume, setCurrentsVolume] = useState<CurrentsVolumeResponse | null>(null);
   const [scienceLoading, setScienceLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
@@ -369,6 +371,7 @@ export default function App() {
     setField(null);
     setVolume(null);
     setCurrents(null);
+    setCurrentsVolume(null);
 
     if (sourceMode === "incois") {
       try {
@@ -389,9 +392,13 @@ export default function App() {
 
     const request =
       variable === "currents"
-        ? api.currents(timeIndex, depthIndex).then((payload) => {
-            if (!cancelled) setCurrents(payload);
-          })
+        ? visualizationMode === "water-column"
+          ? api.currentsVolume(timeIndex).then((payload) => {
+              if (!cancelled) setCurrentsVolume(payload);
+            })
+          : api.currents(timeIndex, depthIndex).then((payload) => {
+              if (!cancelled) setCurrents(payload);
+            })
         : visualizationMode === "water-column" || viewMode === "volume"
           ? api.volume(variable, timeIndex).then((payload) => {
               if (!cancelled) setVolume(payload);
@@ -442,8 +449,12 @@ export default function App() {
       }
       if (value === "currents") {
         setViewMode("slice");
-        setVisualizationMode("globe");
         setIsoSurfaceEnabled(false);
+        if (nextVariable) {
+          setColorMinimum(nextVariable.minimum);
+          setColorMaximum(nextVariable.maximum);
+          setColorScale("linear");
+        }
       }
     },
     [exploreCatalog]
@@ -478,9 +489,8 @@ export default function App() {
   }, [operationalCatalog, catalog, variable]);
 
   const handleEnterWaterColumn = useCallback(() => {
-    if (variable === "currents") return;
     setVisualizationMode("water-column");
-  }, [variable]);
+  }, []);
 
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
@@ -643,7 +653,7 @@ export default function App() {
 
               <VisualizationDock
                 mode={visualizationMode}
-                scalarAvailable={variable !== "currents"}
+                waterColumnAvailable={sourceMode === "glorys" || variable !== "currents"}
                 variableLabel={selectedVariable?.label ?? variable}
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 timeLabel={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
@@ -694,6 +704,7 @@ export default function App() {
                 >
                   <WaterColumn3D
                     volume={visualizationMode === "water-column" ? volume : null}
+                    currentsVolume={visualizationMode === "water-column" ? currentsVolume : null}
                     selectedDepthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                     verticalExaggeration={verticalExaggeration}
                     opacity={waterColumnOpacity / 100}
