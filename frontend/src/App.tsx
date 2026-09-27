@@ -27,6 +27,7 @@ import type {
 } from "./types";
 
 type ThemeMode = "dark" | "light";
+type MobileSheet = "none" | "controls" | "observation";
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
 
@@ -50,6 +51,8 @@ export default function App() {
   const [focusMode, setFocusMode] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
+  const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
+  const [profilePanelOpen, setProfilePanelOpen] = useState(false);
 
   const [variable, setVariable] = useState<"thetao" | "so" | "currents">("thetao");
   const [viewMode, setViewMode] = useState<ViewMode>("slice");
@@ -83,7 +86,11 @@ export default function App() {
     const syncRoute = () => {
       const next = routeFromHash(window.location.hash);
       setPage(next);
-      if (next !== "explore") setFocusMode(false);
+      if (next !== "explore") {
+        setFocusMode(false);
+        setMobileSheet("none");
+        setProfilePanelOpen(false);
+      }
     };
     window.addEventListener("hashchange", syncRoute);
     syncRoute();
@@ -97,7 +104,21 @@ export default function App() {
     } else {
       window.location.hash = target;
     }
-    if (next !== "explore") setFocusMode(false);
+    if (next !== "explore") {
+      setFocusMode(false);
+      setMobileSheet("none");
+      setProfilePanelOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setMobileSheet("none");
+      setProfilePanelOpen(false);
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
   }, []);
 
   useEffect(() => {
@@ -236,6 +257,14 @@ export default function App() {
     };
   }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
+  const handleProfileSelection = useCallback((profileId: string) => {
+    setSelectedProfileId(profileId);
+    setProfilePanelOpen(true);
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setMobileSheet("observation");
+    }
+  }, []);
+
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents") => {
       setVariable(value);
@@ -246,6 +275,11 @@ export default function App() {
     },
     []
   );
+
+  const handleEnterWaterColumn = useCallback(() => {
+    if (variable === "currents") return;
+    setVisualizationMode("water-column");
+  }, [variable]);
 
   const selectedVariable = useMemo(
     () => catalog?.variables.find((item) => item.id === variable),
@@ -329,6 +363,18 @@ export default function App() {
         <div className="workspace">
           {page === "explore" ? (
             <>
+              {mobileSheet !== "none" && (
+                <button
+                  type="button"
+                  className="mobile-sheet-backdrop"
+                  aria-label="Close mobile panel"
+                  onClick={() => {
+                    if (mobileSheet === "observation") setProfilePanelOpen(false);
+                    setMobileSheet("none");
+                  }}
+                />
+              )}
+
               <ControlPanel
                 catalog={catalog}
                 profiles={profiles}
@@ -341,13 +387,15 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
+                mobileOpen={mobileSheet === "controls"}
+                onMobileClose={() => setMobileSheet("none")}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
                 onDepthChange={setDepthIndex}
                 onTimeChange={setTimeIndex}
                 onVerticalExaggerationChange={setVerticalExaggeration}
-                onProfileChange={setSelectedProfileId}
+                onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
               />
 
@@ -369,27 +417,94 @@ export default function App() {
                 onChange={setVisualizationMode}
               />
 
-              {visualizationMode === "globe" ? (
-                <OceanGlobe
-                  field={field}
-                  volume={volume}
-                  currents={currents}
-                  profiles={profiles}
-                  selectedProfileId={selectedProfileId}
-                  verticalExaggeration={verticalExaggeration}
-                  onSelectProfile={setSelectedProfileId}
-                />
-              ) : (
-                <WaterColumn3D
-                  volume={volume}
-                  selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
-                  verticalExaggeration={verticalExaggeration}
-                  opacity={waterColumnOpacity / 100}
-                  theme={theme}
-                />
-              )}
+              <div
+                className="visualization-stage"
+                data-visualization-mode={visualizationMode}
+                aria-label="Connected geographic and water-column visualization stage"
+              >
+                <div
+                  className={`visualization-layer globe-visualization-layer ${visualizationMode === "globe" ? "active" : ""}`}
+                  aria-hidden={visualizationMode !== "globe"}
+                >
+                  <OceanGlobe
+                    field={visualizationMode === "globe" ? field : null}
+                    volume={visualizationMode === "globe" ? volume : null}
+                    currents={visualizationMode === "globe" ? currents : null}
+                    profiles={profiles}
+                    selectedProfileId={selectedProfileId}
+                    verticalExaggeration={verticalExaggeration}
+                    onSelectProfile={handleProfileSelection}
+                    onEnterWaterColumn={handleEnterWaterColumn}
+                  />
+                </div>
+                <div
+                  className={`visualization-layer water-column-visualization-layer ${visualizationMode === "water-column" ? "active" : ""}`}
+                  aria-hidden={visualizationMode !== "water-column"}
+                >
+                  <WaterColumn3D
+                    volume={visualizationMode === "water-column" ? volume : null}
+                    selectedDepthM={catalog.coordinates.depth[depthIndex] ?? 0}
+                    verticalExaggeration={verticalExaggeration}
+                    opacity={waterColumnOpacity / 100}
+                    theme={theme}
+                  />
+                </div>
+              </div>
 
-              <ProfilePanel detail={profileDetail} loading={profileLoading} provenance={provenance} />
+              <ProfilePanel
+                detail={profileDetail}
+                loading={profileLoading}
+                provenance={provenance}
+                open={profilePanelOpen || mobileSheet === "observation"}
+                mobileOpen={mobileSheet === "observation"}
+                onClose={() => {
+                  setProfilePanelOpen(false);
+                  setMobileSheet("none");
+                }}
+              />
+
+              <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Layer</span>
+                  <strong>{selectedVariable?.label ?? variable}</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Time</span>
+                  <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "") ?? "—"}</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "controls"}
+                  onClick={() => setMobileSheet("controls")}
+                >
+                  <span>Depth</span>
+                  <strong>{(catalog.coordinates.depth[depthIndex] ?? 0).toFixed(0)} m</strong>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={mobileSheet === "observation"}
+                  disabled={!selectedProfile}
+                  onClick={() => {
+                    setProfilePanelOpen(true);
+                    setMobileSheet("observation");
+                  }}
+                >
+                  <span>Observation</span>
+                  <strong>{selectedProfile ? selectedProfile.platform_id : "None"}</strong>
+                </button>
+                <button type="button" onClick={() => navigate("compare")}>
+                  <span>Compare</span>
+                  <strong>Model ↔ Argo</strong>
+                </button>
+              </div>
             </>
           ) : page === "telemetry" ? (
             <TelemetryPage catalog={catalog} provenance={provenance} />

@@ -12,6 +12,8 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
@@ -34,6 +36,8 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
+  mobileOpen,
+  onMobileClose,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
@@ -48,7 +52,20 @@ export function ControlPanel({
   const scalar = variable !== "currents";
 
   return (
-    <aside className="control-panel">
+    <aside
+      className="control-panel"
+      data-mobile-open={mobileOpen ? "true" : "false"}
+      aria-label="Scientific explorer controls"
+    >
+      <div className="mobile-sheet-header">
+        <div>
+          <span>EXPLORER CONTROLS</span>
+          <strong>Layer · depth · time · observations</strong>
+        </div>
+        <button type="button" onClick={onMobileClose} aria-label="Close explorer controls">
+          Close
+        </button>
+      </div>
       <section>
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher" aria-label="Ocean variable">
@@ -76,64 +93,85 @@ export function ControlPanel({
           </p>
         )}
 
-        <div className="section-kicker visualization-kicker">Active 3D mode</div>
-        <div className="active-3d-mode-card">
-          <strong>{visualizationMode === "globe" ? "Cesium Globe" : "Water-Column 3D"}</strong>
-          <span>
-            {visualizationMode === "globe"
-              ? "Geospatial context with depth-aware scientific overlays."
-              : "Scientific lon/lat/depth box using canonical model volume values."}
-          </span>
-          <small>Switch modes from the persistent DUAL 3D VISUALIZATION dock.</small>
-        </div>
+        <details className="advanced-control-group">
+          <summary>
+            <span>View settings</span>
+            <small>3D mode · rendering · vertical display</small>
+          </summary>
+          <div className="advanced-control-body">
+            <div className="section-kicker visualization-kicker">Active 3D mode</div>
+            <div className="active-3d-mode-card">
+              <strong>{visualizationMode === "globe" ? "Geographic View" : "Water Column 3D"}</strong>
+              <span>
+                {visualizationMode === "globe"
+                  ? "Geospatial context with depth-aware scientific overlays."
+                  : "Scientific lon/lat/depth box using canonical model volume values."}
+              </span>
+              <small>Switch views from the persistent visualization dock.</small>
+            </div>
 
-        {visualizationMode === "globe" && (
-          <div className="segmented field-mode-selector" aria-label="Globe field mode">
-            <button
-              className={viewMode === "slice" ? "active" : ""}
-              disabled={!scalar}
-              onClick={() => onViewModeChange("slice")}
-            >
-              Depth slice
-            </button>
-            <button
-              className={viewMode === "volume" ? "active" : ""}
-              disabled={!scalar}
-              onClick={() => onViewModeChange("volume")}
-            >
-              3D field
-            </button>
+            {visualizationMode === "globe" && (
+              <div className="segmented field-mode-selector" aria-label="Globe field mode">
+                <button
+                  className={viewMode === "slice" ? "active" : ""}
+                  disabled={!scalar}
+                  onClick={() => onViewModeChange("slice")}
+                >
+                  Depth slice
+                </button>
+                <button
+                  className={viewMode === "volume" ? "active" : ""}
+                  disabled={!scalar}
+                  onClick={() => onViewModeChange("volume")}
+                >
+                  3D field
+                </button>
+              </div>
+            )}
+
+            {visualizationMode === "water-column" && scalar && (
+              <label className="opacity-control">
+                <span className="label-row">
+                  <span>Point opacity</span>
+                  <strong>{waterColumnOpacity}%</strong>
+                </span>
+                <input
+                  type="range"
+                  min={15}
+                  max={95}
+                  value={waterColumnOpacity}
+                  onChange={(event) => onWaterColumnOpacityChange(Number(event.target.value))}
+                />
+              </label>
+            )}
+
+            <label>
+              <span className="label-row">
+                <span>Visual vertical exaggeration</span>
+                <strong>{verticalExaggeration}×</strong>
+              </span>
+              <input
+                type="range"
+                min={1}
+                max={100}
+                value={verticalExaggeration}
+                onChange={(event) => onVerticalExaggerationChange(Number(event.target.value))}
+              />
+            </label>
+
+            {!scalar ? (
+              <p className="microcopy warning">
+                Water-column 3D is scalar-only. Currents stay on the globe because the bundled
+                evidence contains horizontal u/v only—no vertical current is invented.
+              </p>
+            ) : (
+              <p className="microcopy">
+                Opacity and vertical exaggeration change display geometry only; scientific values
+                and depth metres remain unchanged.
+              </p>
+            )}
           </div>
-        )}
-
-        {visualizationMode === "water-column" && scalar && (
-          <label className="opacity-control">
-            <span className="label-row">
-              <span>Point opacity</span>
-              <strong>{waterColumnOpacity}%</strong>
-            </span>
-            <input
-              type="range"
-              min={15}
-              max={95}
-              value={waterColumnOpacity}
-              onChange={(event) => onWaterColumnOpacityChange(Number(event.target.value))}
-            />
-          </label>
-        )}
-
-        {!scalar && (
-          <p className="microcopy warning">
-            Water-column 3D is scalar-only. Currents stay on the globe because the bundled
-            evidence contains horizontal u/v only—no vertical current is invented.
-          </p>
-        )}
-        {visualizationMode === "water-column" && scalar && (
-          <p className="microcopy">
-            Opacity and vertical exaggeration change display geometry only; scientific values
-            and depth metres remain unchanged.
-          </p>
-        )}
+        </details>
       </section>
 
       <section>
@@ -152,22 +190,6 @@ export function ControlPanel({
           />
         </label>
 
-        <label>
-          <span className="label-row">
-            <span>Visual vertical exaggeration</span>
-            <strong>{verticalExaggeration}×</strong>
-          </span>
-          <input
-            type="range"
-            min={1}
-            max={100}
-            value={verticalExaggeration}
-            onChange={(event) => onVerticalExaggerationChange(Number(event.target.value))}
-          />
-        </label>
-        <p className="microcopy">
-          Geometry only. Scientific depth values remain metres positive downward.
-        </p>
       </section>
 
       <section>

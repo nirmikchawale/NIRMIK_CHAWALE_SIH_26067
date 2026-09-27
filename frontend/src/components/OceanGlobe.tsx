@@ -57,7 +57,10 @@ interface Props {
   selectedProfileId: string;
   verticalExaggeration: number;
   onSelectProfile: (profileId: string) => void;
+  onEnterWaterColumn: () => void;
 }
+
+const INTRO_SESSION_KEY = "oceantwin-intro-seen";
 
 function scalarColor(value: number, minimum: number, maximum: number, variable: string): Color {
   const t = Math.max(0, Math.min(1, (value - minimum) / Math.max(maximum - minimum, 1e-12)));
@@ -74,10 +77,13 @@ export function OceanGlobe({
   profiles,
   selectedProfileId,
   verticalExaggeration,
-  onSelectProfile
+  onSelectProfile,
+  onEnterWaterColumn
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const enterWaterColumnRef = useRef(onEnterWaterColumn);
+  const regionEntryArmedRef = useRef(false);
   const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection | Primitive>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
@@ -92,10 +98,17 @@ export function OceanGlobe({
   const [cameraHeight, setCameraHeight] = useState(0);
   const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
   const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
+  const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "flying" | "region">("idle");
+  const [regionEntryArmed, setRegionEntryArmed] = useState(false);
+
+  useEffect(() => {
+    enterWaterColumnRef.current = onEnterWaterColumn;
+  }, [onEnterWaterColumn]);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
 
+    let introTimer: number | null = null;
     let viewer: Viewer;
     try {
       viewer = new Viewer(containerRef.current, {
@@ -157,20 +170,63 @@ export function OceanGlobe({
     viewer.scene.globe.translucency.frontFaceAlpha = 0.95;
     viewer.scene.globe.translucency.backFaceAlpha = 0.28;
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
+    viewer.scene.screenSpaceCameraController.maximumZoomDistance = 18_000_000;
+    viewer.scene.screenSpaceCameraController.inertiaZoom = 0.65;
 
-    // Judge-first framing: keep the verified model window central while also
-    // revealing India's west coast and enough globe curvature to read as geography,
-    // not as a floating rectangular plot.
-    viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
-      orientation: {
-        heading: CesiumMath.toRadians(248),
-        pitch: CesiumMath.toRadians(-76),
-        roll: 0
-      },
-      duration: 0
-    });
-    setCameraHeight(viewer.camera.positionCartographic.height);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let firstSessionEntry = true;
+    try {
+      firstSessionEntry = window.sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
+      window.sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+    } catch {
+      // Session storage is optional. If unavailable, the orientation remains harmless and interruptible.
+    }
+    const playOpeningTransition = firstSessionEntry && !reducedMotion;
+    regionEntryArmedRef.current = firstSessionEntry;
+    setRegionEntryArmed(firstSessionEntry);
+
+    if (playOpeningTransition) {
+      setIntroPhase("earth");
+      viewer.camera.setView({
+        destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
+        orientation: {
+          heading: 0,
+          pitch: CesiumMath.toRadians(-90),
+          roll: 0
+        }
+      });
+      setCameraHeight(viewer.camera.positionCartographic.height);
+      introTimer = window.setTimeout(() => {
+        if (viewer.isDestroyed()) return;
+        setIntroPhase("flying");
+        viewer.camera.flyTo({
+          destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
+          duration: 0.9,
+          complete: () => {
+            if (viewer.isDestroyed()) return;
+            setIntroPhase("region");
+            setCameraHeight(viewer.camera.positionCartographic.height);
+          },
+          cancel: () => {
+            if (!viewer.isDestroyed()) {
+              setIntroPhase("region");
+              setCameraHeight(viewer.camera.positionCartographic.height);
+            }
+          }
+        });
+      }, 140);
+    } else {
+      setIntroPhase("region");
+      viewer.camera.setView({
+        destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+        orientation: {
+          heading: CesiumMath.toRadians(248),
+          pitch: CesiumMath.toRadians(-76),
+          roll: 0
+        }
+      });
+      setCameraHeight(viewer.camera.positionCartographic.height);
+    }
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -187,6 +243,16 @@ export function OceanGlobe({
     viewerRef.current = viewer;
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
+    const interruptOpeningTransition = () => {
+      if (introTimer != null) {
+        window.clearTimeout(introTimer);
+        introTimer = null;
+      }
+      viewer.camera.cancelFlight();
+      setIntroPhase("region");
+    };
+    handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.LEFT_DOWN);
+    handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.WHEEL);
     handler.setInputAction((movement: { position: Cartesian2 }) => {
       const picked = viewer.scene.pick(movement.position) as { id?: unknown } | undefined;
       const pickedId = picked?.id as { id?: string; kind?: string; inspection?: Inspection } | undefined;
@@ -196,6 +262,27 @@ export function OceanGlobe({
         onSelectProfile(entityId.slice(5));
         return;
       }
+
+      const surfacePoint = viewer.camera.pickEllipsoid(
+        movement.position,
+        viewer.scene.globe.ellipsoid
+      );
+      if (surfacePoint) {
+        const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(surfacePoint);
+        const longitude = CesiumMath.toDegrees(cartographic.longitude);
+        const latitude = CesiumMath.toDegrees(cartographic.latitude);
+        const insideVerifiedRegion =
+          longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14;
+
+        if (insideVerifiedRegion && regionEntryArmedRef.current) {
+          regionEntryArmedRef.current = false;
+          setRegionEntryArmed(false);
+          setInspection(null);
+          enterWaterColumnRef.current();
+          return;
+        }
+      }
+
       if (pickedId?.kind === "ocean-inspection" && pickedId.inspection) {
         setInspection(pickedId.inspection);
       }
@@ -208,6 +295,10 @@ export function OceanGlobe({
       if (zoomAnimationRef.current != null) {
         window.cancelAnimationFrame(zoomAnimationRef.current);
         zoomAnimationRef.current = null;
+      }
+      if (introTimer != null) {
+        window.clearTimeout(introTimer);
+        introTimer = null;
       }
       clickHandlerRef.current?.destroy();
       clickHandlerRef.current = null;
@@ -659,6 +750,7 @@ export function OceanGlobe({
     viewer.scene.requestRender();
   }, [field, volume, currents, verticalExaggeration]);
 
+  const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
   const scalar = field ?? volume;
   const legendMin = scalar?.minimum ?? currents?.minimum;
   const legendMax = scalar?.maximum ?? currents?.maximum;
@@ -718,21 +810,58 @@ export function OceanGlobe({
     zoomAnimationRef.current = window.requestAnimationFrame(animate);
   };
 
-  const resetGlobeView = () => {
+  const cancelCameraAnimation = () => {
     const viewer = viewerRef.current;
-    if (!viewer || viewer.isDestroyed()) return;
+    if (!viewer || viewer.isDestroyed()) return null;
     if (zoomAnimationRef.current != null) {
       window.cancelAnimationFrame(zoomAnimationRef.current);
       zoomAnimationRef.current = null;
     }
+    viewer.camera.cancelFlight();
+    return viewer;
+  };
+
+  const fitStudyRegion = () => {
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
     viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+      destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.58,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  };
+
+  const showEarthView = () => {
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
       orientation: {
-        heading: CesiumMath.toRadians(248),
+        heading: 0,
+        pitch: CesiumMath.toRadians(-90),
+        roll: 0
+      },
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.7,
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  };
+
+  const focusSelectedObservation = () => {
+    if (!selectedProfile) return;
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(
+        selectedProfile.observation_longitude,
+        selectedProfile.observation_latitude,
+        520_000
+      ),
+      orientation: {
+        heading: 0,
         pitch: CesiumMath.toRadians(-76),
         roll: 0
       },
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.75,
+      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.5,
       complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
@@ -789,6 +918,28 @@ export function OceanGlobe({
         </div>
         <small>Preferred online HD → automatic offline fallback · basemap only; scientific coordinates and values never change.</small>
       </div>
+      {(introPhase === "earth" || introPhase === "flying") && (
+        <div className="globe-intro-status" role="status" aria-live="polite">
+          <span>OCEANTWIN ORIENTATION</span>
+          <strong>{introPhase === "earth" ? "Earth" : "Indian Ocean"}</strong>
+          <small>Locating verified model window · 67–70°E · 12–14°N</small>
+        </div>
+      )}
+      {regionEntryArmed && introPhase === "region" && (
+        <button
+          type="button"
+          className="study-region-entry"
+          onClick={() => {
+            regionEntryArmedRef.current = false;
+            setRegionEntryArmed(false);
+            enterWaterColumnRef.current();
+          }}
+        >
+          <span>VERIFIED STUDY REGION</span>
+          <strong>Enter Water Column 3D</strong>
+          <small>67–70°E · 12–14°N · same model evidence, deeper view</small>
+        </button>
+      )}
       <div className="globe-overlay top-left judge-summary">
         <div>
           <span className="live-dot" />
@@ -836,18 +987,34 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
-      <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom" aria-label="Cesium Globe smooth zoom">
-        <span>GLOBE ZOOM</span>
-        <div>
-          <button type="button" aria-label="Zoom out Cesium Globe" onClick={() => smoothGlobeZoom("out")}>−</button>
-          <button type="button" aria-label="Reset Cesium Globe view" onClick={resetGlobeView}>◎</button>
-          <button type="button" aria-label="Zoom in Cesium Globe" onClick={() => smoothGlobeZoom("in")}>+</button>
+      <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom camera-control-stack" aria-label="Ocean Globe camera controls">
+        <span>CAMERA</span>
+        <div className="camera-zoom-row">
+          <button type="button" aria-label="Zoom out Ocean Globe" title="Zoom out" onClick={() => smoothGlobeZoom("out")}>−</button>
+          <button type="button" aria-label="Zoom in Ocean Globe" title="Zoom in" onClick={() => smoothGlobeZoom("in")}>+</button>
         </div>
-        <small>420 ms eased camera motion</small>
+        <div className="camera-preset-row">
+          <button type="button" className="camera-preset-button" onClick={fitStudyRegion}>
+            <span>FIT</span><strong>Study region</strong>
+          </button>
+          <button type="button" className="camera-preset-button" onClick={showEarthView}>
+            <span>EARTH</span><strong>Global view</strong>
+          </button>
+        </div>
+        <button
+          type="button"
+          className="camera-observation-button"
+          disabled={!selectedProfile}
+          onClick={focusSelectedObservation}
+        >
+          <span>ARGO</span>
+          <strong>{selectedProfile ? `Focus ${selectedProfile.platform_id}` : "No observation selected"}</strong>
+        </button>
+        <small>Wheel to zoom · drag to orbit · one-click geographic presets</small>
       </div>
 
       <div className="globe-overlay interaction-hint">
-        Drag to orbit · scroll to zoom · use smooth zoom buttons · click evidence to inspect
+        Drag to orbit · wheel to zoom · Fit returns to the verified study area · click evidence to inspect
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>

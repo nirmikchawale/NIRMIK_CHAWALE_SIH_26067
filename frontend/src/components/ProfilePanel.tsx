@@ -202,24 +202,77 @@ function ProfileChart({ detail }: { detail: ProfileDetail }) {
 export function ProfilePanel({
   detail,
   loading,
-  provenance
+  provenance,
+  open,
+  mobileOpen,
+  onClose
 }: {
   detail: ProfileDetail | null;
   loading: boolean;
   provenance: ProvenanceResponse | null;
+  open: boolean;
+  mobileOpen: boolean;
+  onClose: () => void;
 }) {
+  const mobileHeader = (
+    <div className="mobile-sheet-header">
+      <div>
+        <span>SELECTED OBSERVATION</span>
+        <strong>Argo profile · model comparison</strong>
+      </div>
+      <button type="button" onClick={onClose} aria-label="Close observation details">
+        Close
+      </button>
+    </div>
+  );
+
   if (loading) {
-    return <aside className="profile-panel panel-placeholder">Loading verified profile…</aside>;
+    return (
+      <aside
+        className="profile-panel panel-placeholder"
+        data-context-open={open ? "true" : "false"}
+        data-mobile-open={mobileOpen ? "true" : "false"}
+        aria-label="Observation details"
+      >
+        {mobileHeader}
+        <span>Loading verified profile…</span>
+      </aside>
+    );
   }
 
   if (!detail) {
-    return <aside className="profile-panel panel-placeholder">Select an Argo profile.</aside>;
+    return (
+      <aside
+        className="profile-panel panel-placeholder"
+        data-context-open={open ? "true" : "false"}
+        data-mobile-open={mobileOpen ? "true" : "false"}
+        aria-label="Observation details"
+      >
+        {mobileHeader}
+        <span>Select an Argo profile.</span>
+      </aside>
+    );
   }
 
   const { summary } = detail;
 
   return (
-    <aside className="profile-panel">
+    <aside
+      className="profile-panel"
+      data-context-open={open ? "true" : "false"}
+      data-mobile-open={mobileOpen ? "true" : "false"}
+      aria-label="Observation details"
+    >
+      {mobileHeader}
+      <button
+        type="button"
+        className="desktop-profile-close"
+        onClick={onClose}
+        aria-label="Close observation inspector"
+        title="Close observation inspector"
+      >
+        ×
+      </button>
       <div className="section-kicker">Selected observation</div>
       <div className="profile-heading">
         <div>

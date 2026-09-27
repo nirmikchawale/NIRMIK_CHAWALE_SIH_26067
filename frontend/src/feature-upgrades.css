@@ -1795,3 +1795,1061 @@
   }
 }
 
+
+
+/* Final MVP UI Phase 2 — mobile scientific workspace.
+   The 3D scene remains primary; desktop side panels become temporary sheets. */
+.mobile-explore-tray,
+.mobile-sheet-header,
+.mobile-sheet-backdrop {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    min-height: calc(100vh - 64px);
+    padding-bottom: 78px;
+  }
+
+  .globe-shell,
+  .water-column-shell {
+    min-height: 62vh;
+  }
+
+  .mobile-explore-tray {
+    position: fixed;
+    right: 10px;
+    bottom: 42px;
+    left: 10px;
+    z-index: 48;
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 7px;
+    border: 1px solid rgba(74, 139, 162, .72);
+    border-radius: 15px;
+    background: rgba(3, 17, 27, .94);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(16px);
+    scrollbar-width: none;
+  }
+
+  .mobile-explore-tray::-webkit-scrollbar {
+    display: none;
+  }
+
+  .mobile-explore-tray button {
+    flex: 0 0 auto;
+    display: grid;
+    gap: 2px;
+    min-width: 92px;
+    min-height: 48px;
+    padding: 7px 9px;
+    border: 1px solid #28566d;
+    border-radius: 10px;
+    color: #8fb3c4;
+    background: #071f2d;
+    cursor: pointer;
+    text-align: left;
+    transition:
+      transform var(--ot-motion-fast) var(--ot-ease-standard),
+      border-color var(--ot-motion-fast) var(--ot-ease-standard),
+      background-color var(--ot-motion-fast) var(--ot-ease-standard);
+  }
+
+  .mobile-explore-tray button:hover:not(:disabled),
+  .mobile-explore-tray button[aria-pressed="true"] {
+    transform: translateY(-1px);
+    border-color: #5ad4ea;
+    background: #0b3446;
+  }
+
+  .mobile-explore-tray button:disabled {
+    cursor: not-allowed;
+    opacity: .44;
+  }
+
+  .mobile-explore-tray span {
+    color: #6d95a7;
+    font-size: 7px;
+    font-weight: 850;
+    letter-spacing: .09em;
+    text-transform: uppercase;
+  }
+
+  .mobile-explore-tray strong {
+    overflow: hidden;
+    max-width: 128px;
+    color: #e5f8fc;
+    font-size: 9px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-sheet-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 54;
+    display: block;
+    border: 0;
+    background: rgba(0, 7, 12, .54);
+    backdrop-filter: blur(2px);
+  }
+
+  .control-panel,
+  .profile-panel {
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    z-index: 56;
+    display: block !important;
+    width: 100% !important;
+    max-height: min(74vh, 650px);
+    overflow-y: auto;
+    padding: 0 16px 24px !important;
+    border: 1px solid #28566d !important;
+    border-bottom: 0 !important;
+    border-radius: 20px 20px 0 0 !important;
+    background: rgba(4, 20, 30, .98) !important;
+    box-shadow: 0 -20px 46px rgba(0, 0, 0, .42) !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(34px);
+    transition:
+      transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear var(--ot-motion-emphasis);
+  }
+
+  .control-panel[data-mobile-open="true"],
+  .profile-panel[data-mobile-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition:
+      transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear 0s;
+  }
+
+  .mobile-sheet-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 58px;
+    margin: 0 -16px 14px;
+    padding: 10px 14px;
+    border-bottom: 1px solid #21465a;
+    background: rgba(4, 20, 30, .98);
+  }
+
+  .mobile-sheet-header > div {
+    display: grid;
+    gap: 3px;
+  }
+
+  .mobile-sheet-header span {
+    color: #67d9ee;
+    font-size: 7px;
+    font-weight: 900;
+    letter-spacing: .12em;
+  }
+
+  .mobile-sheet-header strong {
+    color: #e4f5f9;
+    font-size: 10px;
+  }
+
+  .mobile-sheet-header button {
+    min-width: 56px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border: 1px solid #35687c;
+    border-radius: 9px;
+    color: #c8eaf1;
+    background: #0a2b3a;
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 800;
+  }
+
+  .profile-panel.panel-placeholder {
+    align-content: start;
+    justify-items: stretch;
+    color: #87a8b8;
+  }
+
+  .profile-panel.panel-placeholder > span {
+    display: block;
+    padding: 20px 0 28px;
+    text-align: center;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray {
+    border-color: #b8d0d9;
+    background: rgba(249, 252, 253, .96);
+    box-shadow: 0 14px 30px rgba(35, 72, 90, .16);
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray button {
+    border-color: #c4d6de;
+    color: #4f7282;
+    background: #f7fafb;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray button:hover:not(:disabled),
+  :root[data-theme="light"] .mobile-explore-tray button[aria-pressed="true"] {
+    border-color: #3aa6bd;
+    background: #eaf7fa;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray span {
+    color: #5e8191;
+  }
+
+  :root[data-theme="light"] .mobile-explore-tray strong {
+    color: #173849;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-backdrop {
+    background: rgba(30, 55, 68, .24);
+  }
+
+  :root[data-theme="light"] .control-panel,
+  :root[data-theme="light"] .profile-panel {
+    border-color: #bad1da !important;
+    background: rgba(249, 252, 253, .99) !important;
+    box-shadow: 0 -18px 40px rgba(30, 65, 82, .18) !important;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header {
+    border-bottom-color: #c7d9e0;
+    background: rgba(249, 252, 253, .99);
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header span {
+    color: #147e9b;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header strong {
+    color: #173849;
+  }
+
+  :root[data-theme="light"] .mobile-sheet-header button {
+    border-color: #adcbd5;
+    color: #1a6076;
+    background: #edf8fa;
+  }
+}
+
+@media (max-width: 420px) {
+  .mobile-explore-tray {
+    right: 6px;
+    bottom: 38px;
+    left: 6px;
+    padding: 6px;
+  }
+
+  .mobile-explore-tray button {
+    min-width: 86px;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 1 camera ergonomics.
+   Keep geographic navigation explicit so judges never need tedious camera dragging. */
+.camera-control-stack {
+  min-width: 214px;
+  gap: 7px;
+  padding: 9px 10px;
+}
+
+.camera-control-stack > .camera-zoom-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.camera-control-stack > .camera-preset-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.camera-control-stack .camera-zoom-row button {
+  width: auto;
+  min-width: 0;
+  height: 40px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.camera-control-stack .camera-preset-button,
+.camera-control-stack .camera-observation-button {
+  width: 100%;
+  height: auto;
+  min-height: 44px;
+  place-items: start;
+  align-content: center;
+  gap: 2px;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.camera-control-stack .camera-preset-button span,
+.camera-control-stack .camera-observation-button span {
+  color: #61d4e9;
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: .12em;
+}
+
+.camera-control-stack .camera-preset-button strong,
+.camera-control-stack .camera-observation-button strong {
+  color: #dff7fc;
+  font-size: 8px;
+  line-height: 1.3;
+}
+
+.camera-control-stack .camera-observation-button {
+  border-color: rgba(235, 174, 71, .5);
+}
+
+.camera-control-stack .camera-observation-button span {
+  color: #f0b24c;
+}
+
+.camera-control-stack button:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+  transform: none;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-preset-button span {
+  color: #167f9b;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-observation-button span {
+  color: #a66a12;
+}
+
+:root[data-theme="light"] .camera-control-stack .camera-preset-button strong,
+:root[data-theme="light"] .camera-control-stack .camera-observation-button strong {
+  color: #214b5d;
+}
+
+@media (max-width: 760px) {
+  .cesium-smooth-zoom.camera-control-stack {
+    bottom: 112px;
+    min-width: 166px;
+  }
+
+  .camera-control-stack {
+    padding: 7px;
+  }
+
+  .camera-control-stack .camera-zoom-row button {
+    min-height: 44px;
+  }
+
+  .camera-control-stack .camera-preset-button {
+    min-height: 42px;
+    padding: 6px 7px;
+  }
+
+  .camera-control-stack .camera-observation-button {
+    display: none;
+  }
+
+  .camera-control-stack > small {
+    display: none;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 2 connected visualization stage.
+   Keep Cesium mounted so geographic camera context survives Water Column exploration. */
+.visualization-stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #01070c;
+}
+
+.visualization-layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: scale(.992);
+  transition:
+    opacity var(--ot-motion-emphasis) var(--ot-ease-standard),
+    transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+    visibility 0s linear var(--ot-motion-emphasis);
+}
+
+.visualization-layer.active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: scale(1);
+  transition:
+    opacity var(--ot-motion-emphasis) var(--ot-ease-standard),
+    transform var(--ot-motion-emphasis) var(--ot-ease-standard),
+    visibility 0s linear 0s;
+}
+
+.globe-visualization-layer {
+  z-index: 1;
+}
+
+.water-column-visualization-layer {
+  z-index: 2;
+  background: #01070c;
+}
+
+.visualization-stage .globe-shell {
+  inset: 0;
+}
+
+@media (max-width: 760px) {
+  .visualization-stage {
+    position: relative;
+    order: 1;
+    width: 100%;
+    height: 62vh;
+    min-height: 62vh;
+    flex: 0 0 62vh;
+  }
+
+  .visualization-stage .globe-shell {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    flex: none;
+    order: initial;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visualization-layer,
+  .visualization-layer.active {
+    transform: none;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 3 first-session geographic orientation. */
+.globe-intro-status,
+.study-region-entry {
+  position: absolute;
+  left: 50%;
+  z-index: 16;
+  transform: translateX(-50%);
+  border: 1px solid rgba(80, 199, 223, .58);
+  background: rgba(3, 18, 28, .92);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .32);
+  backdrop-filter: blur(14px);
+}
+
+.globe-intro-status {
+  bottom: 92px;
+  display: grid;
+  gap: 3px;
+  min-width: 230px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  pointer-events: none;
+  text-align: center;
+}
+
+.globe-intro-status span,
+.study-region-entry > span {
+  color: #65d9ed;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .13em;
+}
+
+.globe-intro-status strong {
+  color: #effcff;
+  font-size: 13px;
+}
+
+.globe-intro-status small {
+  color: #7da1b1;
+  font-size: 8px;
+}
+
+.study-region-entry {
+  bottom: 86px;
+  display: grid;
+  gap: 3px;
+  min-width: 260px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform var(--ot-motion-fast) var(--ot-ease-standard),
+    border-color var(--ot-motion-fast) var(--ot-ease-standard),
+    background-color var(--ot-motion-fast) var(--ot-ease-standard),
+    box-shadow var(--ot-motion-fast) var(--ot-ease-standard);
+}
+
+.study-region-entry:hover,
+.study-region-entry:focus-visible {
+  transform: translateX(-50%) translateY(-2px);
+  border-color: #7ae6f5;
+  background: rgba(7, 39, 53, .96);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .36), 0 0 0 1px rgba(102, 220, 239, .12);
+}
+
+.study-region-entry:focus-visible {
+  outline: 2px solid var(--ot-focus);
+  outline-offset: 2px;
+}
+
+.study-region-entry strong {
+  color: #f0fcff;
+  font-size: 11px;
+}
+
+.study-region-entry small {
+  color: #7f9fac;
+  font-size: 7px;
+  line-height: 1.4;
+}
+
+:root[data-theme="light"] .globe-intro-status,
+:root[data-theme="light"] .study-region-entry {
+  border-color: rgba(38, 148, 176, .48);
+  background: rgba(249, 253, 254, .96);
+  box-shadow: 0 16px 34px rgba(32, 72, 91, .16);
+}
+
+:root[data-theme="light"] .globe-intro-status span,
+:root[data-theme="light"] .study-region-entry > span {
+  color: #147f9b;
+}
+
+:root[data-theme="light"] .globe-intro-status strong,
+:root[data-theme="light"] .study-region-entry strong {
+  color: #173849;
+}
+
+:root[data-theme="light"] .globe-intro-status small,
+:root[data-theme="light"] .study-region-entry small {
+  color: #5e7c8a;
+}
+
+:root[data-theme="light"] .study-region-entry:hover,
+:root[data-theme="light"] .study-region-entry:focus-visible {
+  border-color: #299db9;
+  background: rgba(238, 249, 251, .98);
+}
+
+@media (max-width: 760px) {
+  .globe-intro-status,
+  .study-region-entry {
+    right: 12px;
+    left: 12px;
+    width: auto;
+    min-width: 0;
+    transform: none;
+  }
+
+  .globe-intro-status {
+    bottom: 184px;
+  }
+
+  .study-region-entry {
+    bottom: 176px;
+    min-height: 48px;
+  }
+
+  .study-region-entry:hover,
+  .study-region-entry:focus-visible {
+    transform: translateY(-1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .study-region-entry,
+  .study-region-entry:hover,
+  .study-region-entry:focus-visible {
+    transform: translateX(-50%);
+  }
+
+  @media (max-width: 760px) {
+    .study-region-entry,
+    .study-region-entry:hover,
+    .study-region-entry:focus-visible {
+      transform: none;
+    }
+  }
+}
+
+
+/* Final MVP major redesign — Phase 4 progressive disclosure and contextual inspector. */
+.advanced-control-group {
+  margin-top: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(49, 96, 117, .58);
+  border-radius: 10px;
+  background: rgba(5, 24, 35, .58);
+}
+
+.advanced-control-group > summary {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  min-height: 44px;
+  padding: 9px 34px 9px 10px;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.advanced-control-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-control-group > summary::after {
+  content: "+";
+  position: absolute;
+  top: 50%;
+  right: 11px;
+  transform: translateY(-50%);
+  color: #61d3e8;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.advanced-control-group[open] > summary::after {
+  content: "−";
+}
+
+.advanced-control-group > summary span {
+  color: #ccecf3;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+.advanced-control-group > summary small {
+  color: #6d91a1;
+  font-size: 7px;
+  line-height: 1.35;
+}
+
+.advanced-control-group > summary:hover,
+.advanced-control-group > summary:focus-visible {
+  background: rgba(14, 53, 69, .65);
+}
+
+.advanced-control-group > summary:focus-visible {
+  outline: 2px solid var(--ot-focus);
+  outline-offset: -2px;
+}
+
+.advanced-control-body {
+  padding: 10px;
+  border-top: 1px solid rgba(49, 96, 117, .48);
+}
+
+.advanced-control-body .visualization-kicker {
+  margin-top: 0;
+}
+
+.desktop-profile-close {
+  position: absolute;
+  top: 9px;
+  right: 9px;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid #315d70;
+  border-radius: 8px;
+  color: #a8d2dc;
+  background: rgba(6, 31, 43, .92);
+  cursor: pointer;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.desktop-profile-close:hover,
+.desktop-profile-close:focus-visible {
+  border-color: #61d6eb;
+  color: #effcff;
+  background: #0c394c;
+}
+
+.desktop-profile-close:focus-visible {
+  outline: 2px solid var(--ot-focus);
+  outline-offset: 2px;
+}
+
+@media (min-width: 761px) {
+  .profile-panel[data-context-open="false"] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(24px);
+    transition:
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      transform var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear var(--ot-motion-standard);
+  }
+
+  .profile-panel[data-context-open="true"] {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+    transition:
+      opacity var(--ot-motion-standard) var(--ot-ease-standard),
+      transform var(--ot-motion-standard) var(--ot-ease-standard),
+      visibility 0s linear 0s;
+  }
+}
+
+:root[data-theme="light"] .advanced-control-group {
+  border-color: #c6d9e1;
+  background: rgba(247, 251, 252, .86);
+}
+
+:root[data-theme="light"] .advanced-control-group > summary span {
+  color: #214c5f;
+}
+
+:root[data-theme="light"] .advanced-control-group > summary small {
+  color: #627f8d;
+}
+
+:root[data-theme="light"] .advanced-control-group > summary:hover,
+:root[data-theme="light"] .advanced-control-group > summary:focus-visible {
+  background: #edf7f9;
+}
+
+:root[data-theme="light"] .advanced-control-body {
+  border-top-color: #cfdee4;
+}
+
+:root[data-theme="light"] .desktop-profile-close {
+  border-color: #bfd4dc;
+  color: #426b7c;
+  background: rgba(249, 252, 253, .96);
+}
+
+@media (max-width: 760px) {
+  .desktop-profile-close {
+    display: none;
+  }
+
+  .advanced-control-group {
+    margin-top: 14px;
+  }
+
+  .advanced-control-group > summary {
+    min-height: 48px;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 5 desktop readability and hierarchy.
+   Additive typography normalization only; no scientific or renderer geometry changes. */
+@media (min-width: 761px) {
+  .control-panel {
+    padding-top: 18px;
+  }
+
+  .control-panel .section-kicker {
+    font-size: 10px;
+    letter-spacing: .13em;
+  }
+
+  .variable-switcher button {
+    min-height: 46px;
+    font-size: 10px;
+  }
+
+  .variable-switcher button small {
+    font-size: 8px;
+  }
+
+  .active-range,
+  .microcopy,
+  .source-card > span,
+  .source-card small,
+  .time-row span {
+    font-size: 10px;
+  }
+
+  .label-row strong,
+  .time-row strong,
+  .source-card > strong {
+    font-size: 12px;
+  }
+
+  .advanced-control-group > summary span {
+    font-size: 10px;
+  }
+
+  .advanced-control-group > summary small {
+    font-size: 8px;
+  }
+
+  .active-3d-mode-card strong {
+    font-size: 11px;
+  }
+
+  .active-3d-mode-card span,
+  .active-3d-mode-card small {
+    font-size: 9px;
+  }
+
+  .visualization-dock-copy > span {
+    font-size: 8px;
+  }
+
+  .visualization-dock-copy > strong {
+    font-size: 12px;
+  }
+
+  .visualization-dock-copy > small {
+    font-size: 8px;
+  }
+
+  .mode-label strong {
+    font-size: 11px;
+  }
+
+  .mode-label small {
+    font-size: 8px;
+  }
+
+  .visualization-context-row span {
+    font-size: 7px;
+    letter-spacing: .11em;
+  }
+
+  .visualization-context-row strong {
+    font-size: 9px;
+  }
+
+  .judge-summary {
+    gap: 5px;
+    padding: 10px 12px;
+  }
+
+  .judge-summary > div strong {
+    font-size: 10px;
+  }
+
+  .judge-summary > span,
+  .judge-summary > small,
+  .render-quality-line {
+    font-size: 9px !important;
+  }
+
+  .inspection-title strong {
+    font-size: 11px;
+  }
+
+  .inspection-card > span,
+  .inspection-card small,
+  .inspection-grid,
+  .legend-values,
+  .interaction-hint,
+  .depth-indicator,
+  .volume-note {
+    font-size: 9px;
+  }
+
+  .legend-card {
+    font-size: 10px;
+  }
+
+  .camera-control-stack > span {
+    font-size: 8px;
+  }
+
+  .camera-control-stack .camera-preset-button span,
+  .camera-control-stack .camera-observation-button span {
+    font-size: 7px;
+  }
+
+  .camera-control-stack .camera-preset-button strong,
+  .camera-control-stack .camera-observation-button strong,
+  .camera-control-stack > small {
+    font-size: 9px;
+  }
+
+  .study-region-entry > span,
+  .globe-intro-status span {
+    font-size: 8px;
+  }
+
+  .study-region-entry strong {
+    font-size: 12px;
+  }
+
+  .study-region-entry small,
+  .globe-intro-status small {
+    font-size: 9px;
+  }
+
+  .metric-grid span,
+  .observation-meta span {
+    font-size: 9px;
+  }
+
+  .chart-title-row,
+  .observation-meta strong,
+  .diagnostic-note {
+    font-size: 10px;
+  }
+
+  .science-footer {
+    font-size: 9px;
+  }
+
+  .feature-rail .rail-title,
+  .feature-rail button span {
+    font-size: 8px;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 6 mobile spatial separation.
+   Keep the fixed quick tray, camera stack and region-entry CTA from competing. */
+@media (max-width: 760px) {
+  .mobile-explore-tray {
+    min-height: 62px;
+  }
+
+  .mobile-explore-tray span {
+    font-size: 8px;
+  }
+
+  .mobile-explore-tray strong {
+    font-size: 10px;
+  }
+
+  .cesium-smooth-zoom.camera-control-stack {
+    right: auto;
+    bottom: 112px;
+    left: 12px;
+    width: 166px;
+    min-width: 166px;
+    padding: 7px;
+  }
+
+  .camera-control-stack > span {
+    font-size: 7px;
+  }
+
+  .camera-control-stack .camera-preset-button span {
+    font-size: 6px;
+  }
+
+  .camera-control-stack .camera-preset-button strong {
+    font-size: 8px;
+  }
+
+  .study-region-entry,
+  .globe-intro-status {
+    right: 12px;
+    bottom: 244px;
+    left: 12px;
+    z-index: 17;
+  }
+
+  .study-region-entry {
+    min-height: 56px;
+  }
+
+  .study-region-entry strong {
+    font-size: 11px;
+  }
+
+  .study-region-entry small,
+  .globe-intro-status small {
+    font-size: 8px;
+  }
+
+  .interaction-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .cesium-smooth-zoom.camera-control-stack {
+    left: 8px;
+    width: 154px;
+    min-width: 154px;
+  }
+
+  .study-region-entry,
+  .globe-intro-status {
+    right: 8px;
+    bottom: 232px;
+    left: 8px;
+  }
+
+  .study-region-entry > span {
+    font-size: 7px;
+  }
+
+  .study-region-entry strong {
+    font-size: 10px;
+  }
+}
+
+
+/* Final MVP major redesign — Phase 7 navigation hierarchy. */
+.rail-group {
+  display: contents;
+}
+
+.rail-group-label {
+  margin: 6px 0 -1px;
+  color: #466f84;
+  font-size: 6px;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-align: center;
+}
+
+.rail-group:first-of-type .rail-group-label {
+  margin-top: 2px;
+}
+
+:root[data-theme="light"] .rail-group-label {
+  color: #668493;
+}
+
+@media (max-width: 760px) {
+  .rail-group-label {
+    display: none;
+  }
+
+  .feature-rail-left .rail-title {
+    display: none;
+  }
+}

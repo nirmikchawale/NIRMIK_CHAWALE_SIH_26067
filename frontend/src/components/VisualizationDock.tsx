@@ -54,7 +54,7 @@ export function VisualizationDock({
     >
       <div className="visualization-dock-copy">
         <span>DUAL 3D VISUALIZATION</span>
-        <strong>Choose geographic or water-column context</strong>
+        <strong>Move from ocean geography into the verified water column</strong>
         <small>{variableLabel} · {depthM.toFixed(2)} m · depth positive down</small>
       </div>
 
@@ -65,11 +65,11 @@ export function VisualizationDock({
           aria-pressed={mode === "globe"}
           onClick={() => onChange("globe")}
         >
-          <span className="mode-number">MODE 1</span>
+          <span className="mode-number">VIEW 1</span>
           <span className="mode-icon"><GlobeIcon /></span>
           <span className="mode-label">
-            <strong>Cesium Globe</strong>
-            <small>geospatial context · depth-aware field</small>
+            <strong>Geographic View</strong>
+            <small>Earth + study-region context</small>
           </span>
         </button>
         <button
@@ -80,10 +80,10 @@ export function VisualizationDock({
           title={scalarAvailable ? "Open scientific water-column 3D" : "Water-column 3D requires a scalar field"}
           onClick={() => onChange("water-column")}
         >
-          <span className="mode-number">MODE 2</span>
+          <span className="mode-number">VIEW 2</span>
           <span className="mode-icon"><ColumnIcon /></span>
           <span className="mode-label">
-            <strong>Water-Column 3D</strong>
+            <strong>Water Column 3D</strong>
             <small>{scalarAvailable ? "actual lon · lat · positive-down depth" : "scalar fields only"}</small>
           </span>
         </button>
