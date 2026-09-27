@@ -1,4 +1,6 @@
-import { useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { api } from "../api";
+import type { ConnectorRegistryResponse } from "../types";
 
 const REQUIRED_FIELDS = [
   "longitude",
@@ -155,7 +157,7 @@ function canonicalizeRecord(record: Record<string, unknown>): Record<string, unk
   return normalized;
 }
 
-function parseCsv(text: string): Array<Record<string, unknown>> {
+function parseDelimited(text: string, delimiter = ","): Array<Record<string, unknown>> {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -178,9 +180,9 @@ function parseCsv(text: string): Array<Record<string, unknown>> {
     }
 
     if (char === '"') {
-      if (field.length !== 0) throw new Error("Malformed CSV: quote begins inside an unquoted field.");
+      if (field.length !== 0) throw new Error("Malformed delimited text: quote begins inside an unquoted field.");
       quoted = true;
-    } else if (char === ",") {
+    } else if (char === delimiter) {
       row.push(field);
       field = "";
     } else if (char === "\n") {
@@ -193,21 +195,21 @@ function parseCsv(text: string): Array<Record<string, unknown>> {
     }
   }
 
-  if (quoted) throw new Error("Malformed CSV: quoted field is not closed.");
+  if (quoted) throw new Error("Malformed delimited text: quoted field is not closed.");
   if (field.length > 0 || row.length > 0) {
     row.push(field);
     rows.push(row);
   }
 
   const nonBlank = rows.filter((item) => item.some((cell) => cell.trim() !== ""));
-  if (nonBlank.length < 2) throw new Error("CSV must include a header and at least one data row.");
+  if (nonBlank.length < 2) throw new Error("Delimited text must include a header and at least one data row.");
 
   const headers = nonBlank[0].map((cell, index) => {
     const clean = cell.replace(/^\uFEFF/, "").trim().toLowerCase();
-    if (!clean) throw new Error(`CSV header ${index + 1} is empty.`);
+    if (!clean) throw new Error(`Delimited-text header ${index + 1} is empty.`);
     return clean;
   });
-  if (new Set(headers).size !== headers.length) throw new Error("CSV contains duplicate column names.");
+  if (new Set(headers).size !== headers.length) throw new Error("Delimited text contains duplicate column names.");
 
   return nonBlank.slice(1).map((cells) => {
     const record: Record<string, unknown> = {};
@@ -526,6 +528,22 @@ export function DataLabPage() {
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [processingError, setProcessingError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [connectorRegistry, setConnectorRegistry] = useState<ConnectorRegistryResponse | null>(null);
+  const [connectorError, setConnectorError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    api.connectors()
+      .then((payload) => {
+        if (!cancelled) setConnectorRegistry(payload);
+      })
+      .catch((reason: Error) => {
+        if (!cancelled) setConnectorError(reason.message);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const errorIssues = useMemo(
     () => result?.issues.filter((issue) => issue.severity === "error") ?? [],
@@ -555,14 +573,20 @@ export function DataLabPage() {
       }
 
       const extension = file.name.toLowerCase().split(".").pop();
-      if (extension !== "csv" && extension !== "json") {
-        throw new Error("Unsupported file type. Use .csv or .json.");
+      if (!extension || !["csv", "tsv", "txt", "asc", "json"].includes(extension)) {
+        throw new Error("Unsupported file type. Use CSV, TSV/ASCII text, or JSON.");
       }
 
       const text = await file.text();
       if (!text.trim()) throw new Error("File is empty.");
-      const records = extension === "csv" ? parseCsv(text) : parseJson(text);
-      setResult(validateRecords(file.name, extension, records));
+      const format = extension === "json" ? "json" : "csv";
+      const delimiter =
+        extension === "tsv" ? "\t"
+          : extension === "txt" || extension === "asc"
+            ? (text.includes("\t") ? "\t" : text.includes(";") ? ";" : ",")
+            : ",";
+      const records = extension === "json" ? parseJson(text) : parseDelimited(text, delimiter);
+      setResult(validateRecords(file.name, format, records));
     } catch (reason) {
       setProcessingError(reason instanceof Error ? reason.message : String(reason));
     } finally {
@@ -649,23 +673,95 @@ export function DataLabPage() {
         </div>
       </section>
 
+      <section className="interoperability-panel" aria-labelledby="interoperability-title">
+        <div className="data-source-heading">
+          <div>
+            <div className="section-kicker">OPEN-STANDARDS INTEROPERABILITY</div>
+            <h3 id="interoperability-title">Registered source & protocol adapters</h3>
+            <p>
+              OceanTwin uses a discoverable adapter registry. Remote sources remain optional and fail closed;
+              the bundled verified evidence is never silently replaced when a network service is unavailable.
+            </p>
+          </div>
+          <span className="registry-status">
+            {connectorRegistry
+              ? connectorRegistry.connectors.length + " connectors"
+              : connectorError
+                ? "Registry unavailable"
+                : "Loading registry…"}
+          </span>
+        </div>
+        {connectorError && (
+          <div className="data-lab-processing-error">
+            <strong>Connector registry unavailable</strong>
+            <span>{connectorError}</span>
+          </div>
+        )}
+        {connectorRegistry && (
+          <>
+            <div className="connector-grid">
+              {connectorRegistry.connectors.map((connector) => (
+                <article className="connector-card" key={connector.id} data-runtime={connector.runtime}>
+                  <div className="connector-card-heading">
+                    <div>
+                      <span>{connector.provider}</span>
+                      <strong>{connector.title}</strong>
+                    </div>
+                    <code>{connector.adapter}</code>
+                  </div>
+                  <p>{connector.role}</p>
+                  <div className="connector-badges">
+                    {connector.protocols.map((protocol) => <span key={protocol}>{protocol}</span>)}
+                  </div>
+                  <div className="connector-badges standards">
+                    {connector.standards.map((standard) => <span key={standard}>{standard}</span>)}
+                  </div>
+                  <small>{connector.variables.join(" · ")}</small>
+                  <div className="connector-links">
+                    <a href={connector.source_url} target="_blank" rel="noreferrer">Provider metadata ↗</a>
+                    {connector.opendap_url && <a href={connector.opendap_url} target="_blank" rel="noreferrer">OPeNDAP ↗</a>}
+                    {connector.wms_url && <a href={connector.wms_url} target="_blank" rel="noreferrer">WMS ↗</a>}
+                    {connector.wcs_url && <a href={connector.wcs_url} target="_blank" rel="noreferrer">WCS ↗</a>}
+                  </div>
+                  {(connector.time_count || connector.depth_count) && (
+                    <div className="connector-dimensions">
+                      {connector.time_count && <span>{connector.time_count} times</span>}
+                      {connector.depth_count && <span>{connector.depth_count} depths</span>}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="plugin-contract-grid">
+              {Object.entries(connectorRegistry.plugin_contracts).map(([name, contract]) => (
+                <article key={name}>
+                  <code>{name}</code>
+                  <strong>{contract.output}</strong>
+                  <span>Input: {contract.input.join(", ")}</span>
+                </article>
+              ))}
+            </div>
+            <p className="interoperability-principle">{connectorRegistry.principle}</p>
+          </>
+        )}
+      </section>
       <section className="data-lab-grid">
         <article className="data-lab-upload-card">
           <div className="data-lab-card-heading">
             <div>
               <span>1 · LOAD</span>
-              <h3>CSV / JSON validator</h3>
+              <h3>CSV / TSV / ASCII / JSON validator</h3>
             </div>
             <button type="button" onClick={downloadSchema}>Download schema CSV</button>
           </div>
           <label className="data-lab-file-picker">
             <strong>{processing ? "Reading file…" : "Choose an ocean dataset"}</strong>
-            <span>CSV or JSON · max 5 MB · max 100,000 records</span>
+            <span>CSV, TSV/ASCII or JSON · max 5 MB · max 100,000 records</span>
             <input
               ref={inputRef}
               aria-label="Ocean dataset file"
               type="file"
-              accept=".csv,.json,text/csv,application/json"
+              accept=".csv,.tsv,.txt,.asc,.json,text/csv,text/tab-separated-values,text/plain,application/json"
               disabled={processing}
               onChange={handleFile}
             />

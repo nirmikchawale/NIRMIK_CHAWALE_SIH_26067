@@ -317,3 +317,38 @@ export interface AnomalyResponse {
   };
   interpretation: string;
 }
+
+
+export interface ConnectorSpec {
+  id: string;
+  adapter: string;
+  kind: string;
+  provider: string;
+  title: string;
+  role: string;
+  variables: string[];
+  protocols: string[];
+  standards: string[];
+  runtime: string;
+  official: boolean;
+  dataset_id?: string;
+  source_url: string;
+  opendap_url?: string | null;
+  wms_url?: string | null;
+  wcs_url?: string | null;
+  time_count?: number;
+  depth_count?: number;
+}
+
+export interface ConnectorRegistryResponse {
+  schema: string;
+  plugin_contracts: Record<string, {
+    input: string[];
+    required_coordinates?: string[];
+    optional_coordinates?: string[];
+    required_metadata?: string[];
+    output: string;
+  }>;
+  connectors: ConnectorSpec[];
+  principle: string;
+}
