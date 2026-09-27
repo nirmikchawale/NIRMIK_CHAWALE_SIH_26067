@@ -467,7 +467,7 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
   await page.getByRole("button", { name: "High-res auto" }).click();
 
-  await page.getByRole("button", { name: /Water Column 3D/ }).click();
+  await page.getByRole("button", { name: "Water Column 3D", exact: true }).click();
   const waterColumnShell = page.locator(".water-column-shell");
   await expect(waterColumnShell).toBeVisible();
   const initialZoom = Number(await waterColumnShell.getAttribute("data-zoom"));
