@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, fetchIncoisChlorophyll, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
+import { AnalysisSplitPanel } from "./components/AnalysisSplitPanel";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
 import { ControlPanel } from "./components/ControlPanel";
@@ -51,6 +52,7 @@ import type {
 
 type ThemeMode = "dark" | "light";
 type MobileSheet = "none" | "controls" | "observation";
+type WorkspaceMode = "explorer" | "analysis" | "presentation";
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
 
@@ -77,6 +79,7 @@ export default function App() {
   const [provenance, setProvenance] = useState<ProvenanceResponse | null>(null);
   const [provenanceOpen, setProvenanceOpen] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>("explorer");
   const [controlDockOpen, setControlDockOpen] = useState(true);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -167,6 +170,7 @@ export default function App() {
         setMobileSheet("none");
         setProfilePanelOpen(false);
         setEvidenceOpen(false);
+        setWorkspaceMode("explorer");
       }
     };
     window.addEventListener("hashchange", syncRoute);
@@ -186,6 +190,7 @@ export default function App() {
       setMobileSheet("none");
       setProfilePanelOpen(false);
       setEvidenceOpen(false);
+      setWorkspaceMode("explorer");
     }
   }, []);
 
@@ -606,6 +611,25 @@ export default function App() {
     setVisualizationMode("water-column");
   }, [sourceMode]);
 
+  const handleWorkspaceModeChange = useCallback((nextMode: WorkspaceMode) => {
+    setWorkspaceMode(nextMode);
+    setFocusMode(false);
+    setEvidenceOpen(false);
+    setProfilePanelOpen(false);
+    setMobileSheet("none");
+
+    if (nextMode === "explorer") {
+      setControlDockOpen(true);
+    } else {
+      setControlDockOpen(false);
+    }
+
+    if (nextMode === "presentation") {
+      setGuideOpen(false);
+      setVisualizationMode("globe");
+    }
+  }, []);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
@@ -649,6 +673,7 @@ export default function App() {
       data-theme={theme}
       data-page={page}
       data-explore-source={sourceMode}
+      data-workspace-mode={workspaceMode}
       data-control-dock={controlDockOpen ? "open" : "closed"}
       data-evidence-inspector={evidenceOpen ? "open" : "closed"}
     >
@@ -662,6 +687,37 @@ export default function App() {
         </div>
         <div className="header-status">
           <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
+          {page === "explore" && (
+            <div className="workspace-mode-switcher" role="group" aria-label="Explorer workspace mode">
+              <button
+                type="button"
+                className={workspaceMode === "explorer" ? "active" : ""}
+                aria-pressed={workspaceMode === "explorer"}
+                aria-label="Explorer workspace"
+                onClick={() => handleWorkspaceModeChange("explorer")}
+              >
+                Explorer
+              </button>
+              <button
+                type="button"
+                className={workspaceMode === "analysis" ? "active" : ""}
+                aria-pressed={workspaceMode === "analysis"}
+                aria-label="Analysis Split workspace"
+                onClick={() => handleWorkspaceModeChange("analysis")}
+              >
+                Analysis Split
+              </button>
+              <button
+                type="button"
+                className={workspaceMode === "presentation" ? "active" : ""}
+                aria-pressed={workspaceMode === "presentation"}
+                aria-label="Presentation workspace"
+                onClick={() => handleWorkspaceModeChange("presentation")}
+              >
+                Presentation
+              </button>
+            </div>
+          )}
           <div>
             <span>{page === "explore" ? "ACTIVE FIELD" : "PAGE"}</span>
             <strong>{page === "explore" ? (selectedVariable?.label ?? variable) : currentPage.label}</strong>
@@ -738,6 +794,7 @@ export default function App() {
         <div className="workspace">
           {guideOpen && <PresentationGuide onClose={() => setGuideOpen(false)} onStep={(step) => {
             setFocusMode(false);
+            setWorkspaceMode("explorer");
             setProfilePanelOpen(false);
             setMobileSheet("none");
             if (step === 0 || step === 1) {
@@ -749,6 +806,17 @@ export default function App() {
           }} />}
           {page === "explore" ? (
             <>
+              {workspaceMode === "presentation" && (
+                <button
+                  type="button"
+                  className="presentation-mode-exit"
+                  aria-label="Exit presentation workspace"
+                  onClick={() => handleWorkspaceModeChange("explorer")}
+                >
+                  Exit presentation
+                </button>
+              )}
+
               <EvidenceRail
                 catalog={activeExploreCatalog}
                 variable={selectedVariable}
@@ -881,6 +949,7 @@ export default function App() {
                     colorScale={colorScale}
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
+                    presentationActive={workspaceMode === "presentation"}
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
@@ -906,6 +975,14 @@ export default function App() {
                   />
                 </div>
               </div>
+
+              <AnalysisSplitPanel
+                catalog={activeExploreCatalog}
+                variable={selectedVariable}
+                depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
+                time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
+                detail={sourceMode === "glorys" ? profileDetail : null}
+              />
 
               {selectedImportedProfile ? (
                 <ImportedObservationPanel

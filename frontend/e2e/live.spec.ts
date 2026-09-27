@@ -504,3 +504,41 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
+test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const appShell = page.locator(".app-shell");
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(page.getByRole("button", { name: "Explorer workspace" })).toHaveAttribute("aria-pressed", "true");
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
+  await expect(page.locator(".analysis-split-panel")).toBeVisible();
+  await expect(page.locator(".analysis-split-panel")).toContainText("Analysis Split");
+  await expect(page.locator(".cesium-host canvas")).toBeVisible();
+
+  await page.getByRole("button", { name: "Explorer workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(appShell).toHaveAttribute("data-control-dock", "open");
+
+  await page.getByRole("button", { name: "Presentation workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "presentation");
+  await expect(page.locator(".app-header")).toBeHidden();
+  await expect(page.locator(".globe-shell").first()).toHaveAttribute("data-presentation-active", "true");
+  await expect(page.getByRole("button", { name: "Exit presentation workspace" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Exit presentation workspace" }).click();
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
+  await expect(page.locator(".app-header")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
