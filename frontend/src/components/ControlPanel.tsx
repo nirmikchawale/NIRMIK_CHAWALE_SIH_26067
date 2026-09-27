@@ -3,9 +3,10 @@ import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, V
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
-  sourceMode: "glorys" | "incois";
+  sourceMode: "glorys" | "incois" | "chlorophyll";
   operationalAvailable: boolean;
-  variable: "thetao" | "so" | "currents";
+  chlorophyllAvailable: boolean;
+  variable: "thetao" | "so" | "currents" | "chlorophyll";
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
   waterColumnOpacity: number;
@@ -22,8 +23,8 @@ interface Props {
   isoValue: number;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onSourceModeChange: (value: "glorys" | "incois") => void;
-  onVariableChange: (value: "thetao" | "so" | "currents") => void;
+  onSourceModeChange: (value: "glorys" | "incois" | "chlorophyll") => void;
+  onVariableChange: (value: "thetao" | "so" | "currents" | "chlorophyll") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
   onDepthChange: (value: number) => void;
@@ -44,6 +45,7 @@ export function ControlPanel({
   profiles,
   sourceMode,
   operationalAvailable,
+  chlorophyllAvailable,
   variable,
   viewMode,
   visualizationMode,
@@ -80,6 +82,7 @@ export function ControlPanel({
   const depth = catalog.coordinates.depth[depthIndex] ?? 0;
   const time = catalog.coordinates.time[timeIndex] ?? "Unavailable";
   const scalar = variable !== "currents";
+  const surfaceOnly = catalog.capabilities.surface_only === true;
 
   return (
     <aside
@@ -116,11 +119,22 @@ export function ControlPanel({
           >
             INCOIS multi-time
           </button>
+          <button
+            type="button"
+            className={sourceMode === "chlorophyll" ? "active" : ""}
+            aria-pressed={sourceMode === "chlorophyll"}
+            disabled={!chlorophyllAvailable}
+            onClick={() => onSourceModeChange("chlorophyll")}
+          >
+            INCOIS chlorophyll
+          </button>
         </div>
         <p className="microcopy">
           {sourceMode === "incois"
             ? "Build-verified INCOIS analysis · genuine timestamps and depths · source values unchanged."
-            : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
+            : sourceMode === "chlorophyll"
+              ? "Build-verified INCOIS satellite ocean colour · genuine surface chlorophyll timestamps · no depth axis is inferred."
+              : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
         </p>
       </section>
 
@@ -132,7 +146,7 @@ export function ControlPanel({
               key={item.id}
               className={variable === item.id ? "active" : ""}
               aria-pressed={variable === item.id}
-              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents")}
+              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
             >
               <span>{item.label}</span>
               <small>{item.units}</small>
@@ -169,7 +183,7 @@ export function ControlPanel({
               <small>Switch views from the persistent visualization dock.</small>
             </div>
 
-            {visualizationMode === "globe" && (
+            {visualizationMode === "globe" && !surfaceOnly && (
               <div className="segmented field-mode-selector" aria-label="Globe field mode">
                 <button
                   className={viewMode === "slice" ? "active" : ""}
@@ -204,19 +218,21 @@ export function ControlPanel({
               </label>
             )}
 
-            <label>
-              <span className="label-row">
-                <span>Visual vertical exaggeration</span>
-                <strong>{verticalExaggeration}×</strong>
-              </span>
-              <input
-                type="range"
-                min={1}
-                max={100}
-                value={verticalExaggeration}
-                onChange={(event) => onVerticalExaggerationChange(Number(event.target.value))}
-              />
-            </label>
+            {!surfaceOnly && (
+              <label>
+                <span className="label-row">
+                  <span>Visual vertical exaggeration</span>
+                  <strong>{verticalExaggeration}×</strong>
+                </span>
+                <input
+                  type="range"
+                  min={1}
+                  max={100}
+                  value={verticalExaggeration}
+                  onChange={(event) => onVerticalExaggerationChange(Number(event.target.value))}
+                />
+              </label>
+            )}
 
             <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
                 <div className="section-kicker visualization-kicker">Colorbar</div>
@@ -267,7 +283,7 @@ export function ControlPanel({
                     Log
                   </button>
                 </div>
-                {scalar && <label className="iso-toggle">
+                {scalar && !surfaceOnly && <label className="iso-toggle">
                   <span className="label-row">
                     <span>Isosurface</span>
                     <input
@@ -277,7 +293,7 @@ export function ControlPanel({
                     />
                   </span>
                 </label>}
-                {scalar && isoSurfaceEnabled && (
+                {scalar && !surfaceOnly && isoSurfaceEnabled && (
                   <label>
                     <span className="label-row">
                       <span>Iso value</span>
@@ -298,11 +314,19 @@ export function ControlPanel({
                   </label>
                 )}
                 <p className="microcopy">
-                  Palette, range and scale affect rendering only. {scalar ? "Isosurface geometry is extracted from the genuine scalar water-column values." : "Current colour represents genuine horizontal speed magnitude."}
+                  Palette, range and scale affect rendering only. {surfaceOnly
+                    ? "Surface chlorophyll remains a 2D satellite field; no water-column geometry is inferred."
+                    : scalar
+                      ? "Isosurface geometry is extracted from the genuine scalar water-column values."
+                      : "Current colour represents genuine horizontal speed magnitude."}
                 </p>
               </div>
 
-            {!scalar ? (
+            {surfaceOnly ? (
+              <p className="microcopy">
+                This INCOIS ocean-colour product is surface-only. Depth, vertical exaggeration and Water Column 3D are intentionally disabled.
+              </p>
+            ) : !scalar ? (
               <p className="microcopy">
                 Water-column currents show genuine horizontal u/v vectors at their model depths. No vertical current is inferred; vertical exaggeration changes display geometry only.
               </p>
@@ -318,21 +342,27 @@ export function ControlPanel({
 
       <section>
         <div className="section-kicker">Water column</div>
-        <label>
-          <span className="label-row">
-            <span>Depth</span>
-            <strong>{depth.toFixed(2)} m</strong>
-          </span>
-          <input
-            type="range"
-            aria-label="Model depth"
-            min={0}
-            max={catalog.coordinates.depth.length - 1}
-            value={depthIndex}
-            onChange={(event) => onDepthChange(Number(event.target.value))}
-          />
-        </label>
-
+        {surfaceOnly ? (
+          <div className="surface-only-control" aria-label="Surface-only scientific field">
+            <strong>Surface field only</strong>
+            <span>No model depth coordinate exists for this satellite chlorophyll product.</span>
+          </div>
+        ) : (
+          <label>
+            <span className="label-row">
+              <span>Depth</span>
+              <strong>{depth.toFixed(2)} m</strong>
+            </span>
+            <input
+              type="range"
+              aria-label="Model depth"
+              min={0}
+              max={catalog.coordinates.depth.length - 1}
+              value={depthIndex}
+              onChange={(event) => onDepthChange(Number(event.target.value))}
+            />
+          </label>
+        )}
       </section>
 
       <section>
@@ -394,7 +424,9 @@ export function ControlPanel({
         </label>
         <p className={`microcopy ${profiles.length === 0 ? "warning" : ""}`}>
           {profiles.length === 0
-            ? "Observation layer unavailable; verified model fields remain usable."
+            ? surfaceOnly
+              ? "Argo comparison is not applied to this separate satellite ocean-colour product."
+              : "Observation layer unavailable; verified model fields remain usable."
             : "Markers on the globe are also clickable."}
         </p>
       </section>
@@ -404,7 +436,7 @@ export function ControlPanel({
         <strong>{catalog.dataset.label}</strong>
         <span>{catalog.dataset.product}</span>
         <div className="badges">
-          <span className="badge">REANALYSIS</span>
+          <span className="badge">{surfaceOnly ? "SATELLITE OCEAN COLOUR" : "REANALYSIS"}</span>
           <span className="badge success">CACHED VERIFIED</span>
         </div>
         <small>{catalog.dataset.region}</small>
