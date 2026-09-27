@@ -565,3 +565,53 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin persistent colorbar supports direct manipulation", async ({ page }) => {
+  if (!liveUrl) {
+    throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+  }
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const hud = page.locator(".scientific-colorbar-hud");
+  const globeShell = page.locator(".globe-shell:not(.water-column-shell)");
+  await expect(hud).toBeVisible();
+  await expect(hud).toHaveAttribute("data-palette", "thermal");
+  await expect(hud).toHaveAttribute("data-scale", "linear");
+  await expect.poll(async () => Number(await hud.getAttribute("data-histogram-count"))).toBeGreaterThan(0);
+
+  const minimum = page.getByRole("slider", { name: "Colorbar minimum threshold" });
+  const maximum = page.getByRole("slider", { name: "Colorbar maximum threshold" });
+  await expect(minimum).toBeVisible();
+  await expect(maximum).toBeVisible();
+
+  const initialMinimum = await globeShell.getAttribute("data-color-min");
+  await minimum.focus();
+  await minimum.press("Home");
+  await minimum.press("ArrowRight");
+  await expect(globeShell).not.toHaveAttribute("data-color-min", initialMinimum ?? "");
+
+  const initialMaximum = await globeShell.getAttribute("data-color-max");
+  await maximum.focus();
+  await maximum.press("End");
+  await maximum.press("ArrowLeft");
+  await expect(globeShell).not.toHaveAttribute("data-color-max", initialMaximum ?? "");
+
+  await page.getByLabel("Persistent color palette").selectOption("viridis");
+  await expect(hud).toHaveAttribute("data-palette", "viridis");
+  await expect(globeShell).toHaveAttribute("data-color-palette", "viridis");
+
+  const logButton = page.getByRole("button", { name: "Log", exact: true });
+  if (await logButton.isEnabled()) {
+    await logButton.click();
+    await expect(hud).toHaveAttribute("data-scale", "log");
+    await expect(globeShell).toHaveAttribute("data-color-scale", "log");
+  }
+
+  expect(pageErrors).toEqual([]);
+});
+
