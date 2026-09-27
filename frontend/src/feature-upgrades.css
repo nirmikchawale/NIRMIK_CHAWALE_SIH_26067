@@ -2734,3 +2734,89 @@
     font-size: 8px;
   }
 }
+
+
+/* Final MVP major redesign — Phase 6 mobile spatial separation.
+   Keep the fixed quick tray, camera stack and region-entry CTA from competing. */
+@media (max-width: 760px) {
+  .mobile-explore-tray {
+    min-height: 62px;
+  }
+
+  .mobile-explore-tray span {
+    font-size: 8px;
+  }
+
+  .mobile-explore-tray strong {
+    font-size: 10px;
+  }
+
+  .cesium-smooth-zoom.camera-control-stack {
+    right: auto;
+    bottom: 112px;
+    left: 12px;
+    width: 166px;
+    min-width: 166px;
+    padding: 7px;
+  }
+
+  .camera-control-stack > span {
+    font-size: 7px;
+  }
+
+  .camera-control-stack .camera-preset-button span {
+    font-size: 6px;
+  }
+
+  .camera-control-stack .camera-preset-button strong {
+    font-size: 8px;
+  }
+
+  .study-region-entry,
+  .globe-intro-status {
+    right: 12px;
+    bottom: 244px;
+    left: 12px;
+    z-index: 17;
+  }
+
+  .study-region-entry {
+    min-height: 56px;
+  }
+
+  .study-region-entry strong {
+    font-size: 11px;
+  }
+
+  .study-region-entry small,
+  .globe-intro-status small {
+    font-size: 8px;
+  }
+
+  .interaction-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .cesium-smooth-zoom.camera-control-stack {
+    left: 8px;
+    width: 154px;
+    min-width: 154px;
+  }
+
+  .study-region-entry,
+  .globe-intro-status {
+    right: 8px;
+    bottom: 232px;
+    left: 8px;
+  }
+
+  .study-region-entry > span {
+    font-size: 7px;
+  }
+
+  .study-region-entry strong {
+    font-size: 10px;
+  }
+}
