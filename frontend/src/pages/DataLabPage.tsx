@@ -673,6 +673,78 @@ export function DataLabPage() {
         </div>
       </section>
 
+      <section className="interoperability-panel" aria-labelledby="interoperability-title">
+        <div className="data-source-heading">
+          <div>
+            <div className="section-kicker">OPEN-STANDARDS INTEROPERABILITY</div>
+            <h3 id="interoperability-title">Registered source & protocol adapters</h3>
+            <p>
+              OceanTwin uses a discoverable adapter registry. Remote sources remain optional and fail closed;
+              the bundled verified evidence is never silently replaced when a network service is unavailable.
+            </p>
+          </div>
+          <span className="registry-status">
+            {connectorRegistry
+              ? connectorRegistry.connectors.length + " connectors"
+              : connectorError
+                ? "Registry unavailable"
+                : "Loading registry…"}
+          </span>
+        </div>
+        {connectorError && (
+          <div className="data-lab-processing-error">
+            <strong>Connector registry unavailable</strong>
+            <span>{connectorError}</span>
+          </div>
+        )}
+        {connectorRegistry && (
+          <>
+            <div className="connector-grid">
+              {connectorRegistry.connectors.map((connector) => (
+                <article className="connector-card" key={connector.id} data-runtime={connector.runtime}>
+                  <div className="connector-card-heading">
+                    <div>
+                      <span>{connector.provider}</span>
+                      <strong>{connector.title}</strong>
+                    </div>
+                    <code>{connector.adapter}</code>
+                  </div>
+                  <p>{connector.role}</p>
+                  <div className="connector-badges">
+                    {connector.protocols.map((protocol) => <span key={protocol}>{protocol}</span>)}
+                  </div>
+                  <div className="connector-badges standards">
+                    {connector.standards.map((standard) => <span key={standard}>{standard}</span>)}
+                  </div>
+                  <small>{connector.variables.join(" · ")}</small>
+                  <div className="connector-links">
+                    <a href={connector.source_url} target="_blank" rel="noreferrer">Provider metadata ↗</a>
+                    {connector.opendap_url && <a href={connector.opendap_url} target="_blank" rel="noreferrer">OPeNDAP ↗</a>}
+                    {connector.wms_url && <a href={connector.wms_url} target="_blank" rel="noreferrer">WMS ↗</a>}
+                    {connector.wcs_url && <a href={connector.wcs_url} target="_blank" rel="noreferrer">WCS ↗</a>}
+                  </div>
+                  {(connector.time_count || connector.depth_count) && (
+                    <div className="connector-dimensions">
+                      {connector.time_count && <span>{connector.time_count} times</span>}
+                      {connector.depth_count && <span>{connector.depth_count} depths</span>}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="plugin-contract-grid">
+              {Object.entries(connectorRegistry.plugin_contracts).map(([name, contract]) => (
+                <article key={name}>
+                  <code>{name}</code>
+                  <strong>{contract.output}</strong>
+                  <span>Input: {contract.input.join(", ")}</span>
+                </article>
+              ))}
+            </div>
+            <p className="interoperability-principle">{connectorRegistry.principle}</p>
+          </>
+        )}
+      </section>
       <section className="data-lab-grid">
         <article className="data-lab-upload-card">
           <div className="data-lab-card-heading">
