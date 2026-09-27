@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { api, fetchVerifiedObservationPack } from "./api";
+import { api, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
 import { AppNavigation } from "./components/AppNavigation";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
@@ -18,6 +18,12 @@ import { ImportedObservationPanel } from "./components/ImportedObservationPanel"
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import {
+  buildIncoisExploreCatalog,
+  buildIncoisField,
+  buildIncoisVolume,
+  type ExploreSourceMode
+} from "./operationalExplore";
+import {
   IMPORTED_OBSERVATIONS_EVENT,
   groupImportedObservationProfiles,
   readImportedObservationRecords,
@@ -30,6 +36,7 @@ import type {
   CurrentsResponse,
   FieldResponse,
   ImportedObservationProfile,
+  IncoisOperationalSnapshot,
   ProfileDetail,
   ProfileSummary,
   ProvenanceResponse,
@@ -55,6 +62,9 @@ function initialTheme(): ThemeMode {
 
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
+  const [sourceMode, setSourceMode] = useState<ExploreSourceMode>("glorys");
+  const [operationalSnapshot, setOperationalSnapshot] = useState<IncoisOperationalSnapshot | null>(null);
+  const [operationalError, setOperationalError] = useState("");
   const [profiles, setProfiles] = useState<ProfileSummary[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState("");
   const [profileDetail, setProfileDetail] = useState<ProfileDetail | null>(null);
@@ -101,6 +111,12 @@ export default function App() {
   const [error, setError] = useState("");
   const [startupError, setStartupError] = useState("");
   const [degradedWarnings, setDegradedWarnings] = useState<string[]>([]);
+
+  const operationalCatalog = useMemo(
+    () => operationalSnapshot ? buildIncoisExploreCatalog(operationalSnapshot) : null,
+    [operationalSnapshot]
+  );
+  const exploreCatalog = sourceMode === "incois" && operationalCatalog ? operationalCatalog : catalog;
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -152,6 +168,37 @@ export default function App() {
     return () => {
       window.removeEventListener(IMPORTED_OBSERVATIONS_EVENT, syncImportedProfiles);
       window.removeEventListener("storage", syncImportedProfiles);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchIncoisOperational()
+      .then((payload) => {
+        if (cancelled) return;
+        if (
+          payload.integrity.synthetic_timestamps ||
+          payload.integrity.source_values_modified ||
+          payload.integrity.genuine_time_count < 2 ||
+          payload.integrity.genuine_depth_count < 2
+        ) {
+          throw new Error("INCOIS operational snapshot failed multi-time scientific-integrity policy.");
+        }
+        setOperationalSnapshot(payload);
+        setOperationalError("");
+      })
+      .catch((reason: Error) => {
+        if (cancelled) return;
+        setOperationalSnapshot(null);
+        setOperationalError(reason.message);
+        setDegradedWarnings((current) =>
+          current.includes("INCOIS multi-time Explore source unavailable")
+            ? current
+            : [...current, "INCOIS multi-time Explore source unavailable"]
+        );
+      });
+    return () => {
+      cancelled = true;
     };
   }, []);
 
@@ -275,17 +322,17 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!catalog) return;
-    if (!catalog.capabilities.time_animation) {
+    if (!exploreCatalog) return;
+    if (!exploreCatalog.capabilities.time_animation) {
       setPlaying(false);
       return;
     }
     if (!playing) return;
     const timer = window.setInterval(() => {
-      setTimeIndex((current) => (current + 1) % catalog.coordinates.time.length);
+      setTimeIndex((current) => (current + 1) % exploreCatalog.coordinates.time.length);
     }, 1300);
     return () => window.clearInterval(timer);
-  }, [catalog, playing]);
+  }, [exploreCatalog, playing]);
 
   useEffect(() => {
     if (!selectedProfileId) return;
@@ -315,13 +362,30 @@ export default function App() {
   }, [selectedProfileId]);
 
   useEffect(() => {
-    if (!catalog) return;
+    if (!exploreCatalog) return;
     let cancelled = false;
     setScienceLoading(true);
     setError("");
     setField(null);
     setVolume(null);
     setCurrents(null);
+
+    if (sourceMode === "incois") {
+      try {
+        if (!operationalSnapshot) throw new Error("INCOIS operational snapshot is unavailable.");
+        if (variable === "currents") throw new Error("Currents are not available in the selected INCOIS snapshot.");
+        if (visualizationMode === "water-column" || viewMode === "volume") {
+          setVolume(buildIncoisVolume(operationalSnapshot, variable, timeIndex));
+        } else {
+          setField(buildIncoisField(operationalSnapshot, variable, timeIndex, depthIndex));
+        }
+      } catch (reason) {
+        setError(reason instanceof Error ? reason.message : String(reason));
+      } finally {
+        setScienceLoading(false);
+      }
+      return;
+    }
 
     const request =
       variable === "currents"
@@ -347,7 +411,7 @@ export default function App() {
     return () => {
       cancelled = true;
     };
-  }, [catalog, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
+  }, [exploreCatalog, sourceMode, operationalSnapshot, variable, viewMode, visualizationMode, depthIndex, timeIndex]);
 
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId("");
@@ -369,7 +433,7 @@ export default function App() {
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents") => {
       setVariable(value);
-      const nextVariable = catalog?.variables.find((item) => item.id === value);
+      const nextVariable = exploreCatalog?.variables.find((item) => item.id === value);
       if (nextVariable && nextVariable.kind === "scalar") {
         setColorMinimum(nextVariable.minimum);
         setColorMaximum(nextVariable.maximum);
@@ -382,8 +446,36 @@ export default function App() {
         setIsoSurfaceEnabled(false);
       }
     },
-    [catalog]
+    [exploreCatalog]
   );
+
+  const handleSourceModeChange = useCallback((nextSource: ExploreSourceMode) => {
+    if (nextSource === "incois" && !operationalCatalog) return;
+    setSourceMode(nextSource);
+    setPlaying(false);
+    setTimeIndex(0);
+    setProfilePanelOpen(false);
+    setSelectedProfileId((current) => current);
+    const nextCatalog = nextSource === "incois" ? operationalCatalog : catalog;
+    if (nextSource === "incois" && variable === "currents") {
+      setVariable("thetao");
+      setViewMode("slice");
+      setVisualizationMode("globe");
+      setIsoSurfaceEnabled(false);
+    }
+    const nextDepth = nextSource === "incois"
+      ? 0
+      : Math.min(18, Math.max(0, (nextCatalog?.coordinates.depth.length ?? 1) - 1));
+    setDepthIndex(nextDepth);
+    const targetVariable = nextSource === "incois" && variable === "currents" ? "thetao" : variable;
+    const nextVariable = nextCatalog?.variables.find((item) => item.id === targetVariable);
+    if (nextVariable?.kind === "scalar") {
+      setColorMinimum(nextVariable.minimum);
+      setColorMaximum(nextVariable.maximum);
+      setIsoValue((nextVariable.minimum + nextVariable.maximum) / 2);
+      setColorScale("linear");
+    }
+  }, [operationalCatalog, catalog, variable]);
 
   const handleEnterWaterColumn = useCallback(() => {
     if (variable === "currents") return;
@@ -391,8 +483,8 @@ export default function App() {
   }, [variable]);
 
   const selectedVariable = useMemo(
-    () => catalog?.variables.find((item) => item.id === variable),
-    [catalog, variable]
+    () => exploreCatalog?.variables.find((item) => item.id === variable),
+    [exploreCatalog, variable]
   );
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
