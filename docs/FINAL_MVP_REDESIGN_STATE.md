@@ -3,18 +3,18 @@
 PROJECT: SIH26067 OceanTwin 3D
 BRANCH: final-mvp-ui-pass
 BASELINE_COMMIT: 6d2f40059b3f9be1abe57ea332ddcf36d1400652
-CURRENT_HEAD: 8bb3c80e8f27fa7ffbfffe2e748c8abb1fe0f68e
-ROLLBACK_COMMIT: 8bb3c80e8f27fa7ffbfffe2e748c8abb1fe0f68e
-ACTIVE_PHASE: Phase 4 — Explore de-cluttering and progressive disclosure
-ACTIVE_SLICE: advanced-controls-and-contextual-observation-panel
+CURRENT_HEAD: 08eea7d3a89f44d310f6b0f910a78767edc79d76
+ROLLBACK_COMMIT: 08eea7d3a89f44d310f6b0f910a78767edc79d76
+ACTIVE_PHASE: Phase 5 — Desktop visual hierarchy and readability
+ACTIVE_SLICE: explore-readability-and-density
 STATUS: VALIDATED
-LAST_COMPLETED_ACTION: Added a once-per-session Earth-to-region orientation, reduced-motion bypass, interruptible camera flight, direct verified-region click entry, and an explicit Enter Water Column 3D action.
-FILES_CHANGED: frontend/src/components/OceanGlobe.tsx; frontend/src/feature-upgrades.css; docs/FINAL_MVP_REDESIGN_STATE.md
-VALIDATIONS_PASSED: tests run 393 passed; final-mvp run 167 passed, including React/Cesium typecheck, production build, live-browser acceptance, science/API/fallback, and static-host smoke.
-VALIDATIONS_NOT_RUN: Manual human visual QA on desktop/tablet/mobile screenshots is still pending.
-KNOWN_ISSUES: Explore still exposes too many rendering controls simultaneously, and the right observation inspector is populated from the default selected profile even before the user makes a meaningful selection.
+LAST_COMPLETED_ACTION: Collapsed rendering-specific controls into explicit View settings; made the desktop observation inspector selection-driven with Close/Escape behavior; kept mobile observation close state consistent.
+FILES_CHANGED: frontend/src/App.tsx; frontend/src/components/ControlPanel.tsx; frontend/src/components/ProfilePanel.tsx; frontend/src/feature-upgrades.css; docs/FINAL_MVP_REDESIGN_STATE.md
+VALIDATIONS_PASSED: tests run 408 passed; final-mvp run 174 passed, including React/Cesium typecheck, production build, live-browser acceptance, science/API/fallback, and static-host smoke.
+VALIDATIONS_NOT_RUN: Manual human screenshot review at 1440/1366/1024/768/390/320 remains pending.
+KNOWN_ISSUES: Explore still contains legacy microtype below comfortable desktop reading size in several overlays/controls; broader desktop hierarchy and spacing have not yet been normalized.
 SCIENTIFIC_INVARIANTS: One genuine model timestamp only; no fake time animation; no invented observations; no vertical currents; Water Column 3D scalar-only; vertical exaggeration is display geometry only; model-vs-observation remains diagnostic, not independent validation.
-NEXT_EXACT_ACTION: Collapse advanced rendering controls behind explicit View settings and keep the desktop observation inspector closed until the user selects an Argo profile or opens observation details.
+NEXT_EXACT_ACTION: Improve Explore desktop typography, spacing, and control hierarchy with additive CSS only, preserving visualization dominance and all validated interaction/science behavior.
 DO_NOT_TOUCH: Scientific transformation logic, API schemas, verified data values, Streamlit fallback.
 PR_NUMBER: 39
 LAST_UPDATED: 2026-09-27
