@@ -240,8 +240,8 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
   await expect(modeDock).toBeVisible();
   await expect(modeDock).toContainText("DUAL 3D VISUALIZATION");
-  await expect(modeDock.getByRole("button", { name: "Cesium Globe" })).toBeVisible();
-  await expect(modeDock.getByRole("button", { name: "Water-Column 3D" })).toBeVisible();
+  await expect(modeDock.getByRole("button", { name: /Geographic View/ })).toBeVisible();
+  await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
   await page.getByRole("button", { name: "Zoom in Cesium Globe" }).click();
@@ -300,7 +300,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await waterColumnDepthSlider.press("Home");
   await expect(selectedLayer).not.toHaveText(initialSelectedLayer ?? "");
 
-  await page.getByRole("button", { name: "Cesium Globe" }).click();
+  await page.getByRole("button", { name: /Geographic View/ }).click();
   await expect(page.locator(".cesium-host canvas")).toBeVisible();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
 
