@@ -55,7 +55,7 @@ function scalarText(value: unknown): string {
   if (typeof value === "number" || typeof value === "bigint" || typeof value === "boolean") return String(value);
   if (Array.isArray(value)) return value.length === 1 ? scalarText(value[0]) : value.map(scalarText).join(", ");
   if (ArrayBuffer.isView(value)) {
-    const values = Array.from(value as ArrayLike<number | bigint>);
+    const values = Array.from(value as unknown as ArrayLike<number | bigint>);
     return values.length === 1 ? String(values[0]) : values.join(", ");
   }
   return String(value).trim();
@@ -66,8 +66,8 @@ function scalarNumber(value: unknown): number | null {
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
   if (typeof value === "bigint") return Number(value);
   if (Array.isArray(value) && value.length === 1) return scalarNumber(value[0]);
-  if (ArrayBuffer.isView(value) && (value as ArrayLike<unknown>).length === 1) {
-    return scalarNumber((value as ArrayLike<unknown>)[0]);
+  if (ArrayBuffer.isView(value) && (value as unknown as ArrayLike<unknown>).length === 1) {
+    return scalarNumber((value as unknown as ArrayLike<unknown>)[0]);
   }
   const parsed = Number(scalarText(value));
   return Number.isFinite(parsed) ? parsed : null;
@@ -75,7 +75,7 @@ function scalarNumber(value: unknown): number | null {
 
 function numericArray(value: unknown): number[] {
   if (Array.isArray(value)) return value.map((item) => Number(item));
-  if (ArrayBuffer.isView(value)) return Array.from(value as ArrayLike<number | bigint>, (item) => Number(item));
+  if (ArrayBuffer.isView(value)) return Array.from(value as unknown as ArrayLike<number | bigint>, (item) => Number(item));
   return [];
 }
 
@@ -98,7 +98,7 @@ function coordinateMeta(
   }) ?? null;
 }
 
-function sameShape(left: number[] | undefined, right: number[] | undefined): boolean {
+function sameShape(left: number[] | undefined, right: number[] | null | undefined): boolean {
   if (!left || !right || left.length !== right.length) return false;
   return left.every((value, index) => value === right[index]);
 }
