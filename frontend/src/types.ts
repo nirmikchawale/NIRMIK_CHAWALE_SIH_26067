@@ -425,3 +425,35 @@ export interface ImportedObservationProfile {
   variables: string[];
   records: ImportedObservationRecord[];
 }
+
+
+export interface VerifiedObservationSource {
+  id: string;
+  provider: string;
+  dataset_id: string;
+  title: string;
+  service: string;
+  query_url: string;
+  official_metadata: string;
+  roles: string[];
+  transformations: string[];
+  platform?: string;
+  profile_id?: string | number;
+}
+
+export interface VerifiedObservationPack {
+  schema: "oceantwin-verified-observation-pack-v1";
+  generated_utc: string;
+  sources: VerifiedObservationSource[];
+  records: ImportedObservationRecord[];
+  record_count: number;
+  integrity: {
+    sensor_types: Array<"glider" | "ctd" | "bgc">;
+    sensor_record_counts: Record<string, number>;
+    synthetic_measurements: false;
+    synthetic_timestamps: false;
+    provider_values_modified: false;
+    derived_coordinate_fields: string[];
+    runtime_network_required: false;
+  };
+}
