@@ -115,25 +115,24 @@ def _record(
     }
 
 
-def _aoml_deployment_rows() -> tuple[list[dict[str, str]], str]:
+def _fetch_aoml_profile(profile_id: int) -> tuple[list[dict], list[dict], str]:
     fields = (
         "trajectory,profile_time,profile_lon,profile_lat,depth,"
         "temperature,temperature_qc,salinity,salinity_qc,"
         "aanderaa4831_dissolved_oxygen,aanderaa4831_dissolved_oxygen_qc,profile_id"
     )
-    query = f'{fields}&trajectory="{AOML_TRAJECTORY}"'
+    # The official dataset metadata currently reports profile_id actual_range 1..1414
+    # for the single SG683-20250910T0000 deployment. A direct numeric constraint keeps
+    # CI bounded and avoids expensive server-side discovery.
+    query = f"{fields}&profile_id={profile_id}"
     url = _erddap_url(AOML_BASE, query)
     rows = _csv_rows(url)
-    if not rows:
-        raise RuntimeError(f"AOML deployment {AOML_TRAJECTORY} returned no rows.")
-    return rows, url
 
-
-def _aoml_profile_records(rows: list[dict[str, str]], profile_id: str) -> tuple[list[dict], list[dict]]:
     glider_records: list[dict] = []
     bgc_records: list[dict] = []
     for row in rows:
-        if str(row.get("profile_id") or "").strip() != profile_id:
+        row_profile = _finite(row.get("profile_id"))
+        if row_profile is None or int(row_profile) != profile_id:
             continue
         timestamp = _iso(row.get("profile_time"))
         longitude = _finite(row.get("profile_lon"))
@@ -142,6 +141,7 @@ def _aoml_profile_records(rows: list[dict[str, str]], profile_id: str) -> tuple[
         if timestamp is None or longitude is None or latitude is None or depth is None or depth < 0:
             continue
 
+        trajectory = str(row.get("trajectory") or AOML_TRAJECTORY).strip() or AOML_TRAJECTORY
         temperature = _finite(row.get("temperature"))
         salinity = _finite(row.get("salinity"))
         oxygen = _finite(row.get("aanderaa4831_dissolved_oxygen"))
@@ -153,14 +153,14 @@ def _aoml_profile_records(rows: list[dict[str, str]], profile_id: str) -> tuple[
             glider_records.append(_record(
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="temperature", value=temperature, units="degree_C",
-                source="NOAA AOML / IOOS glider ERDDAP", platform_id=AOML_TRAJECTORY,
+                source="NOAA AOML / IOOS glider ERDDAP", platform_id=trajectory,
                 sensor_type="glider", dataset_id=AOML_DATASET, qc_flag=temp_qc,
             ))
         if salinity is not None and sal_qc in {"1", "2"}:
             glider_records.append(_record(
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="salinity", value=salinity, units="1e-3",
-                source="NOAA AOML / IOOS glider ERDDAP", platform_id=AOML_TRAJECTORY,
+                source="NOAA AOML / IOOS glider ERDDAP", platform_id=trajectory,
                 sensor_type="glider", dataset_id=AOML_DATASET, qc_flag=sal_qc,
             ))
         if oxygen is not None and oxygen_qc in {"1", "2"}:
@@ -168,28 +168,28 @@ def _aoml_profile_records(rows: list[dict[str, str]], profile_id: str) -> tuple[
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="dissolved_oxygen", value=oxygen, units="micromoles/kg",
                 source="NOAA AOML glider Aanderaa 4831 optode",
-                platform_id=f"{AOML_TRAJECTORY} · O2 optode",
+                platform_id=f"{trajectory} · O2 optode",
                 sensor_type="bgc", dataset_id=AOML_DATASET, qc_flag=oxygen_qc,
             ))
-    return glider_records, bgc_records
+    return glider_records, bgc_records, url
 
 
 def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
-    rows, url = _aoml_deployment_rows()
-    profile_ids = sorted(
-        {
-            str(row.get("profile_id") or "").strip()
-            for row in rows
-            if str(row.get("profile_id") or "").strip()
-        },
-        key=lambda value: int(float(value)) if value.replace(".", "", 1).isdigit() else -1,
-        reverse=True,
-    )
-
     failures: list[str] = []
-    for profile_id in profile_ids:
-        glider_records, bgc_records = _aoml_profile_records(rows, profile_id)
+    # Pin to a small set of real IDs near the provider-advertised upper range.
+    for profile_id in range(1414, 1398, -1):
+        try:
+            glider_records, bgc_records, url = _fetch_aoml_profile(profile_id)
+        except Exception as exc:
+            failures.append(f"{profile_id}: {exc}")
+            continue
+
         if len(glider_records) >= 20 and len(bgc_records) >= 8:
+            trajectory = (
+                glider_records[0]["platform_id"]
+                if glider_records
+                else AOML_TRAJECTORY
+            )
             return glider_records + bgc_records, {
                 "id": "noaa-aoml-glider-bgc",
                 "provider": "NOAA AOML / IOOS",
@@ -199,7 +199,7 @@ def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
                 "query_url": url,
                 "official_metadata": AOML_INFO,
                 "roles": ["glider", "bgc"],
-                "platform": AOML_TRAJECTORY,
+                "platform": trajectory,
                 "profile_id": profile_id,
                 "transformations": [
                     "provider values unchanged",
@@ -212,8 +212,8 @@ def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
         )
 
     raise RuntimeError(
-        f"AOML deployment {AOML_TRAJECTORY} contains no profile satisfying both physical and BGC "
-        "evidence thresholds. " + " | ".join(failures[:30])
+        "No pinned AOML profile satisfied both physical and BGC evidence thresholds. "
+        + " | ".join(failures)
     )
 
 
