@@ -979,6 +979,7 @@ export function OceanGlobe({
       data-antialiasing={antialiasing}
       data-render-quality="high"
       data-camera-height={cameraHeight.toFixed(0)}
+      data-presentation-active={presentationActive ? "true" : "false"}
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
       data-imagery-failsafe="online-hd+offline-natural-earth"
