@@ -15,6 +15,7 @@ import math
 from pathlib import Path
 import time
 from urllib.parse import quote
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 USER_AGENT = "OceanTwin-SIH26067/1.0 (+https://github.com/nirmikchawale/NIRMIK_CHAWALE_SIH_PERSONAL)"
@@ -38,7 +39,15 @@ def _request_text(url: str, attempts: int = 5, timeout: int = 60) -> str:
                 if response.status != 200:
                     raise RuntimeError(f"HTTP {response.status} for {url}")
                 return response.read().decode("utf-8")
-        except Exception as exc:  # network/provider failures are retried then fail closed
+        except HTTPError as exc:
+            # 4xx responses are deterministic query/data errors; retrying them only masks the cause.
+            if 400 <= exc.code < 500:
+                body = exc.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"HTTP {exc.code} for {url}: {body[:800]}") from exc
+            last_error = exc
+            if attempt < attempts:
+                time.sleep(min(2 * attempt, 8))
+        except Exception as exc:  # transient network/provider failures are retried then fail closed
             last_error = exc
             if attempt < attempts:
                 time.sleep(min(2 * attempt, 8))
