@@ -75,6 +75,26 @@ def test_currents_expose_verified_uv_components_as_vectors():
     assert abs(speed - (u * u + v * v) ** 0.5) < 1e-10
 
 
+def test_currents_volume_preserves_depth_resolved_horizontal_uv_without_inventing_w():
+    response = client.get(
+        "/api/currents-volume",
+        params={"time_index": 0, "horizontal_stride": 6, "depth_stride": 1},
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["variable"] == "currents"
+    assert payload["units"] == "m s-1"
+    assert payload["components"] == ["uo", "vo"]
+    assert payload["vertical_component_available"] is False
+    assert len(payload["depths_m"]) == 31
+    assert payload["vectors"]
+    lon, lat, depth, u, v, speed = payload["vectors"][0]
+    assert isinstance(lon, float)
+    assert isinstance(lat, float)
+    assert depth >= 0
+    assert abs(speed - (u * u + v * v) ** 0.5) < 1e-10
+
+
 def test_profile_endpoint_keeps_model_minus_observation_semantics():
     profiles = client.get("/api/profiles").json()["profiles"]
     assert profiles
