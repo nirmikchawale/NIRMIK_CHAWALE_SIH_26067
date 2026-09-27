@@ -704,3 +704,8 @@
  .ocean-workbench .field-entry-actions { top:194px; }
  .globe-shell:has(.imported-observation-chips[data-expanded="true"]) .field-entry-actions { visibility:hidden; }
 }
+@media(max-width:760px) {
+ .ocean-workbench .visualization-stage .imagery-control > strong { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+ .ocean-workbench .visualization-stage .imported-observation-chips { top:164px; }
+ .ocean-workbench .field-entry-actions { top:220px; }
+}
