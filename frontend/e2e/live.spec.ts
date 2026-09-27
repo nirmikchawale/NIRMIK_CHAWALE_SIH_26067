@@ -154,10 +154,12 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
   const importedGlobeShell = page.locator(".globe-shell:not(.water-column-shell)");
-  await expect(importedGlobeShell).toHaveAttribute("data-imported-profile-count", "1");
-  await expect(page.locator(".judge-summary")).toContainText("1 imported sensor profiles");
+  await expect.poll(async () => Number(await importedGlobeShell.getAttribute("data-imported-profile-count"))).toBeGreaterThanOrEqual(4);
+  await expect(page.locator(".judge-summary")).toContainText("sensor plugin profiles");
   const importedSelector = page.locator(".imported-observation-chips");
   await expect(importedSelector).toContainText("GLIDER");
+  await expect(importedSelector).toContainText("CTD");
+  await expect(importedSelector).toContainText("BGC");
   await importedSelector.getByRole("button", { name: /GLIDER.*glider_demo_01/i }).click();
   await expect(page.locator(".imported-profile-panel")).toBeVisible();
   await expect(page.locator(".imported-profile-panel")).toContainText("Glider");
