@@ -134,7 +134,7 @@ def fetch(timeout: int = 60) -> dict:
             },
             "salinity": {
                 "source_name": "SAL",
-                "units": "provider units",
+                "units": "PSU",
                 "minimum": min(sal_values),
                 "maximum": max(sal_values),
             },
