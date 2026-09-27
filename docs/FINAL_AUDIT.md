@@ -1,134 +1,88 @@
-# OceanTwin 3D — Final Audit
+# OceanTwin 3D — Final SIH26067 Audit
 
-## Repository architecture audit
+This document records the current final MVP audit. Earlier Streamlit-only audit language has been retired because the primary judge-facing product is now the React + TypeScript + CesiumJS web application; Streamlit remains the offline scientific reference and emergency fallback.
 
-The final application has a clear separation of responsibilities:
+## Final product architecture
 
-- `app.py` — thin Streamlit entry point.
-- `oceantwin/application.py` — product orchestration and controls.
-- `oceantwin/state.py` — deterministic verified-demo/reset state.
-- `oceantwin/ui/` — versioned tokens, theme, components and Plotly presentation.
-- `oceantwin/views/` — dashboard and evidence composition.
-- `src/` — preserved scientific loaders and figure builders.
-- `data/` — bundled verified scientific evidence.
-- `tests/` — scientific/application regression and product-contract tests.
-- `docs/` — method, data dictionary, runbook, troubleshooting, UI system and release checklists.
+- **Frontend:** React + TypeScript + CesiumJS multi-page application.
+- **Scientific API:** FastAPI contracts for catalog, fields, volumes, currents, observations, telemetry, anomaly screening, provenance and source capabilities.
+- **Static/public path:** GitHub Pages science exports and verified public artifacts.
+- **Fallback:** preserved Streamlit + Plotly scientific reference.
+- **Source architecture:** discoverable source registry and model/sensor adapter contracts.
+- **Ingestion:** browser-native CF-aware NetCDF4 plus CSV/TSV/ASCII/JSON validation.
 
-## Scientific data audit
+## Verified scientific capability
 
-### Copernicus subset
+- Genuine GLORYS12V1 temperature and salinity water-column fields.
+- Genuine horizontal `uo/vo` currents at selected depth and across all 31 model depths.
+- No fabricated vertical-current component.
+- Genuine scalar isosurface extraction.
+- Genuine INCOIS multi-time Explore playback.
+- Genuine INCOIS IRS P4 OCM chlorophyll as a first-class surface-only source with mg/m³ units.
+- Argo, Glider, CTD and BGC observation pathways through the canonical plugin profile model.
+- Model–observation diagnostics with explicit non-independent-validation wording.
+- Descriptive anomaly screening with explicit statistical limitations.
+- OPeNDAP DAP2 endpoint verification, INCOIS WMS pathway metadata, and OceanTwin WMS/WCS compatibility services.
+- CF-style coordinate, units and positive-down depth validation.
 
-- Product family: `GLOBAL_MULTIYEAR_PHY_001_030`.
-- Dataset: `cmems_mod_glo_phy_my_0.083deg_P1D-m`.
-- Product label: GLORYS12V1.
-- Variable: `thetao`, sea-water potential temperature.
-- Cached dimensions: 31 depth × 25 latitude × 37 longitude.
-- Cached depth coverage: approximately 0.49–454 m.
-- Historical subset date: 2 January 2024.
-- Region: 67–70°E, 12–14°N.
+## Public interaction audit
 
-### Argo comparison evidence
+The live acceptance suite verifies the deployed judge path, including:
 
-- 26 profiles represented in ingestion provenance.
-- 2 eligible comparison profiles.
-- 99 valid matched temperature levels total.
-- Verified default profile: `20240102_indian_ocean_prof:23`.
-- Float: 5907092.
-- Cycle: 13.
-- Direction: descending.
-- Default matched levels: 50.
+- geographic and Water Column 3D views;
+- high-resolution/offline imagery behavior;
+- light/dark theme persistence;
+- telemetry depth interactions;
+- anomaly screening interactions and evidence download;
+- Data Lab ingestion and temporary Explorer layers;
+- browser-native NetCDF ingestion;
+- model-vs-observation comparison;
+- Science & System page;
+- genuine INCOIS time playback;
+- 31-depth Water Column 3D controls;
+- depth, opacity, zoom and camera interactions;
+- Argo profile inspection;
+- provenance drawer;
+- CSV evidence download;
+- focus/recovery interactions;
+- absence of page errors.
 
-### Method
+## Final CI/deployment state
 
-- Spatial collocation: nearest valid model water cell.
-- Vertical matching: linear interpolation between adjacent valid model levels.
-- No spatial, vertical or temporal extrapolation is introduced by the UI.
-- Bias: Model − Observation.
-- Provider QC handling remains the locally verified baseline.
-- Metrics, charts and selected-profile downloads are sourced from the processed comparison evidence.
+Current documented `main` HEAD: `cc5c6eb9ee35ba6105a436cda7d7dd13a6ace67d`.
 
-## UI/product audit
+Validated gates:
 
-The two supplied planning documents are implemented as two planning layers:
+- tests #772 — PASS;
+- final-mvp #289 — PASS:
+  - `react-cesium` — PASS;
+  - `static-hosted-failsafe` — PASS;
+  - `science-api-and-fallback` — PASS;
+- deploy-oceantwin-pages #75 — PASS:
+  - build — PASS;
+  - deploy — PASS;
+  - verify-public — PASS;
+  - live Chromium judge-flow acceptance — PASS.
 
-- the 12-feature finalisation plan defines the macro judge-facing end state;
-- the 250-feature backlog defines detailed shell, control, visualisation, trust and release work.
+Public application:
 
-The implementation matrix is stored in `docs/BACKLOG_IMPLEMENTATION_MATRIX.md`.
+`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/`
 
-The final primary layout places the model/map and profile/bias evidence in the main vertical flow instead of requiring judges to discover core evidence through tabs.
+## Scientific boundaries
 
-## Test audit
+These are deliberate boundaries, not gaps to "fix" with synthetic evidence:
 
-Latest verified feature-branch GitHub Actions result:
+1. The bundled GLORYS comparison baseline has one genuine timestamp.
+2. Genuine time playback comes from the separately verified INCOIS source.
+3. Currents are horizontal `uo/vo`; no vertical `w` is invented.
+4. INCOIS chlorophyll is surface-only.
+5. GLORYS–Argo comparison is diagnostic, not independent/global validation.
+6. Anomaly screening is descriptive statistical screening, not ML event detection.
+7. External source availability can fail; acquisition/interoperability checks fail closed.
+8. OceanTwin is a verified SIH MVP, not a 24/7 national operational forecasting service.
 
-- 36-test regression/product-contract suite: PASS.
-- Python compile check: PASS.
-- Headless Streamlit startup health check: PASS.
+## Final status
 
-Existing tests continue to protect:
+**COMPLETE — VERIFIED SIH26067 MVP BASELINE**
 
-- verified default profile;
-- both eligible profiles and matched-level counts;
-- exact Model − Observation sign/value;
-- provider QC policy;
-- real model dimensions/units/depth semantics;
-- local data-loader immutability;
-- no-network scientific loading;
-- profile/bias source rows;
-- real map coordinates;
-- real 3D/2D figure construction;
-- evidence download existence and profile selection;
-- inverted depth axes;
-- scientific data-manifest integrity;
-- original provenance record of unchanged raw inputs.
-
-New product-contract tests protect:
-
-- professional folder hierarchy;
-- thin entry point;
-- versioned semantic tokens;
-- data-derived reset defaults;
-- data-driven metrics and safe missing values;
-- provenance method wording;
-- readable selected-profile download names;
-- Plotly styling without scientific-value mutation;
-- mandatory disclaimer;
-- prohibited architecture/ML claims.
-
-## Cross-platform checksum note
-
-The NetCDF binary checksum remains exact.
-
-For tracked text evidence, Git can represent identical text with LF or CRLF depending on checkout rules. The integrity test accepts only these line-ending variants of the same bytes; it does not accept arbitrary content changes.
-
-## Risk register
-
-| Level | Item | Final treatment |
-|---|---|---|
-| BLOCKER | Scientific method regression | None detected; regression suite green |
-| MUST FIX | Main science hidden behind tabs | Core rows moved into direct dashboard flow |
-| MUST FIX | Monolithic application layout | Product UI reorganised into `oceantwin/` hierarchy |
-| MUST FIX | Weak release/startup verification | CI now runs pytest, compile and Streamlit health check |
-| MUST FIX | Raw tracebacks potentially judge-facing | Friendly states + gated diagnostics |
-| SHOULD FIX | Inconsistent semantic colours | Cyan model, amber Argo, centred cool/warm bias system |
-| SHOULD FIX | Dense provenance | Compact inspectable evidence layout |
-| SHOULD FIX | Download naming | Profile-correct readable filenames |
-| MANUAL CHECK | Presentation-laptop visual rendering | Use `docs/VISUAL_DEMO_CHECKLIST.md` |
-| DO NOT TOUCH | QC/collocation/interpolation/bias | Preserved |
-| DO NOT TOUCH | Raw scientific files | Preserved |
-| DO NOT TOUCH | Temperature-only scientific scope | Preserved |
-
-## Known scientific boundaries
-
-- daily-mean model field vs instantaneous Argo profile;
-- nearest-cell representativeness difference;
-- vertical interpolation between model levels;
-- one historical region/date and two eligible comparison profiles;
-- reanalysis may assimilate in-situ observations;
-- not independent validation;
-- no operational forecast, real-time monitoring or hazard prediction.
-
-## Mandatory framing
-
-> This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations.
+The authoritative requirement-by-requirement evidence remains in `docs/SIH26067_COMPLETION_MATRIX.md`, and the recovery/baseline record remains in `docs/SIH26067_COMPLETION_STATE.md`.

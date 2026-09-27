@@ -4,7 +4,25 @@
 
 OceanTwin 3D is a React + TypeScript + CesiumJS judge-facing scientific web application backed by FastAPI and static hosted science exports, using bundled Copernicus Marine model evidence and QC-screened Argo comparison profiles. The earlier Streamlit + Plotly application remains preserved as the offline scientific reference and emergency fallback.
 
-> **Scientific framing:** This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations. This prototype covers one region, one day and a small set of profiles, and is not a complete Digital Twin Ocean or operational forecasting system.
+> **Scientific framing:** This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations. The bundled GLORYS diagnostic baseline covers one region and one day; the current MVP also includes separately verified INCOIS multi-time physical analysis, INCOIS surface chlorophyll, and Argo/Glider/CTD/BGC observation pathways. It remains a bounded SIH MVP rather than a 24/7 national operational forecasting system.
+
+## Current verified SIH26067 state
+
+The primary judge-facing application is now the **React + TypeScript + CesiumJS** web MVP deployed on GitHub Pages. The preserved Streamlit application is the offline scientific reference and emergency fallback.
+
+Current verified capabilities include:
+
+- genuine GLORYS12V1 temperature, salinity and horizontal current fields across 31 model depths;
+- full-water-column `uo/vo` current vectors without inventing a vertical component;
+- genuine INCOIS multi-time playback in Explore;
+- genuine INCOIS IRS P4 OCM chlorophyll as a first-class **surface-only** Explore source in mg/m³;
+- Argo, Glider, CTD and BGC observation pathways through the canonical sensor plugin contract;
+- browser-native CF-aware NetCDF4 ingestion plus CSV/TSV/ASCII/JSON ingestion into temporary Explorer layers;
+- model-vs-observation diagnostics, anomaly screening, telemetry, provenance and evidence downloads;
+- source/plugin registry, verified INCOIS OPeNDAP DAP2 and WMS pathways, plus OceanTwin WMS/WCS compatibility services;
+- automated public deployment verification with live Chromium judge-flow acceptance.
+
+See `docs/SIH26067_COMPLETION_MATRIX.md` and `docs/SIH26067_COMPLETION_STATE.md` for the authoritative final requirement state.
 
 ## Verified scientific scope
 
@@ -139,9 +157,16 @@ The runtime scientific data path is local. The 2D fallback uses the same actual 
 - `docs/UI_DESIGN_SYSTEM.md` documents semantic colours, typography, spacing, responsive behaviour and judge-safe error rules.
 - `docs/VISUAL_DEMO_CHECKLIST.md` provides 1366×768 and 1920×1080 manual verification.
 
-## Explicitly deferred scientific/product scope
+## Current deliberate boundaries
 
-Roadmap labels may be visible, but this release does not implement salinity observation comparison, current observation validation, glider comparison, bilinear sensitivity analysis, Docker, authentication, a database, ML, operational forecasting or hazard prediction.
+The following remain intentionally bounded and must not be overstated:
+
+- the bundled GLORYS comparison baseline has one genuine timestamp;
+- currents are horizontal `uo/vo` only; no vertical-current component is fabricated;
+- INCOIS chlorophyll is a satellite surface product and does not have a fabricated depth axis;
+- GLORYS–Argo results are diagnostic, not independent/global validation;
+- anomaly screening is descriptive statistical screening, not ML event detection or proof of sensor/model failure;
+- OceanTwin is a verified SIH MVP, not a 24/7 national operational digital twin or hazard-forecasting system.
 
 ## Scientific sources
 
@@ -157,8 +182,7 @@ Do not place Streamlit UI screenshots in the SIH PPT. Use native diagrams, archi
 
 ## Final MVP web architecture
 
-The final SIH26067 judge-facing MVP is being implemented additively on top of this
-verified prototype:
+The final SIH26067 judge-facing MVP is implemented additively on top of the verified prototype:
 
 ```text
 React + CesiumJS
@@ -173,10 +197,7 @@ bundled Copernicus + Argo evidence
 The existing Streamlit application remains the **frozen scientific reference and emergency
 demo fallback**. It is not replaced or rewritten.
 
-The bundled Copernicus subset already contains verified `thetao`, `so`, `uo`, and `vo`
-fields, so the web MVP exposes real temperature, salinity, and current data from the same
-file. The current file contains one genuine model timestamp; the new UI reports that
-limitation and does not fabricate time animation.
+The bundled Copernicus subset contains verified `thetao`, `so`, `uo`, and `vo` fields, so the web MVP exposes real temperature, salinity, and current data from the same file. That GLORYS baseline contains one genuine model timestamp and remains honestly static; genuine time playback is provided separately through the verified INCOIS multi-time source.
 
 See:
 
