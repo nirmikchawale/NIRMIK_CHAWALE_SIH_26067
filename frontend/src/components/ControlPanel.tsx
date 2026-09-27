@@ -12,6 +12,8 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
   onVariableChange: (value: "thetao" | "so" | "currents") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
@@ -34,6 +36,8 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
+  mobileOpen,
+  onMobileClose,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
@@ -48,7 +52,20 @@ export function ControlPanel({
   const scalar = variable !== "currents";
 
   return (
-    <aside className="control-panel">
+    <aside
+      className="control-panel"
+      data-mobile-open={mobileOpen ? "true" : "false"}
+      aria-label="Scientific explorer controls"
+    >
+      <div className="mobile-sheet-header">
+        <div>
+          <span>EXPLORER CONTROLS</span>
+          <strong>Layer · depth · time · observations</strong>
+        </div>
+        <button type="button" onClick={onMobileClose} aria-label="Close explorer controls">
+          Close
+        </button>
+      </div>
       <section>
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher" aria-label="Ocean variable">
