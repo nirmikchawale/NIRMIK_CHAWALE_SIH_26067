@@ -77,7 +77,7 @@ export function ImportedObservationPanel({ profile, open, mobileOpen, onClose }:
           <div className="imported-observation-proof">
             <span>{SENSOR_LABELS[profile.sensor_type].toUpperCase()}</span>
             <strong>{profile.records.length} validated measurements</strong>
-            <small>browser-session layer · source values unchanged</small>
+            <small>sensor plugin layer · source values preserved</small>
           </div>
 
           <div className="observation-meta">
@@ -135,7 +135,7 @@ export function ImportedObservationPanel({ profile, open, mobileOpen, onClose }:
           </div>
 
           <p className="diagnostic-note">
-            Imported observations are visualised as supplied after validation. They are not automatically
+            Observation values are visualised as supplied after validation. They are not automatically
             treated as model validation or converted between units.
           </p>
         </>
