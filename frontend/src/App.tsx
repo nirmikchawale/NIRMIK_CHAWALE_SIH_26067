@@ -16,6 +16,7 @@ import { WaterColumn3D } from "./components/WaterColumn3D";
 import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ImportedObservationPanel } from "./components/ImportedObservationPanel";
+import { ScientificColorbarHud } from "./components/ScientificColorbarHud";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import {
@@ -634,6 +635,30 @@ export default function App() {
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
   );
+
+  const colorbarValues = useMemo(() => {
+    if (visualizationMode === "water-column") {
+      if (volume) return volume.points.map((point) => point[3]).filter(Number.isFinite);
+      if (currentsVolume) return currentsVolume.vectors.map((vector) => vector[5]).filter(Number.isFinite);
+    }
+    if (field) {
+      return field.values.flatMap((row) =>
+        row.filter((value): value is number => typeof value === "number" && Number.isFinite(value))
+      );
+    }
+    if (currents) return currents.vectors.map((vector) => vector[4]).filter(Number.isFinite);
+    if (volume) return volume.points.map((point) => point[3]).filter(Number.isFinite);
+    if (currentsVolume) return currentsVolume.vectors.map((vector) => vector[5]).filter(Number.isFinite);
+    return [];
+  }, [visualizationMode, field, volume, currents, currentsVolume]);
+
+  const colorbarUnits =
+    field?.units ??
+    volume?.units ??
+    currents?.units ??
+    currentsVolume?.units ??
+    selectedVariable?.units ??
+    "";
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
     [profiles, selectedProfileId]
@@ -974,6 +999,23 @@ export default function App() {
                     theme={theme}
                   />
                 </div>
+                {selectedVariable && (
+                  <ScientificColorbarHud
+                    label={selectedVariable.label}
+                    units={colorbarUnits}
+                    values={colorbarValues}
+                    domainMinimum={selectedVariable.minimum}
+                    domainMaximum={selectedVariable.maximum}
+                    minimum={colorMinimum}
+                    maximum={colorMaximum}
+                    palette={colorPalette}
+                    scale={colorScale}
+                    onMinimumChange={setColorMinimum}
+                    onMaximumChange={setColorMaximum}
+                    onPaletteChange={setColorPalette}
+                    onScaleChange={setColorScale}
+                  />
+                )}
               </div>
 
               <AnalysisSplitPanel
