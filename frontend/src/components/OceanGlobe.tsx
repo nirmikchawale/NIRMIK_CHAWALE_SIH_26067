@@ -33,6 +33,7 @@ import type {
   ColorScaleMode,
   CurrentsResponse,
   FieldResponse,
+  ImportedObservationProfile,
   ProfileSummary,
   VolumeResponse
 } from "../types";
@@ -57,12 +58,15 @@ interface Props {
   currents: CurrentsResponse | null;
   profiles: ProfileSummary[];
   selectedProfileId: string;
+  importedProfiles: ImportedObservationProfile[];
+  selectedImportedProfileId: string;
   verticalExaggeration: number;
   colorPalette: ColorPalette;
   colorScale: ColorScaleMode;
   colorMinimum: number;
   colorMaximum: number;
   onSelectProfile: (profileId: string) => void;
+  onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
 }
 
@@ -99,12 +103,15 @@ export function OceanGlobe({
   currents,
   profiles,
   selectedProfileId,
+  importedProfiles,
+  selectedImportedProfileId,
   verticalExaggeration,
   colorPalette,
   colorScale,
   colorMinimum,
   colorMaximum,
   onSelectProfile,
+  onSelectImportedProfile,
   onEnterWaterColumn
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -289,6 +296,11 @@ export function OceanGlobe({
         onSelectProfile(entityId.slice(5));
         return;
       }
+      if (typeof entityId === "string" && entityId.startsWith("instrument:")) {
+        setInspection(null);
+        onSelectImportedProfile(entityId.slice("instrument:".length));
+        return;
+      }
 
       const surfacePoint = viewer.camera.pickEllipsoid(
         movement.position,
@@ -332,7 +344,7 @@ export function OceanGlobe({
       viewer.destroy();
       viewerRef.current = null;
     };
-  }, [onSelectProfile]);
+  }, [onSelectProfile, onSelectImportedProfile]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -467,6 +479,49 @@ export function OceanGlobe({
       });
     }
 
+
+
+    const sensorColour = (sensor: ImportedObservationProfile["sensor_type"]) => {
+      if (sensor === "glider") return Color.fromCssColorString("#8cefff");
+      if (sensor === "ctd") return Color.fromCssColorString("#b58cff");
+      if (sensor === "bgc") return Color.fromCssColorString("#75e68e");
+      if (sensor === "argo") return Color.fromCssColorString("#f0a93d");
+      return Color.fromCssColorString("#d7e3ea");
+    };
+
+    for (const profile of importedProfiles) {
+      const id = `instrument:${profile.id}`;
+      profileIdsRef.current.push(id);
+      const selected = profile.id === selectedImportedProfileId;
+      viewer.entities.add({
+        id,
+        position: Cartesian3.fromDegrees(profile.longitude, profile.latitude, 11_000),
+        point: {
+          pixelSize: selected ? 18 : 13,
+          color: sensorColour(profile.sensor_type),
+          outlineColor: selected
+            ? Color.fromCssColorString("#ffffff")
+            : Color.fromCssColorString("#04111d"),
+          outlineWidth: selected ? 3 : 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        },
+        label: {
+          text: selected
+            ? `${profile.sensor_type.toUpperCase()} · ${profile.platform_id}`
+            : "",
+          font: "13px system-ui",
+          fillColor: Color.WHITE,
+          outlineColor: Color.fromCssColorString("#04111d"),
+          outlineWidth: 4,
+          style: LabelStyle.FILL_AND_OUTLINE,
+          verticalOrigin: VerticalOrigin.BOTTOM,
+          horizontalOrigin: HorizontalOrigin.CENTER,
+          pixelOffset: new Cartesian2(0, -19),
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }
+      });
+    }
+
     const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId);
     if (selectedProfile) {
       viewer.entities.add({
@@ -521,7 +576,7 @@ export function OceanGlobe({
     }
 
     viewer.scene.requestRender();
-  }, [profiles, selectedProfileId]);
+  }, [profiles, selectedProfileId, importedProfiles, selectedImportedProfileId]);
 
   useEffect(() => {
     const viewer = viewerRef.current;
@@ -976,7 +1031,7 @@ export function OceanGlobe({
           <span className="live-dot" />
           <strong>INDIAN OCEAN · VERIFIED WINDOW</strong>
         </div>
-        <span>67–70°E · 12–14°N · {profiles.length} Argo comparison profiles</span>
+        <span>67–70°E · 12–14°N · {profiles.length} Argo comparison profiles · {importedProfiles.length} imported sensor profiles</span>
         <small>
           {scalar?.label ?? (currents ? "Currents" : "Ocean field")}
           {field ? ` · ${field.depth_m.toFixed(2)} m` : ""}
