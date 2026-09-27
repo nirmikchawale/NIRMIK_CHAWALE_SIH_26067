@@ -41,6 +41,22 @@ jobs:
           print(app.title)
           PY
 
+      - name: Fetch verified INCOIS multi-time operational snapshot
+        run: |
+          rm -rf /tmp/oceantwin-operational
+          python scripts/fetch_incois_operational.py --output /tmp/oceantwin-operational/incois-argo-10d-vam.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/oceantwin-operational/incois-argo-10d-vam.json").read_text())
+          assert payload["source"]["provider"] == "INCOIS"
+          assert payload["integrity"]["genuine_time_count"] >= 2
+          assert payload["integrity"]["genuine_depth_count"] >= 2
+          assert payload["integrity"]["synthetic_timestamps"] is False
+          assert payload["record_count"] > 0
+          print("INCOIS operational evidence verified:", payload["record_count"], "records")
+          PY
+
       - name: Export immutable static science fail-safe
         run: |
           rm -rf /tmp/oceantwin-static-science
@@ -53,11 +69,15 @@ jobs:
           from pathlib import Path
           root = Path("/tmp/oceantwin-static-science")
           manifest = json.loads((root / "manifest.json").read_text())
+          operational = json.loads(Path("frontend/dist/operational/incois-argo-10d-vam.json").read_text())
           assert manifest["schema"] == "oceantwin-static-science-v1"
           assert manifest["time_steps"] == 1
           assert manifest["depth_levels"] == 31
           assert manifest["profiles"] == 2
           assert manifest["scientific_data_network_required_at_runtime"] is False
+          assert operational["source"]["provider"] == "INCOIS"
+          assert operational["integrity"]["genuine_time_count"] >= 2
+          assert operational["integrity"]["genuine_depth_count"] >= 2
           expected_files = 5 + manifest["profiles"] + manifest["time_steps"] * (2 + 7 * manifest["depth_levels"])
           assert len(manifest["files"]) == expected_files
           assert (root / "telemetry/thetao/t0_d18.json").is_file()
@@ -158,6 +178,9 @@ jobs:
       - name: Export canonical scientific API as immutable JSON
         run: python scripts/export_static_science.py --output frontend/public/science-static
 
+      - name: Fetch verified INCOIS operational snapshot for hosted build
+        run: python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json
+
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -187,6 +210,7 @@ jobs:
           test -s frontend/dist/science-static/manifest.json
           test -s frontend/dist/science-static/catalog.json
           test -s frontend/dist/science-static/health.json
+          test -s frontend/dist/operational/incois-argo-10d-vam.json
           test -s frontend/dist/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg
           python - <<'PY'
           import json
@@ -256,6 +280,7 @@ jobs:
           anomaly = get_json("/science-static/anomalies/thetao/t0_d18.json")
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
+          operational = get_json("/operational/incois-argo-10d-vam.json")
           natural_earth = get_bytes(
               "/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg"
           )
@@ -274,6 +299,9 @@ jobs:
           assert anomaly["residual_screen"]["flagged_count"] > 0
           assert len(profiles["profiles"]) == 2
           assert provenance["scientific_disclaimer"]
+          assert operational["source"]["provider"] == "INCOIS"
+          assert operational["integrity"]["genuine_time_count"] >= 2
+          assert operational["integrity"]["genuine_depth_count"] >= 2
           assert natural_earth[:2] == b"\xff\xd8"
 
           print("Production static runtime smoke test passed.")
