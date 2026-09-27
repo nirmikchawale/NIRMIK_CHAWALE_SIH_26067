@@ -119,10 +119,11 @@ def _record(
 def _candidate_aoml_profiles() -> list[dict[str, str]]:
     fields = "trajectory,profile_id,profile_time,profile_lon,profile_lat"
     windows = [
-        ("2025-12-01T00:00:00Z", "2025-12-06T00:00:00Z"),
-        ("2025-11-01T00:00:00Z", "2025-12-01T00:00:00Z"),
-        ("2025-09-01T00:00:00Z", "2025-10-01T00:00:00Z"),
-        (AOML_TIME_START, "2025-07-15T00:00:00Z"),
+        ("2025-12-05T00:00:00Z", "2025-12-05T14:00:00Z"),
+        ("2025-12-04T00:00:00Z", "2025-12-05T00:00:00Z"),
+        ("2025-11-30T00:00:00Z", "2025-12-01T00:00:00Z"),
+        ("2025-09-15T00:00:00Z", "2025-09-16T00:00:00Z"),
+        (AOML_TIME_START, "2025-06-25T00:00:00Z"),
     ]
     unique: dict[tuple[str, str], dict[str, str]] = {}
     discovery_errors: list[str] = []
@@ -145,7 +146,7 @@ def _candidate_aoml_profiles() -> list[dict[str, str]]:
                 and _finite(row.get("profile_lat")) is not None
             ):
                 unique[(trajectory, profile_id)] = row
-        if len(unique) >= 24:
+        if len(unique) >= 8:
             break
 
     rows = sorted(
@@ -158,7 +159,7 @@ def _candidate_aoml_profiles() -> list[dict[str, str]]:
             "AOML profile discovery returned no valid glider profiles. "
             + " | ".join(discovery_errors)
         )
-    return rows[:24]
+    return rows[:8]
 
 
 def _fetch_aoml_profile(trajectory: str, profile_id: str) -> tuple[list[dict], list[dict], str]:
