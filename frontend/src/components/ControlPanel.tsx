@@ -1,11 +1,12 @@
-import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import type { Catalog, ColorPalette, ColorScaleMode, ExploreVariableId, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 
 interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
-  sourceMode: "glorys" | "incois";
+  sourceMode: "glorys" | "incois" | "chlorophyll";
   operationalAvailable: boolean;
-  variable: "thetao" | "so" | "currents";
+  chlorophyllAvailable: boolean;
+  variable: ExploreVariableId;
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
   waterColumnOpacity: number;
@@ -22,8 +23,8 @@ interface Props {
   isoValue: number;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onSourceModeChange: (value: "glorys" | "incois") => void;
-  onVariableChange: (value: "thetao" | "so" | "currents") => void;
+  onSourceModeChange: (value: "glorys" | "incois" | "chlorophyll") => void;
+  onVariableChange: (value: ExploreVariableId) => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
   onDepthChange: (value: number) => void;
@@ -44,6 +45,7 @@ export function ControlPanel({
   profiles,
   sourceMode,
   operationalAvailable,
+  chlorophyllAvailable,
   variable,
   viewMode,
   visualizationMode,
@@ -80,6 +82,8 @@ export function ControlPanel({
   const depth = catalog.coordinates.depth[depthIndex] ?? 0;
   const time = catalog.coordinates.time[timeIndex] ?? "Unavailable";
   const scalar = variable !== "currents";
+  const depthCapable = sourceMode !== "chlorophyll";
+  const volumeCapable = scalar && depthCapable;
 
   return (
     <aside
@@ -116,11 +120,22 @@ export function ControlPanel({
           >
             INCOIS multi-time
           </button>
+          <button
+            type="button"
+            className={sourceMode === "chlorophyll" ? "active" : ""}
+            aria-pressed={sourceMode === "chlorophyll"}
+            disabled={!chlorophyllAvailable}
+            onClick={() => onSourceModeChange("chlorophyll")}
+          >
+            INCOIS chlorophyll
+          </button>
         </div>
         <p className="microcopy">
           {sourceMode === "incois"
             ? "Build-verified INCOIS analysis · genuine timestamps and depths · source values unchanged."
-            : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
+            : sourceMode === "chlorophyll"
+              ? "Build-verified INCOIS satellite ocean colour · genuine timestamps · surface-only · no depth extrapolation."
+              : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
         </p>
       </section>
 
@@ -132,7 +147,7 @@ export function ControlPanel({
               key={item.id}
               className={variable === item.id ? "active" : ""}
               aria-pressed={variable === item.id}
-              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents")}
+              onClick={() => onVariableChange(item.id as ExploreVariableId)}
             >
               <span>{item.label}</span>
               <small>{item.units}</small>
@@ -173,14 +188,14 @@ export function ControlPanel({
               <div className="segmented field-mode-selector" aria-label="Globe field mode">
                 <button
                   className={viewMode === "slice" ? "active" : ""}
-                  disabled={!scalar}
+                  disabled={!scalar || !depthCapable}
                   onClick={() => onViewModeChange("slice")}
                 >
                   Depth slice
                 </button>
                 <button
                   className={viewMode === "volume" ? "active" : ""}
-                  disabled={!scalar}
+                  disabled={!volumeCapable}
                   onClick={() => onViewModeChange("volume")}
                 >
                   3D field
@@ -267,7 +282,7 @@ export function ControlPanel({
                     Log
                   </button>
                 </div>
-                {scalar && <label className="iso-toggle">
+                {volumeCapable && <label className="iso-toggle">
                   <span className="label-row">
                     <span>Isosurface</span>
                     <input
@@ -277,7 +292,7 @@ export function ControlPanel({
                     />
                   </span>
                 </label>}
-                {scalar && isoSurfaceEnabled && (
+                {volumeCapable && isoSurfaceEnabled && (
                   <label>
                     <span className="label-row">
                       <span>Iso value</span>
@@ -298,7 +313,7 @@ export function ControlPanel({
                   </label>
                 )}
                 <p className="microcopy">
-                  Palette, range and scale affect rendering only. {scalar ? "Isosurface geometry is extracted from the genuine scalar water-column values." : "Current colour represents genuine horizontal speed magnitude."}
+                  Palette, range and scale affect rendering only. {sourceMode === "chlorophyll" ? "Chlorophyll is rendered only on its genuine satellite surface grid; no depth is inferred." : scalar ? "Isosurface geometry is extracted from the genuine scalar water-column values." : "Current colour represents genuine horizontal speed magnitude."}
                 </p>
               </div>
 
@@ -318,7 +333,13 @@ export function ControlPanel({
 
       <section>
         <div className="section-kicker">Water column</div>
-        <label>
+        {sourceMode === "chlorophyll" ? (
+          <div className="surface-only-control" role="note">
+            <span>DEPTH</span>
+            <strong>Surface only</strong>
+            <small>Satellite ocean-colour product has no depth coordinate.</small>
+          </div>
+        ) : <label>
           <span className="label-row">
             <span>Depth</span>
             <strong>{depth.toFixed(2)} m</strong>
@@ -331,7 +352,7 @@ export function ControlPanel({
             value={depthIndex}
             onChange={(event) => onDepthChange(Number(event.target.value))}
           />
-        </label>
+        </label>}
 
       </section>
 
