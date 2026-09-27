@@ -174,6 +174,7 @@
 .ocean-workbench .imagery-control { display: grid; left: 14px; right: auto; top: 14px !important; bottom: auto; width: 190px; max-width: calc(100% - 28px); padding: 8px; }
 .ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
 .ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+.ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-smooth-zoom,
 .ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
 .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover {
   left: calc(var(--wb-control-width) + 28px);
@@ -377,6 +378,7 @@
 @media (max-width: 760px) {
   .ocean-workbench[data-control-dock="open"] .visualization-stage .imagery-control,
   .ocean-workbench[data-control-dock="open"] .visualization-stage .cesium-smooth-zoom.camera-control-stack,
+  .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-smooth-zoom,
   .ocean-workbench[data-control-dock="open"] .visualization-stage .inspection-card,
   .ocean-workbench[data-control-dock="open"] .visualization-stage .water-column-hover,
   .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
