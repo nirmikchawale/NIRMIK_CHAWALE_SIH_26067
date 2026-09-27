@@ -98,7 +98,7 @@ CONNECTORS: list[dict[str, Any]] = [
         "opendap_url": "https://erddap.incois.gov.in/erddap/griddap/IRS_chlorophyll_datasets",
         "wms_url": "https://erddap.incois.gov.in/erddap/wms/IRS_chlorophyll_datasets/request",
         "wcs_url": "https://erddap.incois.gov.in/erddap/wcs/IRS_chlorophyll_datasets/request",
-    },,
+    },
     {
         "id": "ocean-gliders-gdac",
         "adapter": "glider_profile",
