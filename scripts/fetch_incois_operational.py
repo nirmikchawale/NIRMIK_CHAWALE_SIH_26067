@@ -17,7 +17,7 @@ import socket
 import ssl
 from pathlib import Path
 from urllib.parse import quote
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 DATASET_ID = "incois_argo_10d_VAM"
@@ -107,7 +107,13 @@ def fetch(timeout: int = 60) -> dict:
             "Accept": "text/csv,*/*;q=0.8",
         },
     )
-    response_handle, transport_verified, cert_fingerprint = _open_request(request, timeout)
+    try:
+        response_handle, transport_verified, cert_fingerprint = _open_request(request, timeout)
+    except HTTPError as exc:
+        body = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(
+            f"INCOIS ERDDAP rejected query with HTTP {exc.code}. URL={url} BODY={body[:2000]}"
+        ) from exc
     with response_handle as response:
         if response.status != 200:
             raise RuntimeError(f"INCOIS ERDDAP returned HTTP {response.status}")
