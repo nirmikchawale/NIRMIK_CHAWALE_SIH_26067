@@ -504,6 +504,171 @@
 .ocean-workbench .study-region-entry small { display: none; }
 .ocean-workbench .legend-card,.ocean-workbench .water-column-legend { right: 14px; left: auto; bottom: 64px; width: 190px; transform: none; }
 .ocean-workbench .legend-values,.ocean-workbench .legend-card > span,.ocean-workbench .water-column-legend > span { font-size: 11px; }
+
+.scientific-colorbar-hud {
+  position: absolute;
+  z-index: 25;
+  right: 218px;
+  bottom: 14px;
+  display: grid;
+  gap: 8px;
+  width: min(520px, calc(100% - 250px));
+  padding: 10px 12px 9px;
+  border: 1px solid color-mix(in srgb,var(--wb-line) 82%,transparent);
+  border-radius: 10px;
+  color: var(--wb-text);
+  background: color-mix(in srgb,var(--wb-panel) 90%,transparent);
+  box-shadow: 0 14px 38px rgba(0,0,0,.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.colorbar-hud-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.colorbar-hud-heading > div:first-child { min-width: 0; }
+.colorbar-hud-heading > div:first-child span {
+  display: block;
+  color: var(--wb-accent);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .11em;
+}
+.colorbar-hud-heading > div:first-child strong {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.colorbar-hud-controls {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+}
+.colorbar-scale-toggle { display: flex; gap: 3px; }
+.colorbar-scale-toggle button {
+  min-height: 28px;
+  padding: 4px 7px;
+  border: 1px solid var(--wb-line);
+  border-radius: 5px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  font-size: 9px;
+  cursor: pointer;
+}
+.colorbar-scale-toggle button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+  background: color-mix(in srgb,var(--wb-accent) 10%,var(--wb-panel));
+}
+.colorbar-scale-toggle button:disabled { opacity: .38; cursor: not-allowed; }
+.colorbar-palette-select { display: grid; gap: 2px; color: var(--wb-muted); font-size: 8px; }
+.colorbar-palette-select span { letter-spacing: .05em; text-transform: uppercase; }
+.colorbar-palette-select select {
+  min-height: 28px;
+  padding: 3px 24px 3px 7px;
+  border: 1px solid var(--wb-line);
+  border-radius: 5px;
+  color: var(--wb-text);
+  background: var(--wb-bg);
+  font-size: 9px;
+}
+.interactive-colorbar-track {
+  position: relative;
+  height: 34px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb,var(--wb-line) 88%,transparent);
+  border-radius: 6px;
+}
+.interactive-colorbar-track[data-palette="thermal"] {
+  background: linear-gradient(90deg,#205aa3,#28a9b9,#f0d271,#ed785e);
+}
+.interactive-colorbar-track[data-palette="viridis"] {
+  background: linear-gradient(90deg,#440154,#31688e,#35b779,#fde725);
+}
+.interactive-colorbar-track[data-palette="icefire"] {
+  background: linear-gradient(90deg,#2c3e9f,#60cbe8,#f5f7f8,#e66c64,#7f0000);
+}
+.colorbar-histogram {
+  position: absolute;
+  inset: 3px 7px 3px;
+  display: flex;
+  align-items: end;
+  gap: 1px;
+  pointer-events: none;
+}
+.colorbar-histogram i {
+  flex: 1 1 0;
+  min-width: 1px;
+  max-height: 100%;
+  border-radius: 2px 2px 0 0;
+  background: rgba(255,255,255,.54);
+  box-shadow: 0 0 3px rgba(0,0,0,.2);
+}
+.colorbar-range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 34px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+.colorbar-range::-webkit-slider-runnable-track { height: 34px; background: transparent; }
+.colorbar-range::-moz-range-track { height: 34px; background: transparent; }
+.colorbar-range::-webkit-slider-thumb {
+  width: 12px;
+  height: 40px;
+  margin-top: -3px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--wb-text);
+  border-radius: 5px;
+  background: color-mix(in srgb,var(--wb-bg) 78%,transparent);
+  box-shadow: 0 2px 7px rgba(0,0,0,.45);
+  cursor: ew-resize;
+  pointer-events: auto;
+}
+.colorbar-range::-moz-range-thumb {
+  width: 10px;
+  height: 36px;
+  border: 2px solid var(--wb-text);
+  border-radius: 5px;
+  background: color-mix(in srgb,var(--wb-bg) 78%,transparent);
+  box-shadow: 0 2px 7px rgba(0,0,0,.45);
+  cursor: ew-resize;
+  pointer-events: auto;
+}
+.colorbar-range-min::-webkit-slider-thumb,.colorbar-range-min::-moz-range-thumb { border-color: #ffffff; }
+.colorbar-range-max::-webkit-slider-thumb,.colorbar-range-max::-moz-range-thumb { border-color: var(--wb-accent); }
+.colorbar-hud-values {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  align-items: center;
+  gap: 10px;
+}
+.colorbar-hud-values strong {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.colorbar-hud-values strong:last-child { text-align: right; }
+.colorbar-hud-values small { color: var(--wb-muted); font-size: 8px; font-weight: 500; }
+.colorbar-hud-values span {
+  color: var(--wb-muted);
+  font-size: 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.ocean-workbench[data-evidence-inspector="open"] .scientific-colorbar-hud {
+  right: calc(var(--wb-evidence-width) + 28px);
+}
+.ocean-workbench[data-workspace-mode="presentation"] .scientific-colorbar-hud { display: none; }
 .ocean-workbench .interaction-hint { bottom: 20px; left: 14px; right: 14px; max-width: none; width: auto; transform: none; text-align: center; font-size: 11px; }
 .ocean-workbench .water-column-summary { max-width: calc(100% - 155px); }
 .ocean-workbench .water-column-summary strong { font-size: 11px; }
@@ -680,6 +845,23 @@
   .ocean-workbench .water-column-summary small { display: none; }
   .ocean-workbench .water-column-summary strong { font-size: 9px; }
   .ocean-workbench .water-column-selected { top: 10px; right: 10px; }
+  .scientific-colorbar-hud {
+    right: 10px;
+    bottom: 80px;
+    left: 10px;
+    width: auto;
+    padding: 7px 8px;
+  }
+  .colorbar-hud-heading { gap: 6px; }
+  .colorbar-hud-controls { gap: 4px; }
+  .colorbar-scale-toggle button { min-height: 25px; padding-inline: 5px; }
+  .colorbar-palette-select span { display: none; }
+  .colorbar-palette-select select { min-height: 25px; max-width: 86px; }
+  .interactive-colorbar-track { height: 28px; }
+  .colorbar-range { height: 28px; }
+  .colorbar-hud-values span { display: none; }
+  .colorbar-hud-values { grid-template-columns: 1fr 1fr; }
+  .ocean-workbench .legend-card,.ocean-workbench .water-column-legend { display: none; }
   .camera-orientation-hud {
     top: 82px;
     right: 10px;
