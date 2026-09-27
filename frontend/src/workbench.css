@@ -319,6 +319,11 @@
 .ocean-workbench[data-workspace-mode="presentation"] .mobile-explore-tray,
 .ocean-workbench[data-workspace-mode="presentation"] .analysis-split-panel { display: none !important; }
 .ocean-workbench[data-workspace-mode="presentation"] .visualization-stage { top: 0 !important; right: 0; bottom: 0 !important; left: 0; }
+/* The header, footer and feature rail are display:none in presentation mode, so grid auto-placement
+   would drop the workspace into the 0px first row and clip everything (blank screen, unclickable exit).
+   Pin the workspace to its full-height row explicitly. */
+.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame,
+.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame > .workspace { grid-row: 2; }
 .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--wb-accent); font-weight: 700; }
 .evidence-heading h2 { margin: 8px 0 12px; font-size: 21px; letter-spacing: -.035em; }
 .snapshot-badge { display: inline-flex; font-size: 11px; padding: 5px 8px; border: 1px solid var(--wb-line); border-radius: 4px; color: var(--wb-muted); }
