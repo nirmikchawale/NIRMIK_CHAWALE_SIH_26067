@@ -244,15 +244,28 @@ def _candidate_ctd_profiles() -> list[dict[str, str]]:
     return rows[:12]
 
 
-def _fetch_ctd_profile(profile_id: str) -> tuple[list[dict], str]:
+def _fetch_ctd_profile(candidate: dict[str, str]) -> tuple[list[dict], str]:
+    profile_id = str(candidate.get("profile_id") or "").strip()
+    timestamp = _iso(candidate.get("time"))
+    latitude = _finite(candidate.get("latitude"))
+    longitude = _finite(candidate.get("longitude"))
+    if not profile_id or timestamp is None or latitude is None or longitude is None:
+        raise RuntimeError("CCHDO candidate lacks profile_id/time/latitude/longitude.")
+
     fields = (
         "profile_id,expocode,time,latitude,longitude,pressure,"
         "ctd_temperature,ctd_temperature_qc,ctd_salinity,ctd_salinity_qc"
     )
-    query = f'{fields}&profile_id="{profile_id}"'
+    # PMEL ERDDAP rejects quoted profile_id string constraints for these generated IDs.
+    # Constrain by the provider-returned profile coordinates/time, then verify profile_id locally.
+    query = (
+        f"{fields}&time={timestamp}&latitude={latitude:.8f}&longitude={longitude:.8f}"
+    )
     url = _erddap_url(CCHDO_BASE, query)
     records: list[dict] = []
     for row in _csv_rows(url):
+        if str(row.get("profile_id") or "").strip() != profile_id:
+            continue
         timestamp = _iso(row.get("time"))
         longitude = _finite(row.get("longitude"))
         latitude = _finite(row.get("latitude"))
@@ -292,7 +305,7 @@ def fetch_cchdo_ctd() -> tuple[list[dict], dict]:
         if not profile_id:
             continue
         try:
-            records, url = _fetch_ctd_profile(profile_id)
+            records, url = _fetch_ctd_profile(candidate)
         except Exception as exc:
             failures.append(f"{profile_id}: {exc}")
             continue
