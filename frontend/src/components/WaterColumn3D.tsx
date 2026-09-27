@@ -255,7 +255,9 @@ export function WaterColumn3D({
       const latSpan = Math.max(latMax - latMin, 1e-9);
       const depthSpan = Math.max(depthMax - depthMin, 1e-9);
       const depthAspect = 0.42 + 0.024 * clamp(verticalExaggeration, 1, 100);
-      const baseScale = Math.min(width, height) * 2.25;
+      // Fit the initial scientific box inside the dedicated canvas, leaving
+      // room for readable inspection and camera controls on compact screens.
+      const baseScale = Math.min(width * 0.95, Math.max(140, height - 145) * 1.35);
 
       const projectNormalised = (nx: number, ny: number, nz: number) => {
         const cosYaw = Math.cos(orbit.yaw);

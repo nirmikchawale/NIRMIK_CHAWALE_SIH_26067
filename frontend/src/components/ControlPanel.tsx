@@ -97,6 +97,7 @@ export function ControlPanel({
             <button
               key={item.id}
               className={variable === item.id ? "active" : ""}
+              aria-pressed={variable === item.id}
               onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents")}
             >
               <span>{item.label}</span>
