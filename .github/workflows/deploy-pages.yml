@@ -41,6 +41,9 @@ jobs:
       - name: Fetch verified INCOIS multi-time operational snapshot
         run: python scripts/fetch_incois_operational.py --output frontend/public/operational/incois-argo-10d-vam.json
 
+      - name: Fetch verified INCOIS chlorophyll ocean-colour snapshot
+        run: python scripts/fetch_incois_chlorophyll.py --output frontend/public/operational/incois-chlorophyll.json
+
       - name: Fetch verified Glider CTD BGC observation profiles
         run: python scripts/fetch_verified_observation_breadth.py --output frontend/public/observations/verified-profiles.json
 
@@ -76,6 +79,7 @@ jobs:
           test -s frontend/dist/science-static/currents-volume/t0.json
           test -s frontend/dist/science-static/anomalies/so/t0_d18.json
           test -s frontend/dist/operational/incois-argo-10d-vam.json
+          test -s frontend/dist/operational/incois-chlorophyll.json
           test -s frontend/dist/observations/verified-profiles.json
           test -s frontend/dist/samples/cf-profile-fixture.nc
           find frontend/dist/assets -maxdepth 1 -name "netcdf4-wasm-*.wasm" -type f -size +0c | grep -q .
@@ -184,6 +188,7 @@ jobs:
           profiles = get_json("/science-static/profiles/index.json")
           provenance = get_json("/science-static/provenance.json")
           operational = get_json("/operational/incois-argo-10d-vam.json")
+          chlorophyll = get_json("/operational/incois-chlorophyll.json")
           observations = get_json("/observations/verified-profiles.json")
           earth = get_bytes("/cesiumStatic/Assets/Textures/NaturalEarthII/0/0/0.jpg")
 
@@ -204,6 +209,13 @@ jobs:
           assert operational["integrity"]["genuine_depth_count"] >= 2
           assert operational["integrity"]["synthetic_timestamps"] is False
           assert operational["record_count"] > 0
+          assert chlorophyll["source"]["provider"] == "INCOIS"
+          assert chlorophyll["source"]["dataset_id"] == "IRS_chlorophyll_datasets"
+          assert chlorophyll["integrity"]["genuine_time_count"] >= 2
+          assert chlorophyll["integrity"]["surface_only"] is True
+          assert chlorophyll["integrity"]["synthetic_timestamps"] is False
+          assert chlorophyll["integrity"]["synthetic_depths"] is False
+          assert chlorophyll["record_count"] > 0
           assert set(observations["integrity"]["sensor_types"]) == {"glider", "ctd", "bgc"}
           assert observations["integrity"]["synthetic_measurements"] is False
           assert observations["integrity"]["synthetic_timestamps"] is False
