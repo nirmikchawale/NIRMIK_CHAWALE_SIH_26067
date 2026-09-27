@@ -57,7 +57,10 @@ interface Props {
   selectedProfileId: string;
   verticalExaggeration: number;
   onSelectProfile: (profileId: string) => void;
+  onEnterWaterColumn: () => void;
 }
+
+const INTRO_SESSION_KEY = "oceantwin-intro-seen";
 
 function scalarColor(value: number, minimum: number, maximum: number, variable: string): Color {
   const t = Math.max(0, Math.min(1, (value - minimum) / Math.max(maximum - minimum, 1e-12)));
@@ -74,10 +77,12 @@ export function OceanGlobe({
   profiles,
   selectedProfileId,
   verticalExaggeration,
-  onSelectProfile
+  onSelectProfile,
+  onEnterWaterColumn
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const enterWaterColumnRef = useRef(onEnterWaterColumn);
   const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection | Primitive>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
@@ -92,10 +97,16 @@ export function OceanGlobe({
   const [cameraHeight, setCameraHeight] = useState(0);
   const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
   const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
+  const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "flying" | "region">("idle");
+
+  useEffect(() => {
+    enterWaterColumnRef.current = onEnterWaterColumn;
+  }, [onEnterWaterColumn]);
 
   useEffect(() => {
     if (!containerRef.current || viewerRef.current) return;
 
+    let introTimer: number | null = null;
     let viewer: Viewer;
     try {
       viewer = new Viewer(containerRef.current, {
@@ -160,19 +171,57 @@ export function OceanGlobe({
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 18_000_000;
     viewer.scene.screenSpaceCameraController.inertiaZoom = 0.65;
 
-    // Judge-first framing: keep the verified model window central while also
-    // revealing India's west coast and enough globe curvature to read as geography,
-    // not as a floating rectangular plot.
-    viewer.camera.flyTo({
-      destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
-      orientation: {
-        heading: CesiumMath.toRadians(248),
-        pitch: CesiumMath.toRadians(-76),
-        roll: 0
-      },
-      duration: 0
-    });
-    setCameraHeight(viewer.camera.positionCartographic.height);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let playOpeningTransition = !reducedMotion;
+    try {
+      playOpeningTransition = playOpeningTransition && window.sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
+      window.sessionStorage.setItem(INTRO_SESSION_KEY, "1");
+    } catch {
+      // Session storage is optional. The transition still remains nonessential.
+    }
+
+    if (playOpeningTransition) {
+      setIntroPhase("earth");
+      viewer.camera.setView({
+        destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
+        orientation: {
+          heading: 0,
+          pitch: CesiumMath.toRadians(-90),
+          roll: 0
+        }
+      });
+      setCameraHeight(viewer.camera.positionCartographic.height);
+      introTimer = window.setTimeout(() => {
+        if (viewer.isDestroyed()) return;
+        setIntroPhase("flying");
+        viewer.camera.flyTo({
+          destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
+          duration: 0.9,
+          complete: () => {
+            if (viewer.isDestroyed()) return;
+            setIntroPhase("region");
+            setCameraHeight(viewer.camera.positionCartographic.height);
+          },
+          cancel: () => {
+            if (!viewer.isDestroyed()) {
+              setIntroPhase("region");
+              setCameraHeight(viewer.camera.positionCartographic.height);
+            }
+          }
+        });
+      }, 140);
+    } else {
+      setIntroPhase("region");
+      viewer.camera.setView({
+        destination: Cartesian3.fromDegrees(72.0, 14.2, 1_900_000),
+        orientation: {
+          heading: CesiumMath.toRadians(248),
+          pitch: CesiumMath.toRadians(-76),
+          roll: 0
+        }
+      });
+      setCameraHeight(viewer.camera.positionCartographic.height);
+    }
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -189,6 +238,16 @@ export function OceanGlobe({
     viewerRef.current = viewer;
 
     const handler = new ScreenSpaceEventHandler(viewer.scene.canvas);
+    const interruptOpeningTransition = () => {
+      if (introTimer != null) {
+        window.clearTimeout(introTimer);
+        introTimer = null;
+      }
+      viewer.camera.cancelFlight();
+      setIntroPhase("region");
+    };
+    handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.LEFT_DOWN);
+    handler.setInputAction(interruptOpeningTransition, ScreenSpaceEventType.WHEEL);
     handler.setInputAction((movement: { position: Cartesian2 }) => {
       const picked = viewer.scene.pick(movement.position) as { id?: unknown } | undefined;
       const pickedId = picked?.id as { id?: string; kind?: string; inspection?: Inspection } | undefined;
@@ -200,6 +259,20 @@ export function OceanGlobe({
       }
       if (pickedId?.kind === "ocean-inspection" && pickedId.inspection) {
         setInspection(pickedId.inspection);
+        return;
+      }
+
+      const surfacePoint = viewer.camera.pickEllipsoid(
+        movement.position,
+        viewer.scene.globe.ellipsoid
+      );
+      if (!surfacePoint) return;
+      const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(surfacePoint);
+      const longitude = CesiumMath.toDegrees(cartographic.longitude);
+      const latitude = CesiumMath.toDegrees(cartographic.latitude);
+      if (longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14) {
+        setInspection(null);
+        enterWaterColumnRef.current();
       }
     }, ScreenSpaceEventType.LEFT_CLICK);
     clickHandlerRef.current = handler;
@@ -210,6 +283,10 @@ export function OceanGlobe({
       if (zoomAnimationRef.current != null) {
         window.cancelAnimationFrame(zoomAnimationRef.current);
         zoomAnimationRef.current = null;
+      }
+      if (introTimer != null) {
+        window.clearTimeout(introTimer);
+        introTimer = null;
       }
       clickHandlerRef.current?.destroy();
       clickHandlerRef.current = null;
@@ -829,6 +906,24 @@ export function OceanGlobe({
         </div>
         <small>Preferred online HD → automatic offline fallback · basemap only; scientific coordinates and values never change.</small>
       </div>
+      {(introPhase === "earth" || introPhase === "flying") && (
+        <div className="globe-intro-status" role="status" aria-live="polite">
+          <span>OCEANTWIN ORIENTATION</span>
+          <strong>{introPhase === "earth" ? "Earth" : "Indian Ocean"}</strong>
+          <small>Locating verified model window · 67–70°E · 12–14°N</small>
+        </div>
+      )}
+      {introPhase === "region" && (
+        <button
+          type="button"
+          className="study-region-entry"
+          onClick={() => enterWaterColumnRef.current()}
+        >
+          <span>VERIFIED STUDY REGION</span>
+          <strong>Enter Water Column 3D</strong>
+          <small>67–70°E · 12–14°N · same model evidence, deeper view</small>
+        </button>
+      )}
       <div className="globe-overlay top-left judge-summary">
         <div>
           <span className="live-dot" />
