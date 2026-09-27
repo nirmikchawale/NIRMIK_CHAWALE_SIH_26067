@@ -175,7 +175,7 @@ ADAPTER_CONTRACTS: dict[str, dict[str, Any]] = {
         "input": ["ERDDAP tabledap / OPeNDAP"],
         "required_coordinates": ["time", "latitude", "longitude"],
         "output": "canonical remote observation table descriptor + query template",
-    },,
+    },
     "glider_profile": {
         "input": ["OceanGliders/EGO NetCDF", "canonical delimited profile"],
         "required_coordinates": ["longitude", "latitude", "time", "pressure/depth"],
