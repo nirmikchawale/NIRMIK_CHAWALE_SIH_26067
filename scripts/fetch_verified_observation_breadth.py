@@ -22,8 +22,7 @@ USER_AGENT = "OceanTwin-SIH26067/1.0 (+https://github.com/nirmikchawale/NIRMIK_C
 AOML_DATASET = "AOML_GLIDERS_2025"
 AOML_BASE = f"https://erddap.aoml.noaa.gov/hdb/erddap/tabledap/{AOML_DATASET}.csv"
 AOML_INFO = f"https://erddap.aoml.noaa.gov/hdb/erddap/info/{AOML_DATASET}/index.html"
-AOML_TIME_START = "2025-06-24T00:00:00Z"
-AOML_TIME_END = "2025-12-06T00:00:00Z"
+AOML_TRAJECTORY = "SG683-20250910T0000"
 
 CCHDO_DATASET = "cchdo_ctd"
 CCHDO_BASE = f"https://data.pmel.noaa.gov/generic/erddap/tabledap/{CCHDO_DATASET}.csv"
@@ -116,65 +115,26 @@ def _record(
     }
 
 
-def _candidate_aoml_profiles() -> list[dict[str, str]]:
-    fields = "trajectory,profile_id,profile_time,profile_lon,profile_lat"
-    windows = [
-        ("2025-12-05T00:00:00Z", "2025-12-05T14:00:00Z"),
-        ("2025-12-04T00:00:00Z", "2025-12-05T00:00:00Z"),
-        ("2025-11-30T00:00:00Z", "2025-12-01T00:00:00Z"),
-        ("2025-09-15T00:00:00Z", "2025-09-16T00:00:00Z"),
-        (AOML_TIME_START, "2025-06-25T00:00:00Z"),
-    ]
-    unique: dict[tuple[str, str], dict[str, str]] = {}
-    discovery_errors: list[str] = []
-    for start, end in windows:
-        query = f"{fields}&time>={start}&time<={end}"
-        url = _erddap_url(AOML_BASE, query)
-        try:
-            source_rows = _csv_rows(url)
-        except Exception as exc:
-            discovery_errors.append(f"{start}..{end}: {exc}")
-            continue
-        for row in source_rows:
-            trajectory = str(row.get("trajectory") or "").strip()
-            profile_id = str(row.get("profile_id") or "").strip()
-            if (
-                trajectory
-                and profile_id
-                and _iso(row.get("profile_time"))
-                and _finite(row.get("profile_lon")) is not None
-                and _finite(row.get("profile_lat")) is not None
-            ):
-                unique[(trajectory, profile_id)] = row
-        if len(unique) >= 8:
-            break
-
-    rows = sorted(
-        unique.values(),
-        key=lambda row: str(row.get("profile_time") or ""),
-        reverse=True,
-    )
-    if not rows:
-        raise RuntimeError(
-            "AOML profile discovery returned no valid glider profiles. "
-            + " | ".join(discovery_errors)
-        )
-    return rows[:8]
-
-
-def _fetch_aoml_profile(trajectory: str, profile_id: str) -> tuple[list[dict], list[dict], str]:
+def _aoml_deployment_rows() -> tuple[list[dict[str, str]], str]:
     fields = (
         "trajectory,profile_time,profile_lon,profile_lat,depth,"
         "temperature,temperature_qc,salinity,salinity_qc,"
         "aanderaa4831_dissolved_oxygen,aanderaa4831_dissolved_oxygen_qc,profile_id"
     )
-    query = f'{fields}&trajectory="{trajectory}"&profile_id={profile_id}'
+    query = f'{fields}&trajectory="{AOML_TRAJECTORY}"'
     url = _erddap_url(AOML_BASE, query)
     rows = _csv_rows(url)
+    if not rows:
+        raise RuntimeError(f"AOML deployment {AOML_TRAJECTORY} returned no rows.")
+    return rows, url
 
+
+def _aoml_profile_records(rows: list[dict[str, str]], profile_id: str) -> tuple[list[dict], list[dict]]:
     glider_records: list[dict] = []
     bgc_records: list[dict] = []
     for row in rows:
+        if str(row.get("profile_id") or "").strip() != profile_id:
+            continue
         timestamp = _iso(row.get("profile_time"))
         longitude = _finite(row.get("profile_lon"))
         latitude = _finite(row.get("profile_lat"))
@@ -182,7 +142,6 @@ def _fetch_aoml_profile(trajectory: str, profile_id: str) -> tuple[list[dict], l
         if timestamp is None or longitude is None or latitude is None or depth is None or depth < 0:
             continue
 
-        platform = trajectory
         temperature = _finite(row.get("temperature"))
         salinity = _finite(row.get("salinity"))
         oxygen = _finite(row.get("aanderaa4831_dissolved_oxygen"))
@@ -194,38 +153,42 @@ def _fetch_aoml_profile(trajectory: str, profile_id: str) -> tuple[list[dict], l
             glider_records.append(_record(
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="temperature", value=temperature, units="degree_C",
-                source="NOAA AOML / IOOS glider ERDDAP", platform_id=platform,
+                source="NOAA AOML / IOOS glider ERDDAP", platform_id=AOML_TRAJECTORY,
                 sensor_type="glider", dataset_id=AOML_DATASET, qc_flag=temp_qc,
             ))
         if salinity is not None and sal_qc in {"1", "2"}:
             glider_records.append(_record(
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="salinity", value=salinity, units="1e-3",
-                source="NOAA AOML / IOOS glider ERDDAP", platform_id=platform,
+                source="NOAA AOML / IOOS glider ERDDAP", platform_id=AOML_TRAJECTORY,
                 sensor_type="glider", dataset_id=AOML_DATASET, qc_flag=sal_qc,
             ))
         if oxygen is not None and oxygen_qc in {"1", "2"}:
             bgc_records.append(_record(
                 longitude=longitude, latitude=latitude, depth_m=depth, timestamp=timestamp,
                 variable="dissolved_oxygen", value=oxygen, units="micromoles/kg",
-                source="NOAA AOML glider Aanderaa 4831 optode", platform_id=f"{platform} · O2 optode",
+                source="NOAA AOML glider Aanderaa 4831 optode",
+                platform_id=f"{AOML_TRAJECTORY} · O2 optode",
                 sensor_type="bgc", dataset_id=AOML_DATASET, qc_flag=oxygen_qc,
             ))
-    return glider_records, bgc_records, url
+    return glider_records, bgc_records
 
 
 def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
+    rows, url = _aoml_deployment_rows()
+    profile_ids = sorted(
+        {
+            str(row.get("profile_id") or "").strip()
+            for row in rows
+            if str(row.get("profile_id") or "").strip()
+        },
+        key=lambda value: int(float(value)) if value.replace(".", "", 1).isdigit() else -1,
+        reverse=True,
+    )
+
     failures: list[str] = []
-    for candidate in _candidate_aoml_profiles():
-        trajectory = str(candidate.get("trajectory") or "").strip()
-        profile_id = str(candidate.get("profile_id") or "").strip()
-        if not trajectory or not profile_id:
-            continue
-        try:
-            glider_records, bgc_records, url = _fetch_aoml_profile(trajectory, profile_id)
-        except Exception as exc:
-            failures.append(f"{trajectory}/{profile_id}: {exc}")
-            continue
+    for profile_id in profile_ids:
+        glider_records, bgc_records = _aoml_profile_records(rows, profile_id)
         if len(glider_records) >= 20 and len(bgc_records) >= 8:
             return glider_records + bgc_records, {
                 "id": "noaa-aoml-glider-bgc",
@@ -236,7 +199,7 @@ def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
                 "query_url": url,
                 "official_metadata": AOML_INFO,
                 "roles": ["glider", "bgc"],
-                "platform": trajectory,
+                "platform": AOML_TRAJECTORY,
                 "profile_id": profile_id,
                 "transformations": [
                     "provider values unchanged",
@@ -245,11 +208,12 @@ def fetch_aoml_glider_and_bgc() -> tuple[list[dict], dict]:
                 ],
             }
         failures.append(
-            f"{trajectory}/{profile_id}: glider={len(glider_records)} bgc={len(bgc_records)} accepted records"
+            f"{profile_id}: glider={len(glider_records)} bgc={len(bgc_records)} accepted records"
         )
+
     raise RuntimeError(
-        "No AOML glider profile satisfied both physical and BGC evidence thresholds: "
-        + " | ".join(failures)
+        f"AOML deployment {AOML_TRAJECTORY} contains no profile satisfying both physical and BGC "
+        "evidence thresholds. " + " | ".join(failures[:30])
     )
 
 
