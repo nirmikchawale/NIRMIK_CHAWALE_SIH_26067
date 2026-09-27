@@ -38,6 +38,7 @@ import type {
   VolumeResponse
 } from "../types";
 import { displayUnits } from "../units";
+import { CameraOrientationHud, type CameraPreset } from "./CameraOrientationHud";
 
 interface Inspection {
   kind: "scalar" | "current";
@@ -133,6 +134,7 @@ export function OceanGlobe({
   const [renderScale, setRenderScale] = useState(1);
   const [antialiasing, setAntialiasing] = useState("initializing");
   const [cameraHeight, setCameraHeight] = useState(0);
+  const [cameraPreset, setCameraPreset] = useState<CameraPreset>("perspective");
   const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
   const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
   const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "flying" | "region">("idle");
@@ -928,19 +930,84 @@ export function OceanGlobe({
     return viewer;
   };
 
-  const fitStudyRegion = () => {
+  const cameraDuration = (seconds: number) =>
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : seconds;
+
+  const applyCameraPreset = (preset: CameraPreset) => {
     const viewer = cancelCameraAnimation();
     if (!viewer) return;
+    setCameraPreset(preset);
+    const complete = () => setCameraHeight(viewer.camera.positionCartographic.height);
+
+    if (preset === "north") {
+      viewer.camera.flyTo({
+        destination: Cartesian3.clone(viewer.camera.position),
+        orientation: {
+          heading: 0,
+          pitch: viewer.camera.pitch,
+          roll: 0
+        },
+        duration: cameraDuration(0.36),
+        complete
+      });
+      return;
+    }
+
+    if (preset === "nadir") {
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(68.5, 13.0, 1_500_000),
+        orientation: {
+          heading: 0,
+          pitch: CesiumMath.toRadians(-90),
+          roll: 0
+        },
+        duration: cameraDuration(0.55),
+        complete
+      });
+      return;
+    }
+
+    if (preset === "perspective") {
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(68.5, 13.0, 1_350_000),
+        orientation: {
+          heading: CesiumMath.toRadians(315),
+          pitch: CesiumMath.toRadians(-45),
+          roll: 0
+        },
+        duration: cameraDuration(0.58),
+        complete
+      });
+      return;
+    }
+
+    if (preset === "cross-section") {
+      viewer.camera.flyTo({
+        destination: Cartesian3.fromDegrees(68.5, 13.0, 1_050_000),
+        orientation: {
+          heading: CesiumMath.toRadians(90),
+          pitch: CesiumMath.toRadians(-12),
+          roll: 0
+        },
+        duration: cameraDuration(0.58),
+        complete
+      });
+      return;
+    }
+
     viewer.camera.flyTo({
       destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.58,
-      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+      duration: cameraDuration(0.58),
+      complete
     });
   };
+
+  const fitStudyRegion = () => applyCameraPreset("basin");
 
   const showEarthView = () => {
     const viewer = cancelCameraAnimation();
     if (!viewer) return;
+    setCameraPreset("nadir");
     viewer.camera.flyTo({
       destination: Cartesian3.fromDegrees(69.0, 13.0, 14_000_000),
       orientation: {
@@ -948,7 +1015,7 @@ export function OceanGlobe({
         pitch: CesiumMath.toRadians(-90),
         roll: 0
       },
-      duration: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 0.7,
+      duration: cameraDuration(0.7),
       complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
@@ -980,6 +1047,7 @@ export function OceanGlobe({
       data-antialiasing={antialiasing}
       data-render-quality="high"
       data-camera-height={cameraHeight.toFixed(0)}
+      data-camera-preset={cameraPreset}
       data-presentation-active={presentationActive ? "true" : "false"}
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
@@ -1120,6 +1188,12 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
+      <CameraOrientationHud
+        context="globe"
+        activePreset={cameraPreset}
+        onPreset={applyCameraPreset}
+      />
+
       <div className="globe-overlay smooth-zoom-controls cesium-smooth-zoom camera-control-stack" aria-label="Ocean Globe camera controls">
         <span>CAMERA</span>
         <div className="camera-zoom-row">
