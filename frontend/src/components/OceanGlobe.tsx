@@ -83,6 +83,7 @@ export function OceanGlobe({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const enterWaterColumnRef = useRef(onEnterWaterColumn);
+  const regionEntryArmedRef = useRef(false);
   const dynamicPrimitivesRef = useRef<Array<PointPrimitiveCollection | PolylineCollection | Primitive>>([]);
   const profileIdsRef = useRef<string[]>([]);
   const clickHandlerRef = useRef<ScreenSpaceEventHandler | null>(null);
@@ -98,6 +99,7 @@ export function OceanGlobe({
   const [imageryPreference, setImageryPreference] = useState<"auto" | "offline">("auto");
   const [imageryStatus, setImageryStatus] = useState<"connecting" | "online" | "offline" | "grid">("connecting");
   const [introPhase, setIntroPhase] = useState<"idle" | "earth" | "flying" | "region">("idle");
+  const [regionEntryArmed, setRegionEntryArmed] = useState(false);
 
   useEffect(() => {
     enterWaterColumnRef.current = onEnterWaterColumn;
@@ -172,13 +174,16 @@ export function OceanGlobe({
     viewer.scene.screenSpaceCameraController.inertiaZoom = 0.65;
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let playOpeningTransition = !reducedMotion;
+    let firstSessionEntry = true;
     try {
-      playOpeningTransition = playOpeningTransition && window.sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
+      firstSessionEntry = window.sessionStorage.getItem(INTRO_SESSION_KEY) !== "1";
       window.sessionStorage.setItem(INTRO_SESSION_KEY, "1");
     } catch {
-      // Session storage is optional. The transition still remains nonessential.
+      // Session storage is optional. If unavailable, the orientation remains harmless and interruptible.
     }
+    const playOpeningTransition = firstSessionEntry && !reducedMotion;
+    regionEntryArmedRef.current = firstSessionEntry;
+    setRegionEntryArmed(firstSessionEntry);
 
     if (playOpeningTransition) {
       setIntroPhase("earth");
@@ -257,22 +262,29 @@ export function OceanGlobe({
         onSelectProfile(entityId.slice(5));
         return;
       }
-      if (pickedId?.kind === "ocean-inspection" && pickedId.inspection) {
-        setInspection(pickedId.inspection);
-        return;
-      }
 
       const surfacePoint = viewer.camera.pickEllipsoid(
         movement.position,
         viewer.scene.globe.ellipsoid
       );
-      if (!surfacePoint) return;
-      const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(surfacePoint);
-      const longitude = CesiumMath.toDegrees(cartographic.longitude);
-      const latitude = CesiumMath.toDegrees(cartographic.latitude);
-      if (longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14) {
-        setInspection(null);
-        enterWaterColumnRef.current();
+      if (surfacePoint) {
+        const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(surfacePoint);
+        const longitude = CesiumMath.toDegrees(cartographic.longitude);
+        const latitude = CesiumMath.toDegrees(cartographic.latitude);
+        const insideVerifiedRegion =
+          longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14;
+
+        if (insideVerifiedRegion && regionEntryArmedRef.current) {
+          regionEntryArmedRef.current = false;
+          setRegionEntryArmed(false);
+          setInspection(null);
+          enterWaterColumnRef.current();
+          return;
+        }
+      }
+
+      if (pickedId?.kind === "ocean-inspection" && pickedId.inspection) {
+        setInspection(pickedId.inspection);
       }
     }, ScreenSpaceEventType.LEFT_CLICK);
     clickHandlerRef.current = handler;
@@ -913,11 +925,15 @@ export function OceanGlobe({
           <small>Locating verified model window · 67–70°E · 12–14°N</small>
         </div>
       )}
-      {introPhase === "region" && (
+      {regionEntryArmed && introPhase === "region" && (
         <button
           type="button"
           className="study-region-entry"
-          onClick={() => enterWaterColumnRef.current()}
+          onClick={() => {
+            regionEntryArmedRef.current = false;
+            setRegionEntryArmed(false);
+            enterWaterColumnRef.current();
+          }}
         >
           <span>VERIFIED STUDY REGION</span>
           <strong>Enter Water Column 3D</strong>
