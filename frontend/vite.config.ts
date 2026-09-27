@@ -4,6 +4,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 
 const cesiumSource = "node_modules/cesium/Build/Cesium";
 const cesiumBaseUrl = "cesiumStatic";
+const netcdfWasmSource = "node_modules/@earthyscience/netcdf4-wasm/dist/netcdf4-wasm.wasm";
 
 export default defineConfig({
   // Relative asset URLs keep the same build portable across localhost,
@@ -32,6 +33,10 @@ export default defineConfig({
           src: `${cesiumSource}/Widgets/**/*`,
           dest: `${cesiumBaseUrl}/Widgets`,
           rename: { stripBase: 5 }
+        },
+        {
+          src: netcdfWasmSource,
+          dest: "."
         }
       ]
     })
