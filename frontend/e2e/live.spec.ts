@@ -235,9 +235,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".render-quality-line")).toContainText("HD canvas");
   await expect(page.locator(".judge-summary")).toContainText("INDIAN OCEAN");
   await expect(page.locator(".judge-summary")).toContainText("Argo comparison profiles");
-  await expect(page.locator(".profile-panel")).toContainText("Argo");
-  await expect(page.locator(".profile-panel")).toContainText("Matched levels");
-  await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
+  await expect(page.locator(".profile-panel")).toHaveCount(0);
   await expect(page.getByText("Diagnostic model–observation consistency, not independent validation.")).toBeVisible();
 
   const modeDock = page.locator('.visualization-dock[data-visualization-mode="globe"]');
@@ -325,9 +323,11 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
 
   const profileSelect = page.locator(".control-panel select");
-  const initialProfile = await page.locator(".profile-heading p").textContent();
-  await profileSelect.selectOption({ index: 0 });
-  await expect(page.locator(".profile-heading p")).not.toHaveText(initialProfile ?? "");
+  await profileSelect.selectOption({ index: 1 });
+  await expect(page.locator(".profile-panel")).toBeVisible();
+  await expect(page.locator(".profile-panel")).toContainText("Argo");
+  await expect(page.locator(".profile-panel")).toContainText("Matched levels");
+  await expect(page.locator(".profile-panel")).toContainText("Bias by depth");
   await expect(page.locator(".qc-pill")).toHaveText("QC ACCEPTED");
 
   await page.getByRole("button", { name: "Sources & QC" }).click();
