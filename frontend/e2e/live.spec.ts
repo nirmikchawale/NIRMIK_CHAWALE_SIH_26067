@@ -293,6 +293,26 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
   await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
 
+  const chlorophyllSource = sourceSelector.getByRole("button", { name: "INCOIS chlorophyll" });
+  await expect(chlorophyllSource).toBeEnabled();
+  await chlorophyllSource.click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "chlorophyll");
+  await expect(page.locator(".visualization-dock")).toContainText("INCOIS IRS P4 OCM ocean colour");
+  await expect(page.getByRole("button", { name: /Chlorophyll/i })).toBeVisible();
+  await expect(page.locator(".legend-card")).toContainText("Chlorophyll");
+  await expect(page.locator(".legend-card")).toContainText("mg/m^3");
+  await expect(page.locator(".surface-only-control")).toContainText("Surface only");
+  await expect(page.getByRole("button", { name: /Water Column 3D/ })).toBeDisabled();
+  const chlorophyllTime = page.getByLabel("Explore genuine timestamp");
+  const chlorophyllPlay = page.getByRole("button", { name: "Play genuine Explore time playback" });
+  await expect(chlorophyllTime).toBeVisible();
+  await expect(chlorophyllPlay).toBeVisible();
+  const initialChlorophyllTime = await chlorophyllTime.inputValue();
+  await chlorophyllPlay.click();
+  await expect.poll(async () => await chlorophyllTime.inputValue(), { timeout: 7000 }).not.toBe(initialChlorophyllTime);
+  await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
+  await expect(page.locator(".renderer-fallback-card")).toHaveCount(0);
+
   await sourceSelector.getByRole("button", { name: "GLORYS baseline" }).click();
   await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "glorys");
   await expect(page.locator(".play-button")).toHaveCount(0);
