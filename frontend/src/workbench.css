@@ -1485,20 +1485,28 @@
   }
 
   .ocean-workbench .ocean-journey {
-    display: none;
+    top: 68px;
+    left: 10px;
+    width: auto;
+    max-width: calc(100% - 20px);
+    transform: none;
+    display: flex;
+    flex-direction: row;
   }
 
   .ocean-workbench .journey-stops {
-    max-width: 100%;
-    padding: 6px 8px;
-    gap: 5px;
-    overflow: hidden;
-    font-size: 8px;
-    white-space: nowrap;
+    display: none;
   }
 
   .ocean-workbench .ocean-journey button {
-    display: none;
+    display: block;
+    min-height: 32px;
+    padding: 6px 9px;
+    border-radius: 9px;
+    font-size: 9px;
+    background: color-mix(in srgb, var(--wb-panel) 88%, transparent);
+    box-shadow: 0 8px 20px rgba(0, 7, 12, .2);
+    backdrop-filter: blur(12px);
   }
 
   .ocean-workbench .visualization-stage .imagery-control {
