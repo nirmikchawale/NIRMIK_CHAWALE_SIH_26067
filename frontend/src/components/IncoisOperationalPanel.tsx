@@ -137,16 +137,45 @@ export function IncoisOperationalPanel() {
       data-variable={variable}
     >
       <div className="incois-operational-heading">
-        <div>
+        <div className="incois-operational-title">
           <div className="section-kicker">INCOIS · OPERATIONAL BREADTH</div>
           <h3>Genuine multi-time Indian Ocean analysis</h3>
           <p>{snapshot.source.title}</p>
+          <p className="incois-operational-lede">
+            This is the temporal-breadth layer of OceanTwin: verified INCOIS analysis snapshots
+            add real time and depth variation beyond the single-time GLORYS comparison baseline.
+            Move the controls below to inspect what genuinely changes—without duplicated dates or
+            altered provider values.
+          </p>
         </div>
         <div className="incois-proof">
           <span>BUILD-VERIFIED</span>
           <strong>{snapshot.integrity.genuine_time_count} times · {snapshot.integrity.genuine_depth_count} depths</strong>
           <small>no synthetic timestamps · source values unchanged</small>
         </div>
+      </div>
+
+      <div className="incois-operational-proof-grid" aria-label="INCOIS integrity proof">
+        <article>
+          <span>GENUINE TIME</span>
+          <strong>{snapshot.integrity.genuine_time_count}</strong>
+          <small>verified timestamps available for temporal exploration</small>
+        </article>
+        <article>
+          <span>GENUINE DEPTH</span>
+          <strong>{snapshot.integrity.genuine_depth_count}</strong>
+          <small>verified depth coordinates in this build snapshot</small>
+        </article>
+        <article>
+          <span>SYNTHETIC TIME</span>
+          <strong>0</strong>
+          <small>OceanTwin never duplicates a field under fabricated dates</small>
+        </article>
+        <article>
+          <span>VALUE POLICY</span>
+          <strong>UNCHANGED</strong>
+          <small>provider values are preserved through this presentation layer</small>
+        </article>
       </div>
 
       <div className="incois-operational-controls">
@@ -206,6 +235,24 @@ export function IncoisOperationalPanel() {
             onChange={(event) => setDepthIndex(Number(event.target.value))}
           />
         </label>
+      </div>
+
+      <div className="incois-operational-explainer" aria-label="How to read INCOIS operational breadth">
+        <article>
+          <span>01 · WHY IT MATTERS</span>
+          <strong>Time is evidence, not animation.</strong>
+          <p>Each selectable date is a genuine provider timestamp. The changing line therefore represents verified temporal breadth rather than a repeated static field.</p>
+        </article>
+        <article>
+          <span>02 · WHAT TO CHANGE</span>
+          <strong>Read time and depth together.</strong>
+          <p>Select Temperature or Salinity, move the timestamp, then change depth. The charts and cell summaries update from the same verified snapshot contract.</p>
+        </article>
+        <article>
+          <span>03 · WHAT STAYS FIXED</span>
+          <strong>Scientific integrity remains visible.</strong>
+          <p>Source values, units and timestamps are preserved. The deterministic build keeps the demo reproducible even when provider services are unavailable at runtime.</p>
+        </article>
       </div>
 
       <div className="incois-operational-grid">
