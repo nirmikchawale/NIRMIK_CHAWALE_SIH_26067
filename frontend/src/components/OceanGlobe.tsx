@@ -54,6 +54,10 @@ interface Inspection {
   speed?: number;
 }
 
+// Resets on a real browser reload, but survives internal SPA route changes.
+// Fresh open/refresh replays Earth → India → ocean; internal navigation does not.
+let openingJourneyPlayedThisDocument = false;
+
 interface Props {
   field: FieldResponse | null;
   volume: VolumeResponse | null;
