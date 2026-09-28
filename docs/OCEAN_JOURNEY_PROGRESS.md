@@ -1,27 +1,37 @@
-# Ocean journey redesign — completed record
+# Ocean Journey Redesign — Final State
 
 Updated: 2026-09-28  
-Branch: main  
-Original PR: https://github.com/nirmikchawale/NIRMIK_CHAWALE_SIH_PERSONAL/pull/93  
-State: **merged into main; retained as the current judge-facing experience**
+Branch: `main`  
+Original redesign PR: #93
 
-## Delivered
+## State
 
-- Earth → India → verified study-field orientation.
-- Replay, skip and reduced-motion support.
-- Geographic View ↔ Water Column 3D transition.
-- Wheel/trackpad, buttons, keyboard and touch/pinch interaction.
-- Source-aware field overview and actual depth coverage.
-- Workspace modes, camera presets, depth controller, chlorophyll, genuine multi-time INCOIS, NetCDF ingestion and multi-sensor observation pathways.
-- Sponsor-first six-step presentation guide.
-- Hardened camera telemetry and study-area field-entry interaction for public judge-flow verification.
+The redesign is merged into `main`; this is no longer an active feature-branch checkpoint.
+
+Implemented:
+
+- Earth → India → verified study-field orientation;
+- replay / skip / reduced-motion handling;
+- Geographic View ↔ Water Column 3D navigation;
+- repeated field entry;
+- responsive desktop/mobile layout;
+- wheel, button, keyboard and pinch interaction paths;
+- real depth coverage and field overview;
+- Analysis Split and Presentation workspaces;
+- source-aware Explorer with GLORYS, INCOIS multi-time and INCOIS chlorophyll;
+- Argo/Glider/CTD/BGC observation integration;
+- camera/depth/render controls.
+
+## Current acceptance rule
+
+Do not use this file to infer deployment health.
+
+For every session, inspect the current `main` HEAD and the current `tests`, `final-mvp` and `deploy-oceantwin-pages` workflows. The Pages workflow must include a passing live Chromium judge flow.
 
 ## Rollback
 
-The pre-redesign rollback tag remains `ui-before-ocean-journey-20260928`.
+Use Git history / tags and revert commits or merged PRs when necessary. Do not force-push or reset `main` to an old redesign commit.
 
-Do not reset or force-push main. If a visual rollback is ever required, revert the redesign merge while retaining later scientific/compliance commits.
+## Next action
 
-## Authority rule
-
-This file is historical context only. Current `main` and the latest tests/final-mvp/Pages workflows are authoritative for release readiness.
+No feature continuation is implied by this file. Remaining work, if any, is determined by current-head CI, explicit user requests and the presentation-machine checklist.
