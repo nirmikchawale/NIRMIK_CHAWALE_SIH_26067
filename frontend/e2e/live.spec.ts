@@ -309,6 +309,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(modeDock.getByRole("button", { name: /Geographic View/ })).toBeVisible();
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
+  await expect(globeShell).toHaveAttribute("data-journey-phase", "region");
   // Camera HUD and smooth zoom are progressively disclosed when the Explorer
   // control drawer is closed.
   await page.getByRole("button", { name: "Hide explorer controls" }).click();
@@ -751,7 +752,7 @@ test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane"
   const appShell = page.locator(".app-shell");
   await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
 
-  const split = page.getByLabel("Analysis Split workspace");
+  const split = page.getByRole("complementary", { name: "Analysis Split workspace", exact: true });
   const chart = page.getByRole("application", {
     name: "Interactive synchronized model and Argo temperature profile"
   });
@@ -760,6 +761,8 @@ test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane"
   await expect(page.locator(".analysis-model-line")).toHaveCount(1);
 
   const initialDepth = await split.getAttribute("data-synced-model-depth");
+  // Analysis is scrollable; a visible SVG can still extend below the viewport.
+  await chart.scrollIntoViewIfNeeded();
   const bounds = await chart.boundingBox();
   if (!bounds) throw new Error("Synchronized T-Z chart missing");
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, fetchIncoisChlorophyll, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
+import { useStartupScreen } from "./useStartupScreen";
 import { AppNavigation } from "./components/AppNavigation";
 import { AnalysisSplitPanel } from "./components/AnalysisSplitPanel";
 import { EvidenceRail } from "./components/EvidenceRail";
@@ -125,6 +126,7 @@ export default function App() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [error, setError] = useState("");
   const [startupError, setStartupError] = useState("");
+  useStartupScreen(Boolean(catalog), Boolean(startupError));
   const [degradedWarnings, setDegradedWarnings] = useState<string[]>([]);
 
   const operationalCatalog = useMemo(
@@ -623,9 +625,9 @@ export default function App() {
   }, [operationalCatalog, chlorophyllCatalog, catalog, variable]);
 
   const handleEnterWaterColumn = useCallback(() => {
-    if (sourceMode === "chlorophyll") return;
+    if (sourceMode === "chlorophyll" || (sourceMode === "incois" && variable === "currents")) return;
     setVisualizationMode("water-column");
-  }, [sourceMode]);
+  }, [sourceMode, variable]);
 
   const handleWorkspaceModeChange = useCallback((nextMode: WorkspaceMode) => {
     setWorkspaceMode(nextMode);
@@ -1037,7 +1039,7 @@ export default function App() {
                     onCloseProfileCallout={() => setProfileCalloutOpen(false)}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
-                    canEnterWaterColumn={activeExploreCatalog.capabilities.surface_only !== true}
+                    canEnterWaterColumn={sourceMode !== "chlorophyll" && (sourceMode === "glorys" || variable !== "currents")}
                   />
                 </div>
                 <div

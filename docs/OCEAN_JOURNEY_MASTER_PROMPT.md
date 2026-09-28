@@ -26,3 +26,6 @@ Work in recoverable segments. Inspect current main and uncommitted work first. S
 
 ## Resume checkpoint
 See OCEAN_JOURNEY_PROGRESS.md for current status, verification and rollback instructions. Preserve the older UI if the user prefers it.
+
+## First-open extension
+Paint a small, original ocean-contour loading shell in the initial HTML, before the scientific application bundle. Use real readiness messages, no false progress or artificial delay. Respect reduced motion, provide pause and reload, and yield to existing error recovery. Preserve the latest GitHub UI and scientific controls; tag the pre-change state and document selective revert instructions. Verify delayed-bundle, mobile and failed-catalog behavior before deploying. See STARTUP_EXPERIENCE.md.

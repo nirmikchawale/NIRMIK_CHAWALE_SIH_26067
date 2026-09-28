@@ -403,7 +403,7 @@ jobs:
 
           print("Production static runtime smoke test passed.")
           PY
-      - name: Verify journey and mobile gestures before deployment
+      - name: Verify complete browser acceptance before deployment
         working-directory: frontend
         env:
           OCEANTWIN_LIVE_URL: http://127.0.0.1:4174
@@ -416,4 +416,4 @@ jobs:
             if curl --fail --silent http://127.0.0.1:4174/ > /dev/null; then break; fi
             sleep 1
           done
-          npm run e2e:live -- journey.spec.ts
+          npm run e2e:live
