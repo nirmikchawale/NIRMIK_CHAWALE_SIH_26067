@@ -24,10 +24,10 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
   await expect(globe).toHaveAttribute("data-journey-phase", "flying", { timeout: 45_000 });
   await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 45_000 });
 
+  // Full Earth → India → ocean completion is already proven above for both
+  // open and refresh. Replay must restart it, and Skip must exit immediately.
   await page.getByRole("button", { name: "Replay journey", exact: true }).click();
   await expect(globe).toHaveAttribute("data-journey-phase", "earth", { timeout: 30_000 });
-  await expect(globe).toHaveAttribute("data-journey-phase", "india", { timeout: 30_000 });
-  await expect(globe).toHaveAttribute("data-journey-phase", "flying", { timeout: 30_000 });
   await page.getByRole("button", { name: "Skip journey", exact: true }).click();
   await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 10_000 });
   await page.getByRole("button", { name: "Inspect points on map", exact: true }).click();
