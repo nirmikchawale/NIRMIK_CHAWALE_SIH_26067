@@ -875,3 +875,813 @@
  .ocean-workbench .evidence-status-pill { max-width:175px; }
 }
 :root[data-theme="light"] .ocean-workbench .present-button { color: #f7f5ef; }
+
+/* --------------------------------------------------------------------------
+   Explorer clarity pass — judge-facing, visualization-first composition.
+
+   This layer intentionally lives at the end of workbench.css. It changes only
+   layout and interaction styling; scientific values, scales and renderers are
+   untouched. The important idea is progressive disclosure: the ocean remains
+   the hero, while detailed controls and evidence stay one click away.
+   -------------------------------------------------------------------------- */
+
+:root {
+  --wb-bg: #06141d;
+  --wb-panel: #0b202b;
+  --wb-raised: #12313d;
+  --wb-line: rgba(141, 201, 211, .22);
+  --wb-text: #effaf8;
+  --wb-muted: #91adb4;
+  --wb-accent: #55dfd1;
+  --wb-accent-warm: #ffca76;
+  --wb-control-width: 272px;
+  --wb-evidence-width: 318px;
+  --wb-soft-shadow: 0 18px 50px rgba(0, 7, 12, .3);
+  --wb-float-shadow: 0 14px 38px rgba(0, 7, 12, .36);
+}
+
+:root[data-theme="light"] {
+  --wb-bg: #edf5f3;
+  --wb-panel: #fbfdf9;
+  --wb-raised: #e1f2ef;
+  --wb-line: rgba(32, 91, 101, .2);
+  --wb-text: #12313b;
+  --wb-muted: #56727a;
+  --wb-accent: #087f78;
+  --wb-accent-warm: #9a5c00;
+  --wb-soft-shadow: 0 18px 48px rgba(29, 74, 78, .14);
+  --wb-float-shadow: 0 14px 36px rgba(29, 74, 78, .17);
+}
+
+.ocean-workbench {
+  grid-template-rows: 62px minmax(0, 1fr) 28px;
+  background:
+    radial-gradient(circle at 70% 5%, color-mix(in srgb, var(--wb-accent) 8%, transparent), transparent 32%),
+    var(--wb-bg);
+}
+
+.ocean-workbench .app-header {
+  min-height: 62px;
+  padding-inline: clamp(14px, 2vw, 24px);
+  border-bottom-color: var(--wb-line);
+  background: color-mix(in srgb, var(--wb-bg) 95%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.ocean-workbench .brand-mark.small {
+  width: 38px;
+  height: 38px;
+  border-color: color-mix(in srgb, var(--wb-accent) 55%, transparent);
+  border-radius: 13px;
+  color: var(--wb-accent);
+  background:
+    radial-gradient(circle at 30% 25%, color-mix(in srgb, var(--wb-accent) 26%, transparent), transparent 48%),
+    var(--wb-panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-accent) 8%, transparent);
+}
+
+.ocean-workbench .brand h1 {
+  font-size: 20px;
+  letter-spacing: -.025em;
+}
+
+.ocean-workbench .brand p {
+  font-size: 10px;
+}
+
+.ocean-workbench .header-status {
+  gap: 7px;
+}
+
+.present-button,
+.header-action-button,
+.workspace-mode-switcher button,
+.ocean-workbench .theme-toggle {
+  transition: color 160ms ease, border-color 160ms ease, background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.present-button {
+  min-height: 36px;
+  padding: 7px 13px;
+  border: 0;
+  border-radius: 10px;
+  color: #04201f;
+  background: linear-gradient(135deg, #9af3e7, var(--wb-accent));
+  box-shadow: 0 7px 18px color-mix(in srgb, var(--wb-accent) 20%, transparent);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.present-button:hover,
+.present-button:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--wb-accent) 30%, transparent);
+}
+
+.header-status > .workspace-mode-switcher,
+.workspace-mode-switcher {
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--wb-panel) 88%, transparent);
+}
+
+.workspace-mode-switcher button {
+  min-height: 30px;
+  padding-inline: 9px;
+  border-radius: 7px;
+  font-size: 10px;
+}
+
+.workspace-mode-switcher button.active {
+  border-color: color-mix(in srgb, var(--wb-accent) 48%, transparent);
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-accent) 16%, var(--wb-panel));
+  box-shadow: 0 4px 12px rgba(0, 10, 14, .16);
+}
+
+.header-action-button {
+  min-height: 34px;
+  padding: 6px 9px;
+  border-color: transparent;
+  border-radius: 9px;
+  color: var(--wb-muted);
+  background: transparent;
+  font-size: 10px;
+}
+
+.header-action-button:hover,
+.header-action-button:focus-visible {
+  transform: translateY(-1px);
+  border-color: var(--wb-line);
+  color: var(--wb-accent);
+  background: var(--wb-panel);
+}
+
+.ocean-workbench .theme-toggle {
+  min-width: 66px;
+  min-height: 34px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.ocean-workbench .workspace-frame {
+  grid-template-rows: 46px minmax(0, 1fr);
+}
+
+.ocean-workbench .feature-rail {
+  min-height: 46px;
+  padding: 4px 14px;
+  gap: 3px;
+  border-bottom-color: var(--wb-line);
+  background: color-mix(in srgb, var(--wb-bg) 96%, transparent);
+  scrollbar-width: none;
+}
+
+.ocean-workbench .feature-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.ocean-workbench .feature-rail button {
+  min-height: 36px;
+  padding: 7px 11px;
+  border-radius: 9px;
+}
+
+.ocean-workbench .feature-rail button span {
+  font-size: 11px;
+}
+
+.ocean-workbench .feature-rail button.active {
+  border-color: color-mix(in srgb, var(--wb-accent) 38%, transparent);
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-accent) 13%, var(--wb-panel));
+  box-shadow: inset 0 -2px var(--wb-accent);
+}
+
+/* The globe/volume owns the whole workspace. The mode switch floats over it. */
+.ocean-workbench .visualization-stage {
+  inset: 0;
+  background: #020a10;
+}
+
+.ocean-workbench .visualization-dock,
+.ocean-workbench:not(.focus-mode)[data-control-dock="open"] .visualization-dock {
+  top: 14px !important;
+  right: auto !important;
+  left: 50% !important;
+  z-index: 23;
+  width: min(430px, calc(100% - var(--wb-control-width) - 70px)) !important;
+  height: 56px;
+  min-width: 310px;
+  padding: 5px !important;
+  transform: translateX(-50%);
+  display: block !important;
+  border: 1px solid color-mix(in srgb, var(--wb-line) 92%, transparent) !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--wb-panel) 86%, transparent) !important;
+  box-shadow: var(--wb-float-shadow) !important;
+  backdrop-filter: blur(16px) saturate(1.1);
+}
+
+.ocean-workbench[data-control-dock="open"] .visualization-dock {
+  left: calc(50% + (var(--wb-control-width) / 2)) !important;
+}
+
+.ocean-workbench .visualization-dock-modes {
+  height: 100%;
+  gap: 4px;
+}
+
+.ocean-workbench .visualization-dock-modes button {
+  position: relative;
+  height: 44px;
+  padding: 6px 12px;
+  gap: 8px;
+  border-color: transparent;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.ocean-workbench .visualization-dock-modes button::after {
+  content: "";
+  position: absolute;
+  right: 12px;
+  bottom: 8px;
+  left: 44px;
+  height: 2px;
+  border-radius: 999px;
+  background: transparent;
+  transform: scaleX(.4);
+  transform-origin: left;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.ocean-workbench .visualization-dock-modes button:hover:not(:disabled) {
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-raised) 78%, transparent);
+}
+
+.ocean-workbench .visualization-dock-modes button.active {
+  border-color: color-mix(in srgb, var(--wb-accent) 35%, transparent);
+  color: var(--wb-text);
+  background: color-mix(in srgb, var(--wb-accent) 14%, var(--wb-panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--wb-accent) 7%, transparent);
+}
+
+.ocean-workbench .visualization-dock-modes button.active::after {
+  background: var(--wb-accent);
+  transform: scaleX(1);
+}
+
+.ocean-workbench .mode-icon {
+  flex-basis: 26px;
+  width: 26px;
+  height: 26px;
+  color: var(--wb-accent);
+}
+
+.ocean-workbench .mode-label strong {
+  font-size: 12px;
+}
+
+.ocean-workbench .visualization-context-row {
+  display: none;
+}
+
+/* Compact glass controls: clear groups, less scrolling, no giant visual wall. */
+.ocean-workbench .control-panel {
+  top: 14px;
+  bottom: 14px;
+  left: 14px;
+  width: var(--wb-control-width);
+  padding: 14px 14px 18px;
+  border-color: color-mix(in srgb, var(--wb-line) 92%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--wb-panel) 88%, transparent);
+  box-shadow: var(--wb-soft-shadow);
+  backdrop-filter: blur(18px) saturate(1.08);
+}
+
+.ocean-workbench .control-panel::before {
+  content: "";
+  position: sticky;
+  z-index: 2;
+  top: -14px;
+  display: block;
+  width: 44px;
+  height: 3px;
+  margin: 0 auto 10px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--wb-accent), transparent);
+  pointer-events: none;
+}
+
+.ocean-workbench .control-panel section {
+  padding: 13px 0;
+  border-bottom-color: color-mix(in srgb, var(--wb-line) 72%, transparent);
+}
+
+.ocean-workbench .section-kicker {
+  margin-bottom: 8px;
+  color: var(--wb-accent);
+  font-size: 9px;
+  letter-spacing: .13em;
+}
+
+.ocean-workbench .variable-switcher {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.ocean-workbench .variable-switcher button {
+  min-height: 40px;
+  padding: 8px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.ocean-workbench .variable-switcher button small {
+  font-size: 9px;
+}
+
+.ocean-workbench .variable-switcher button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--wb-accent) 55%, transparent);
+}
+
+.ocean-workbench .variable-switcher button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-text);
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--wb-accent) 18%, transparent), transparent 56%),
+    color-mix(in srgb, var(--wb-accent) 10%, var(--wb-panel));
+  box-shadow: inset 3px 0 var(--wb-accent);
+}
+
+.ocean-workbench .control-panel :is(label, .label-row, .label-row strong, select, .segmented button) {
+  font-size: 11px;
+}
+
+.ocean-workbench .control-panel :is(select, input[type="number"]) {
+  min-height: 38px;
+  border-radius: 9px;
+}
+
+.ocean-workbench .control-panel :is(.microcopy, .active-range, .source-card > span, .source-card small, .verified-time-card span, .advanced-control-group summary small, .active-3d-mode-card span, .active-3d-mode-card small) {
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.ocean-workbench .control-panel :is(.source-card > strong, .verified-time-card strong, .advanced-control-group summary span) {
+  font-size: 11px;
+}
+
+.ocean-workbench .advanced-control-group {
+  border-radius: 11px;
+}
+
+.ocean-workbench .advanced-control-group summary {
+  min-height: 42px;
+  padding: 9px 10px;
+}
+
+.ocean-workbench .advanced-control-body {
+  padding: 11px 9px;
+}
+
+.ocean-workbench .depth-zone-track button {
+  min-height: 40px;
+  border-radius: 9px;
+}
+
+.ocean-workbench .depth-zone-track button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--wb-accent) 58%, transparent);
+}
+
+/* The map tells one story at a time. Secondary helpers stay subtle. */
+.ocean-workbench .ocean-journey {
+  top: 82px;
+  gap: 5px;
+  opacity: .88;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.ocean-workbench .ocean-journey:hover,
+.ocean-workbench .ocean-journey:focus-within {
+  opacity: 1;
+}
+
+.ocean-workbench .journey-stops {
+  padding: 7px 11px;
+  gap: 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  background: color-mix(in srgb, var(--wb-panel) 83%, transparent);
+  box-shadow: 0 8px 22px rgba(0, 7, 12, .18);
+  backdrop-filter: blur(12px);
+}
+
+.ocean-workbench .ocean-journey button,
+.ocean-workbench .field-inspect-toggle {
+  min-height: 32px;
+  padding: 6px 9px;
+  border-radius: 9px;
+  font-size: 9px;
+}
+
+.ocean-workbench .imagery-control,
+.ocean-workbench .camera-orientation-hud,
+.ocean-workbench .legend-card,
+.ocean-workbench .water-column-legend,
+.ocean-workbench .evidence-status-pill,
+.ocean-workbench .field-entry-actions,
+.ocean-workbench .imported-observation-chips {
+  border-color: color-mix(in srgb, var(--wb-line) 82%, transparent);
+  background: color-mix(in srgb, var(--wb-panel) 82%, transparent);
+  box-shadow: 0 10px 28px rgba(0, 7, 12, .22);
+  backdrop-filter: blur(14px);
+}
+
+.ocean-workbench .evidence-status-pill {
+  top: auto;
+  right: 14px;
+  bottom: 14px;
+  min-height: 42px;
+  padding: 7px 12px;
+  border-radius: 13px;
+}
+
+.ocean-workbench .evidence-status-pill:hover,
+.ocean-workbench .evidence-status-pill:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--wb-accent);
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--wb-accent) 14%, transparent);
+}
+
+.ocean-workbench .evidence-status-pill span {
+  color: var(--wb-accent);
+  font-size: 8px;
+}
+
+.ocean-workbench .evidence-status-pill strong {
+  font-size: 10px;
+}
+
+.ocean-workbench .field-entry-actions {
+  bottom: 72px;
+  width: 212px;
+}
+
+.ocean-workbench .field-entry-actions .study-region-entry {
+  min-height: 66px;
+  border-radius: 14px;
+}
+
+.ocean-workbench .field-entry-actions .study-region-entry small {
+  margin-top: 5px;
+  font-size: 9px;
+}
+
+.ocean-workbench .imported-observation-chips button {
+  border-radius: 9px;
+  transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.ocean-workbench .imported-observation-chips button:hover,
+.ocean-workbench .imported-observation-chips button:focus-visible {
+  transform: translateY(-1px);
+}
+
+.ocean-workbench .science-footer {
+  min-height: 28px;
+  padding: 4px 14px;
+  border-top-color: var(--wb-line);
+  background: color-mix(in srgb, var(--wb-bg) 97%, transparent);
+  font-size: 9px;
+}
+
+.ocean-workbench .science-footer span:first-child {
+  max-width: 44%;
+}
+
+.ocean-workbench .science-footer span:last-child {
+  opacity: .72;
+}
+
+/* Laptop/projector: keep the header useful instead of compressing the canvas. */
+@media (min-width: 761px) and (max-width: 1180px) {
+  .ocean-workbench .brand p,
+  .ocean-workbench .header-workspace-actions .header-action-button:first-child,
+  .ocean-workbench .system-pill {
+    display: none;
+  }
+
+  .ocean-workbench .workspace-mode-switcher button {
+    padding-inline: 7px;
+  }
+
+  .ocean-workbench .visualization-dock,
+  .ocean-workbench:not(.focus-mode)[data-control-dock="open"] .visualization-dock {
+    width: min(360px, calc(100% - var(--wb-control-width) - 48px)) !important;
+  }
+}
+
+/* Mobile: one clear mode switch, horizontally playful quick cards, no footer collision. */
+@media (max-width: 760px) {
+  .ocean-workbench {
+    grid-template-rows: 56px minmax(0, 1fr) 24px;
+  }
+
+  .ocean-workbench .app-header {
+    min-height: 56px;
+    padding: 8px 10px;
+  }
+
+  .ocean-workbench .brand-mark.small {
+    display: none;
+  }
+
+  .ocean-workbench .brand h1 {
+    font-size: 16px;
+  }
+
+  .ocean-workbench .present-button {
+    min-height: 34px;
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  .ocean-workbench .theme-toggle {
+    min-width: 62px;
+    min-height: 34px;
+  }
+
+  .ocean-workbench .workspace-frame {
+    grid-template-rows: 44px minmax(0, 1fr);
+  }
+
+  .ocean-workbench .feature-rail-left {
+    position: relative;
+    min-height: 44px;
+    padding: 3px 8px;
+    scroll-snap-type: inline proximity;
+  }
+
+  .ocean-workbench .feature-rail-left button {
+    min-height: 36px;
+    padding: 6px 9px;
+    scroll-snap-align: start;
+  }
+
+  .ocean-workbench .feature-rail-left button span {
+    font-size: 10px;
+  }
+
+  .ocean-workbench .visualization-stage {
+    inset: 0 0 70px;
+  }
+
+  .ocean-workbench .visualization-dock,
+  .ocean-workbench:not(.focus-mode)[data-control-dock="open"] .visualization-dock,
+  .ocean-workbench[data-control-dock="open"] .visualization-dock {
+    top: 8px !important;
+    left: 50% !important;
+    width: calc(100% - 16px) !important;
+    min-width: 0;
+    height: 52px;
+    padding: 4px !important;
+  }
+
+  .ocean-workbench .visualization-dock-modes button {
+    height: 42px;
+    padding: 5px 8px;
+  }
+
+  .ocean-workbench .mode-icon {
+    flex-basis: 22px;
+    width: 22px;
+    height: 22px;
+  }
+
+  .ocean-workbench .mode-label strong {
+    font-size: 10px;
+  }
+
+  .ocean-workbench .control-panel {
+    top: auto;
+    right: 8px;
+    bottom: 8px;
+    left: 8px;
+    width: auto;
+    max-height: min(72vh, 610px);
+    border-radius: 18px;
+  }
+
+  .ocean-workbench .variable-switcher {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ocean-workbench .ocean-journey {
+    display: none;
+  }
+
+  .ocean-workbench .journey-stops {
+    max-width: 100%;
+    padding: 6px 8px;
+    gap: 5px;
+    overflow: hidden;
+    font-size: 8px;
+    white-space: nowrap;
+  }
+
+  .ocean-workbench .ocean-journey button {
+    display: none;
+  }
+
+  .ocean-workbench .visualization-stage .imagery-control {
+    top: 112px !important;
+    width: 145px;
+  }
+
+  .ocean-workbench .visualization-stage .imported-observation-chips {
+    top: 112px;
+    right: 10px;
+    left: auto;
+    width: 154px;
+  }
+
+  .ocean-workbench .field-entry-actions {
+    top: auto;
+    right: 10px;
+    bottom: 12px;
+    left: auto;
+    width: 168px;
+    transform: none;
+  }
+
+  .ocean-workbench .field-entry-actions .study-region-entry {
+    min-height: 54px;
+  }
+
+  .ocean-workbench .evidence-status-pill {
+    display: none;
+  }
+
+  .ocean-workbench .mobile-explore-tray {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(92px, 1fr);
+    min-height: 70px;
+    padding: 7px 8px;
+    gap: 6px;
+    overflow-x: auto;
+    scroll-snap-type: inline mandatory;
+    scrollbar-width: none;
+    border-top: 1px solid var(--wb-line);
+    background: color-mix(in srgb, var(--wb-panel) 96%, transparent);
+    box-shadow: 0 -12px 30px rgba(0, 7, 12, .18);
+  }
+
+  .ocean-workbench .mobile-explore-tray::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ocean-workbench .mobile-explore-tray button {
+    min-width: 92px;
+    min-height: 54px;
+    padding: 7px 8px;
+    scroll-snap-align: start;
+    border: 1px solid var(--wb-line);
+    border-radius: 11px;
+    background: var(--wb-bg);
+  }
+
+  .ocean-workbench .mobile-explore-tray button[aria-pressed="true"] {
+    border-color: var(--wb-accent);
+    background: color-mix(in srgb, var(--wb-accent) 12%, var(--wb-panel));
+  }
+
+  .ocean-workbench .mobile-explore-tray span {
+    font-size: 8px;
+  }
+
+  .ocean-workbench .mobile-explore-tray strong {
+    font-size: 9px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ocean-workbench .science-footer {
+    min-height: 24px;
+    padding: 3px 8px;
+    font-size: 8px;
+  }
+
+  .ocean-workbench .science-footer span:first-child {
+    max-width: 100%;
+  }
+
+  .ocean-workbench .science-footer span:last-child {
+    display: none;
+  }
+}
+
+@media (max-width: 410px) {
+  .ocean-workbench .brand h1 span {
+    display: none;
+  }
+
+  .ocean-workbench .visualization-dock-modes button {
+    gap: 5px;
+    padding-inline: 6px;
+  }
+
+  .ocean-workbench .mode-label strong {
+    font-size: 9px;
+  }
+
+  .ocean-workbench .journey-stops i {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .present-button,
+  .header-action-button,
+  .ocean-workbench .visualization-dock-modes button,
+  .ocean-workbench .variable-switcher button,
+  .ocean-workbench .evidence-status-pill,
+  .ocean-workbench .imported-observation-chips button {
+    transform: none !important;
+  }
+}
+
+/* Progressive disclosure for the normal desktop Explorer state. When the
+   control drawer is open, duplicate map tools step out of the way. Closing the
+   drawer immediately restores the full set of direct-manipulation tools. */
+@media (min-width: 761px) {
+  .ocean-workbench .control-panel {
+    scrollbar-width: none;
+  }
+
+  .ocean-workbench .control-panel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ocean-workbench[data-control-dock="open"] .visualization-stage :is(
+    .imagery-control,
+    .camera-orientation-hud,
+    .cesium-smooth-zoom.camera-control-stack,
+    .imported-observation-chips
+  ) {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-5px) scale(.98);
+  }
+
+  .ocean-workbench[data-control-dock="closed"] .visualization-stage :is(
+    .imagery-control,
+    .camera-orientation-hud,
+    .cesium-smooth-zoom.camera-control-stack,
+    .imported-observation-chips
+  ) {
+    transition: opacity 180ms ease, transform 180ms ease, visibility 0s linear;
+  }
+
+  .ocean-workbench[data-control-dock="closed"] .camera-orientation-hud {
+    opacity: .62;
+  }
+
+  .ocean-workbench[data-control-dock="closed"] .camera-orientation-hud:hover,
+  .ocean-workbench[data-control-dock="closed"] .camera-orientation-hud:focus-within {
+    opacity: 1;
+  }
+
+  /* The opening journey becomes a deliberate guided moment instead of one
+     more card layered over the controls. :has() is supported by judge-flow
+     Chromium; without it the interface simply keeps the regular layout. */
+  .ocean-workbench:has(.globe-intro-status) :is(
+    .control-panel,
+    .visualization-dock,
+    .evidence-status-pill,
+    .field-entry-actions,
+    .legend-card
+  ) {
+    opacity: .12;
+    pointer-events: none;
+    filter: saturate(.55);
+  }
+
+  .ocean-workbench:has(.globe-intro-status) .globe-intro-status {
+    z-index: 40;
+    box-shadow: 0 30px 90px rgba(0, 4, 8, .58);
+  }
+}
