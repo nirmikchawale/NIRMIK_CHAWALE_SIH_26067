@@ -682,11 +682,11 @@ export default function App() {
           <div className="brand-mark small">OT</div>
           <div>
             <h1>OceanTwin <span>3D</span></h1>
-            <p>Explainable water-column explorer · SIH26067</p>
+            <p>Model + observations across space, depth & time · SIH26067</p>
           </div>
         </div>
         <div className="header-status">
-          <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
+          <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Judge demo · 6 steps</button>
           {page === "explore" && (
             <div className="workspace-mode-switcher" role="group" aria-label="Explorer workspace mode">
               <button
@@ -867,7 +867,7 @@ export default function App() {
                     setEvidenceOpen(true);
                   }}
                 >
-                  <span>Ocean intelligence</span>
+                  <span>Evidence chain</span>
                   <strong>
                     {activeSelectedProfile
                       ? `Argo ${activeSelectedProfile.platform_id} · Active`
