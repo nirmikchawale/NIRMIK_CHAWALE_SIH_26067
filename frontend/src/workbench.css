@@ -2611,3 +2611,136 @@
     z-index: 27;
   }
 }
+
+
+/* SIH guide P1 — dedicated truthful timeline animation scrubber. */
+.ocean-workbench .timeline-scrubber {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--wb-line);
+  border-radius: 9px;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--wb-raised) 56%,transparent),
+      color-mix(in srgb,var(--wb-bg) 88%,transparent));
+}
+.ocean-workbench .timeline-now {
+  display: grid;
+  gap: 3px;
+}
+.ocean-workbench .timeline-now > span {
+  color: var(--wb-accent);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.ocean-workbench .timeline-now > strong {
+  color: var(--wb-text);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.ocean-workbench .timeline-now > small {
+  color: var(--wb-muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+.ocean-workbench .timeline-transport {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 7px;
+}
+.ocean-workbench .timeline-transport button {
+  min-height: 34px;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  color: var(--wb-text);
+  background: var(--wb-bg);
+  cursor: pointer;
+}
+.ocean-workbench .timeline-transport button:hover,
+.ocean-workbench .timeline-transport button:focus-visible {
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+  background: var(--wb-raised);
+}
+.ocean-workbench .timeline-transport .timeline-play-toggle {
+  border-color: color-mix(in srgb,var(--wb-accent) 58%,var(--wb-line));
+  color: var(--wb-accent);
+  background: color-mix(in srgb,var(--wb-accent) 9%,var(--wb-bg));
+}
+.ocean-workbench .timeline-track-shell {
+  position: relative;
+  padding: 8px 0 11px;
+}
+.ocean-workbench .timeline-track-shell > input[type="range"] {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  margin: 0;
+}
+.ocean-workbench .timeline-surfacing-markers {
+  position: absolute;
+  z-index: 3;
+  right: 7px;
+  bottom: 2px;
+  left: 7px;
+  height: 10px;
+  pointer-events: none;
+}
+.ocean-workbench .timeline-surfacing-markers button {
+  position: absolute;
+  top: 1px;
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid color-mix(in srgb,var(--wb-accent) 78%,#ffffff);
+  border-radius: 999px;
+  background: var(--wb-accent);
+  box-shadow: 0 0 8px color-mix(in srgb,var(--wb-accent) 55%,transparent);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.ocean-workbench .timeline-surfacing-markers button.active {
+  width: 9px;
+  height: 9px;
+  top: 0;
+  box-shadow: 0 0 0 3px color-mix(in srgb,var(--wb-accent) 18%,transparent),0 0 10px var(--wb-accent);
+}
+.ocean-workbench .timeline-footer {
+  display: grid;
+  gap: 8px;
+}
+.ocean-workbench .timeline-speed {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 5px;
+}
+.ocean-workbench .timeline-speed button {
+  min-height: 28px;
+  padding: 4px 5px;
+  border: 1px solid var(--wb-line);
+  border-radius: 5px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  font-size: 9px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.ocean-workbench .timeline-speed button:hover,
+.ocean-workbench .timeline-speed button:focus-visible {
+  border-color: var(--wb-accent);
+  color: var(--wb-text);
+}
+.ocean-workbench .timeline-speed button.active {
+  border-color: var(--wb-accent);
+  color: var(--wb-accent);
+  background: color-mix(in srgb,var(--wb-accent) 10%,var(--wb-bg));
+}
+.ocean-workbench .timeline-footer > small {
+  color: var(--wb-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
