@@ -3,6 +3,10 @@ import { expect, test } from "@playwright/test";
 const liveUrl = process.env.OCEANTWIN_LIVE_URL;
 
 test("orientation replay, skip, field entry and return remain usable", async ({ page }) => {
+  // Public GitHub Pages can spend substantial time initializing Cesium and
+  // switching between two WebGL-heavy views. Preserve every interaction
+  // assertion, but give the complete repeated-entry journey a realistic live budget.
+  test.setTimeout(180_000);
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required");
   await page.goto(liveUrl);
   const globe = page.locator(".globe-shell[data-journey-phase]");
