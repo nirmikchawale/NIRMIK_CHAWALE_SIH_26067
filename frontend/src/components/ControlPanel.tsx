@@ -1,4 +1,4 @@
-import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 import { displayUnits } from "../units";
 
 const DEPTH_TRACK_MAX = 1000;
@@ -63,10 +63,6 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
-  colorPalette: ColorPalette;
-  colorScale: ColorScaleMode;
-  colorMinimum: number;
-  colorMaximum: number;
   isoSurfaceEnabled: boolean;
   isoValue: number;
   mobileOpen: boolean;
@@ -80,10 +76,6 @@ interface Props {
   onVerticalExaggerationChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
-  onColorPaletteChange: (value: ColorPalette) => void;
-  onColorScaleChange: (value: ColorScaleMode) => void;
-  onColorMinimumChange: (value: number) => void;
-  onColorMaximumChange: (value: number) => void;
   onIsoSurfaceEnabledChange: (value: boolean) => void;
   onIsoValueChange: (value: number) => void;
 }
@@ -103,10 +95,6 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
-  colorPalette,
-  colorScale,
-  colorMinimum,
-  colorMaximum,
   isoSurfaceEnabled,
   isoValue,
   mobileOpen,
@@ -120,10 +108,6 @@ export function ControlPanel({
   onVerticalExaggerationChange,
   onProfileChange,
   onPlayingChange,
-  onColorPaletteChange,
-  onColorScaleChange,
-  onColorMinimumChange,
-  onColorMaximumChange,
   onIsoSurfaceEnabledChange,
   onIsoValueChange
 }: Props) {
@@ -248,18 +232,24 @@ export function ControlPanel({
 
       <section>
         <div className="section-kicker">Explore</div>
-        <div className="variable-switcher" aria-label="Ocean variable">
-          {catalog.variables.map((item) => (
-            <button
-              key={item.id}
-              className={variable === item.id ? "active" : ""}
-              aria-pressed={variable === item.id}
-              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
-            >
-              <span>{item.label}</span>
-              <small>{displayUnits(item.units)}</small>
-            </button>
-          ))}
+        <div className="variable-switcher variable-switcher-rich" aria-label="Ocean variable">
+          {catalog.variables.map((item) => {
+            const icon = item.id === "thetao" ? "T°" : item.id === "so" ? "S" : item.id === "currents" ? "↗" : "Chl";
+            return (
+              <button
+                key={item.id}
+                className={variable === item.id ? "active" : ""}
+                aria-pressed={variable === item.id}
+                onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
+              >
+                <span className="variable-pill-icon" aria-hidden="true">{icon}</span>
+                <span className="variable-pill-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.minimum.toFixed(2)} – {item.maximum.toFixed(2)} {displayUnits(item.units)}</small>
+                </span>
+              </button>
+            );
+          })}
         </div>
         {selectedVariable && (
           <>
@@ -370,93 +360,43 @@ export function ControlPanel({
               </label>
             )}
 
-            <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
-                <div className="section-kicker visualization-kicker">Colorbar</div>
+            <div className="persistent-colorbar-note">
+              <span className="section-kicker visualization-kicker">Display colour</span>
+              <strong>Persistent viewport colorbar</strong>
+              <p className="microcopy">
+                Palette, scale and min/max thresholds are available directly on the floating colorbar HUD over the 3D viewport.
+              </p>
+              {scalar && !surfaceOnly && <label className="iso-toggle">
+                <span className="label-row">
+                  <span>Isosurface</span>
+                  <input
+                    type="checkbox"
+                    checked={isoSurfaceEnabled}
+                    onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
+                  />
+                </span>
+              </label>}
+              {scalar && !surfaceOnly && isoSurfaceEnabled && (
                 <label>
-                  Palette
-                  <select
-                    value={colorPalette}
-                    onChange={(event) => onColorPaletteChange(event.target.value as ColorPalette)}
-                  >
-                    <option value="thermal">Thermal</option>
-                    <option value="viridis">Viridis</option>
-                    <option value="icefire">Ice–Fire</option>
-                  </select>
-                </label>
-                <div className="color-range-grid">
-                  <label>
-                    Minimum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMinimum) ? colorMinimum : ""}
-                      onChange={(event) => onColorMinimumChange(Number(event.target.value))}
-                    />
-                  </label>
-                  <label>
-                    Maximum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMaximum) ? colorMaximum : ""}
-                      onChange={(event) => onColorMaximumChange(Number(event.target.value))}
-                    />
-                  </label>
-                </div>
-                <div className="segmented color-scale-selector" aria-label="Color scale">
-                  <button
-                    className={colorScale === "linear" ? "active" : ""}
-                    onClick={() => onColorScaleChange("linear")}
-                  >
-                    Linear
-                  </button>
-                  <button
-                    className={colorScale === "log" ? "active" : ""}
-                    disabled={colorMinimum <= 0 || colorMaximum <= 0}
-                    title={colorMinimum <= 0 || colorMaximum <= 0 ? "Log scale requires a positive range" : "Logarithmic color mapping"}
-                    onClick={() => onColorScaleChange("log")}
-                  >
-                    Log
-                  </button>
-                </div>
-                {scalar && !surfaceOnly && <label className="iso-toggle">
                   <span className="label-row">
-                    <span>Isosurface</span>
-                    <input
-                      type="checkbox"
-                      checked={isoSurfaceEnabled}
-                      onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
-                    />
+                    <span>Iso value</span>
+                    <strong>{isoValue.toFixed(3)} {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}</strong>
                   </span>
-                </label>}
-                {scalar && !surfaceOnly && isoSurfaceEnabled && (
-                  <label>
-                    <span className="label-row">
-                      <span>Iso value</span>
-                      <strong>{isoValue.toFixed(3)} {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}</strong>
-                    </span>
-                    <input
-                      type="range"
-                      min={catalog.variables.find((item) => item.id === variable)?.minimum ?? 0}
-                      max={catalog.variables.find((item) => item.id === variable)?.maximum ?? 1}
-                      step={Math.max(
-                        ((catalog.variables.find((item) => item.id === variable)?.maximum ?? 1) -
-                          (catalog.variables.find((item) => item.id === variable)?.minimum ?? 0)) / 200,
-                        0.0001
-                      )}
-                      value={isoValue}
-                      onChange={(event) => onIsoValueChange(Number(event.target.value))}
-                    />
-                  </label>
-                )}
-                <p className="microcopy">
-                  Palette, range and scale affect rendering only. {surfaceOnly
-                    ? "Surface chlorophyll remains a 2D satellite field; no water-column geometry is inferred."
-                    : scalar
-                      ? "Isosurface geometry is extracted from the genuine scalar water-column values."
-                      : "Current colour represents genuine horizontal speed magnitude."}
-                </p>
-              </div>
+                  <input
+                    type="range"
+                    min={catalog.variables.find((item) => item.id === variable)?.minimum ?? 0}
+                    max={catalog.variables.find((item) => item.id === variable)?.maximum ?? 1}
+                    step={Math.max(
+                      ((catalog.variables.find((item) => item.id === variable)?.maximum ?? 1) -
+                        (catalog.variables.find((item) => item.id === variable)?.minimum ?? 0)) / 200,
+                      0.0001
+                    )}
+                    value={isoValue}
+                    onChange={(event) => onIsoValueChange(Number(event.target.value))}
+                  />
+                </label>
+              )}
+            </div>
 
             {surfaceOnly ? (
               <p className="microcopy">
