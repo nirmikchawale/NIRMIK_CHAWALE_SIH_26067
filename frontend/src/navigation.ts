@@ -6,12 +6,12 @@ export const PAGE_ITEMS: Array<{
   label: string;
   description: string;
 }> = [
-  { id: "explore", short: "3D", label: "3D Explorer", description: "Selectable Cesium globe and scientific water-column 3D" },
-  { id: "telemetry", short: "TEL", label: "Telemetry", description: "Depth, time and ocean telemetry visual analytics" },
-  { id: "compare", short: "OBS", label: "Model vs Observation", description: "Argo comparison, bias and anomaly evidence" },
-  { id: "anomaly", short: "FLAG", label: "Anomaly Screening", description: "Explainable spatial extremes and Argo residual outliers" },
-  { id: "data-lab", short: "DATA", label: "Data Lab", description: "Local CSV/JSON schema, quality and provenance validation" },
-  { id: "about", short: "INFO", label: "Science & System", description: "Sources, methods, limits and architecture" }
+  { id: "explore", short: "3D", label: "Explore Ocean", description: "Start with the real 3D field, then move through depth, time and observations" },
+  { id: "telemetry", short: "TIME", label: "Depth & Time", description: "Read how the selected ocean field changes through depth and genuine timestamps" },
+  { id: "compare", short: "OBS", label: "Model vs Observation", description: "Test what the model shows against matched in-situ Argo evidence" },
+  { id: "anomaly", short: "FLAG", label: "Explain Flags", description: "Inspect exactly why a spatial or model-observation residual is statistically unusual" },
+  { id: "data-lab", short: "DATA", label: "Ingest Data", description: "Bring compatible NetCDF or tabular observations into the Explorer with validation" },
+  { id: "about", short: "TRUST", label: "Trust & Architecture", description: "Verify sources, QC, methods, limitations, standards and system design" }
 ];
 
 export function routeFromHash(hash: string): PageId {
