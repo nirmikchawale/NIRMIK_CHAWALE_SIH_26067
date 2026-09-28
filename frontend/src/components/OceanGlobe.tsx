@@ -55,6 +55,18 @@ interface Inspection {
   speed?: number;
 }
 
+export interface GlobeCameraCommand {
+  id: number;
+  preset?: CameraPreset;
+  target?: {
+    longitude: number;
+    latitude: number;
+    height?: number;
+    headingDegrees?: number;
+    pitchDegrees?: number;
+  };
+}
+
 interface Props {
   field: FieldResponse | null;
   volume: VolumeResponse | null;
@@ -69,6 +81,7 @@ interface Props {
   colorMinimum: number;
   colorMaximum: number;
   presentationActive: boolean;
+  cameraCommand: GlobeCameraCommand | null;
   profileCalloutOpen: boolean;
   onSelectProfile: (profileId: string) => void;
   onInspectProfile: (profileId: string) => void;
@@ -118,6 +131,7 @@ export function OceanGlobe({
   colorMinimum,
   colorMaximum,
   presentationActive,
+  cameraCommand,
   profileCalloutOpen,
   onSelectProfile,
   onInspectProfile,
@@ -1121,6 +1135,37 @@ export function OceanGlobe({
     });
   };
 
+  useEffect(() => {
+    if (!cameraCommand) return;
+
+    if (!cameraCommand.target) {
+      applyCameraPreset(cameraCommand.preset ?? "basin");
+      return;
+    }
+
+    const viewer = cancelCameraAnimation();
+    if (!viewer) return;
+    const {
+      longitude,
+      latitude,
+      height = 650_000,
+      headingDegrees = 0,
+      pitchDegrees = -68
+    } = cameraCommand.target;
+
+    setCameraPreset(cameraCommand.preset ?? "perspective");
+    viewer.camera.flyTo({
+      destination: Cartesian3.fromDegrees(longitude, latitude, height),
+      orientation: {
+        heading: CesiumMath.toRadians(headingDegrees),
+        pitch: CesiumMath.toRadians(pitchDegrees),
+        roll: 0
+      },
+      duration: cameraDuration(0.7),
+      complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
+    });
+  }, [cameraCommand?.id]);
+
   return (
     <main
       className="globe-shell"
@@ -1130,6 +1175,7 @@ export function OceanGlobe({
       data-render-quality="high"
       data-camera-height={cameraHeight.toFixed(0)}
       data-camera-preset={cameraPreset}
+      data-camera-command-id={cameraCommand?.id ?? 0}
       data-presentation-active={presentationActive ? "true" : "false"}
       data-imagery-preference={imageryPreference}
       data-imagery-status={imageryStatus}
