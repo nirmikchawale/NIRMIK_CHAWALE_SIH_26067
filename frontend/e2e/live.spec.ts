@@ -733,3 +733,46 @@ test("live OceanTwin anchored Argo billboard exposes verified evidence", async (
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
+  await profileSelect.selectOption({ index: 1 });
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  const appShell = page.locator(".app-shell");
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
+
+  const split = page.getByLabel("Analysis Split workspace");
+  const chart = page.getByRole("application", {
+    name: "Interactive synchronized model and Argo temperature profile"
+  });
+  await expect(chart).toBeVisible();
+  await expect.poll(async () => page.locator(".analysis-observation-diamond").count()).toBeGreaterThan(10);
+  await expect(page.locator(".analysis-model-line")).toHaveCount(1);
+
+  const initialDepth = await split.getAttribute("data-synced-model-depth");
+  const bounds = await chart.boundingBox();
+  if (!bounds) throw new Error("Synchronized T-Z chart missing");
+
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.55,
+    bounds.y + bounds.height * 0.90
+  );
+
+  await expect.poll(async () => split.getAttribute("data-synced-model-depth")).not.toBe(initialDepth);
+  await expect(page.locator(".depth-indicator")).toContainText("DEPTH PLANE");
+  await expect(page.locator(".analysis-sync-readout")).toContainText("model plane");
+  await expect(page.locator(".analysis-sync-readout")).toContainText("nearest genuine model depth");
+
+  expect(pageErrors).toEqual([]);
+});
