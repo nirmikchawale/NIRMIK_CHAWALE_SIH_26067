@@ -281,10 +281,11 @@ export function OceanGlobe({
         });
       }, 900);
     };
-    // The orientation story intentionally runs on every fresh page load or
-    // browser refresh. It is skippable, but never silently suppressed by
-    // session/local storage because it is part of the judge-facing narrative.
-    journeyRef.current(false);
+    // Run once per browser document. A real open/refresh reloads this module
+    // and replays Earth → India → ocean; internal SPA navigation does not.
+    const shouldPlayOpeningJourney = !openingJourneyPlayedThisDocument;
+    openingJourneyPlayedThisDocument = true;
+    journeyRef.current(!shouldPlayOpeningJourney);
     // Keep judge-facing camera telemetry valid immediately, even while the
     // opening journey is still animating. This prevents transient 0-height
     // state from making zoom controls appear unresponsive in live checks.
@@ -1131,7 +1132,25 @@ export function OceanGlobe({
           <span className={introPhase === "india" ? "active" : ""}>02 India</span><i aria-hidden="true">→</i>
           <span className={introPhase === "flying" || introPhase === "region" ? "active" : ""}>03 Ocean field</span>
         </div>
-        <button type="button" onClick={() => journeyRef.current(introPhase !== "region")}>
+        <button
+          type="button"
+          onClick={() => {
+            if (introPhase === "region") {
+              journeyRef.current(false);
+              return;
+            }
+            // Skip must be immediate and independent of an in-flight Cesium
+            // completion callback. Cancel the current generation, frame the
+            // verified study window synchronously, then expose the Explorer.
+            stopJourneyRef.current();
+            const viewer = viewerRef.current;
+            if (viewer && !viewer.isDestroyed()) {
+              viewer.camera.setView({ destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65) });
+              setCameraHeight(viewer.camera.positionCartographic.height);
+              viewer.scene.requestRender();
+            }
+          }}
+        >
           {introPhase === "region" ? "Replay journey" : "Skip journey"}
         </button>
       </div>
