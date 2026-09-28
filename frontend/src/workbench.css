@@ -3042,7 +3042,7 @@
 }
 
 :root:not([data-theme="light"]) .ocean-workbench :is(
-  .microcopy,
+  .microcopy:not(.warning),
   .evidence-rail p,
   .evidence-footnote p,
   .analysis-limit-note,
