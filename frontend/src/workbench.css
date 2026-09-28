@@ -1485,20 +1485,34 @@
   }
 
   .ocean-workbench .ocean-journey {
-    display: none;
+    display: flex;
+    top: 66px;
+    right: 10px;
+    left: auto;
+    width: auto;
+    max-width: none;
+    transform: none;
+    align-items: flex-end;
+    opacity: .96;
+    z-index: 24;
   }
 
+  /* Keep the replay/skip action available on phones without reintroducing
+     the full three-stop strip over the compact map controls. */
   .ocean-workbench .journey-stops {
-    max-width: 100%;
-    padding: 6px 8px;
-    gap: 5px;
-    overflow: hidden;
-    font-size: 8px;
-    white-space: nowrap;
+    display: none;
   }
 
   .ocean-workbench .ocean-journey button {
-    display: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    padding: 6px 9px;
+    font-size: 9px;
+    white-space: nowrap;
+    background: color-mix(in srgb, var(--wb-panel) 92%, transparent);
+    box-shadow: 0 8px 20px rgba(0, 7, 12, .20);
   }
 
   .ocean-workbench .visualization-stage .imagery-control {

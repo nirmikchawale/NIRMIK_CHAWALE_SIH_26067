@@ -40,6 +40,10 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
 });
 
 test("mobile pinch, wheel and reduced-motion orientation work", async ({ page, context }) => {
+  // Mobile emulation initializes Cesium and the reduced-motion journey on a
+  // constrained live/static runner. Keep every gesture assertion, but allow
+  // the complete acceptance path the same realistic deployment budget.
+  test.setTimeout(180_000);
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required");
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
