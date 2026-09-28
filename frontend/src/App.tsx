@@ -842,7 +842,7 @@ export default function App() {
                     setEvidenceOpen(true);
                   }}
                 >
-                  <span>Evidence</span>
+                  <span>Ocean intelligence</span>
                   <strong>
                     {activeSelectedProfile
                       ? `Argo ${activeSelectedProfile.platform_id} · Active`
@@ -953,6 +953,7 @@ export default function App() {
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
+                    canEnterWaterColumn={activeExploreCatalog.capabilities.surface_only !== true}
                   />
                 </div>
                 <div

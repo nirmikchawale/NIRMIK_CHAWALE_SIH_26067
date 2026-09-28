@@ -403,3 +403,17 @@ jobs:
 
           print("Production static runtime smoke test passed.")
           PY
+      - name: Verify journey and mobile gestures before deployment
+        working-directory: frontend
+        env:
+          OCEANTWIN_LIVE_URL: http://127.0.0.1:4174
+        run: |
+          npx playwright install --with-deps chromium
+          python -m http.server 4174 --bind 127.0.0.1 --directory dist > journey-preview.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid"' EXIT
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:4174/ > /dev/null; then break; fi
+            sleep 1
+          done
+          npm run e2e:live -- journey.spec.ts

@@ -188,6 +188,8 @@ export function WaterColumn3D({
   theme
 }: Props) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchDistanceRef = useRef<number | null>(null);
   const dragRef = useRef({ active: false, x: 0, y: 0 });
   const zoomAnimationRef = useRef<number | null>(null);
   const projectedRef = useRef<ProjectedPoint[]>([]);
@@ -474,6 +476,10 @@ export function WaterColumn3D({
     };
   }, [volume, currentsVolume, spatialPoints, selectedDepth, verticalExaggeration, opacity, orbit, theme, colorPalette, colorScale, colorMinimum, colorMaximum, isoSurfaceEnabled, isoValue, isoTriangles]);
 
+  useEffect(() => () => {
+    if (zoomAnimationRef.current != null) window.cancelAnimationFrame(zoomAnimationRef.current);
+  }, []);
+
   const smoothWaterZoomTo = (targetZoom: number) => {
     if (zoomAnimationRef.current != null) {
       window.cancelAnimationFrame(zoomAnimationRef.current);
@@ -572,6 +578,13 @@ export function WaterColumn3D({
   };
 
   const onPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    if (zoomAnimationRef.current != null) window.cancelAnimationFrame(zoomAnimationRef.current);
+    zoomAnimationRef.current = null;
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointersRef.current.size === 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      pinchDistanceRef.current = Math.hypot(a.x - b.x, a.y - b.y);
+    }
     dragRef.current = { active: true, x: event.clientX, y: event.clientY };
     event.currentTarget.setPointerCapture(event.pointerId);
     setHover(null);
@@ -583,6 +596,18 @@ export function WaterColumn3D({
       return;
     }
 
+    if (!pointersRef.current.has(event.pointerId)) return;
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (pointersRef.current.size >= 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      const distance = Math.hypot(a.x - b.x, a.y - b.y);
+      const previous = pinchDistanceRef.current;
+      if (previous && distance > 0) {
+        setOrbit(current => ({ ...current, zoom: clamp(current.zoom * distance / previous, 0.62, 1.9) }));
+      }
+      pinchDistanceRef.current = distance;
+      return;
+    }
     const dx = event.clientX - dragRef.current.x;
     const dy = event.clientY - dragRef.current.y;
     dragRef.current.x = event.clientX;
@@ -595,17 +620,23 @@ export function WaterColumn3D({
   };
 
   const onPointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    dragRef.current.active = false;
+    pointersRef.current.delete(event.pointerId);
+    pinchDistanceRef.current = null;
+    const remaining = pointersRef.current.values().next().value;
+    dragRef.current = remaining ? { active: true, ...remaining } : { active: false, x: 0, y: 0 };
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    inspectNearest(event.clientX, event.clientY);
+    if (!remaining && event.type !== "pointercancel") inspectNearest(event.clientX, event.clientY);
   };
 
   const onWheel = (event: WheelEvent<HTMLCanvasElement>) => {
     event.preventDefault();
-    const factor = event.deltaY > 0 ? 0.92 : 1.08;
-    smoothWaterZoomTo(orbit.zoom * factor);
+    if (zoomAnimationRef.current != null) window.cancelAnimationFrame(zoomAnimationRef.current);
+    zoomAnimationRef.current = null;
+    const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 300 : 1);
+    const factor = Math.exp(-clamp(delta, -100, 100) * 0.002);
+    setOrbit(current => ({ ...current, zoom: clamp(current.zoom * factor, 0.62, 1.9) }));
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLCanvasElement>) => {
@@ -665,9 +696,7 @@ export function WaterColumn3D({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={() => {
-          dragRef.current.active = false;
-        }}
+        onPointerCancel={onPointerUp}
         onPointerLeave={() => {
           if (!dragRef.current.active) setHover(null);
         }}
