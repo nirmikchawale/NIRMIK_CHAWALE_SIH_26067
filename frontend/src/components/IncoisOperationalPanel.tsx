@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { fetchIncoisOperational } from "../api";
+import { friendlyLoadError } from "../friendlyError";
 import type { IncoisOperationalSnapshot } from "../types";
 import { displayUnits } from "../units";
 
@@ -32,7 +33,7 @@ export function IncoisOperationalPanel() {
         setSnapshot(payload);
       })
       .catch((reason: Error) => {
-        if (!cancelled) setError(reason.message);
+        if (!cancelled) setError(friendlyLoadError("INCOIS time-series data", reason));
       });
     return () => {
       cancelled = true;
@@ -95,11 +96,11 @@ export function IncoisOperationalPanel() {
         <div className="telemetry-card-heading">
           <div>
             <span>INCOIS OPERATIONAL SOURCE</span>
-            <h3>Verified multi-time snapshot unavailable</h3>
+            <h3>INCOIS time series not loaded</h3>
           </div>
         </div>
         <p>{error}</p>
-        <small>The deterministic GLORYS/Argo baseline remains unaffected.</small>
+        <small>Everything else on this page uses the GLORYS model data and still works.</small>
       </section>
     );
   }

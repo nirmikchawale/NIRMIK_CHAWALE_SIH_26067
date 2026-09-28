@@ -1,5 +1,5 @@
 import { useMemo, type CSSProperties } from "react";
-import type { ColorPalette, ColorScaleMode } from "../types";
+import type { ColorPalette, ColorRangeMode, ColorScaleMode } from "../types";
 import { displayUnits } from "../units";
 
 interface Props {
@@ -12,6 +12,10 @@ interface Props {
   domainMinimum: number;
   domainMaximum: number;
   values: number[];
+  /** Omit to hide the fit / whole-column toggle (e.g. currents). */
+  rangeMode?: ColorRangeMode;
+  rangeLabel?: string;
+  onRangeModeChange?: (value: ColorRangeMode) => void;
   onPaletteChange: (value: ColorPalette) => void;
   onScaleChange: (value: ColorScaleMode) => void;
   onMinimumChange: (value: number) => void;
@@ -32,6 +36,9 @@ export function ScientificColorbarHud({
   domainMinimum,
   domainMaximum,
   values,
+  rangeMode,
+  rangeLabel,
+  onRangeModeChange,
   onPaletteChange,
   onScaleChange,
   onMinimumChange,
@@ -65,6 +72,17 @@ export function ScientificColorbarHud({
           <strong>{label}</strong>
         </div>
         <div className="colorbar-hud-actions">
+          {rangeMode && onRangeModeChange && (
+            <button
+              type="button"
+              className="colorbar-range-toggle"
+              aria-label={`Colour range: ${rangeMode === "column" ? "whole water column" : rangeMode === "custom" ? "custom" : "fitted to view"}. Click to switch.`}
+              title={`${rangeLabel ?? ""} · click for ${rangeMode === "fit" ? "one fixed range for every depth" : "a range fitted to what is on screen"}`}
+              onClick={() => onRangeModeChange(rangeMode === "fit" ? "column" : "fit")}
+            >
+              {rangeMode === "column" ? "Whole column" : rangeMode === "custom" ? "Custom" : "Fit to view"}
+            </button>
+          )}
           <button
             type="button"
             aria-label="Toggle linear logarithmic color scale"
@@ -132,6 +150,7 @@ export function ScientificColorbarHud({
         <span>{displayUnits(units)} · {values.length.toLocaleString()} rendered samples</span>
         <strong>{upper.toFixed(3)}</strong>
       </div>
+
     </section>
   );
 }

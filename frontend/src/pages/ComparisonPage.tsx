@@ -323,9 +323,8 @@ export function ComparisonPage({
           <span className="section-kicker">EVIDENCE · MODEL VS OBSERVATION</span>
           <h2>Argo–GLORYS12V1 profile comparison</h2>
           <p>
-            Matched-depth diagnostic evidence using the existing verified collocation pipeline.
-            Model values are interpolated to observation depths; this page does not create new
-            measurements, timestamps or independent validation claims.
+            Argo temperature against the model, interpolated to the same depths. A diagnostic
+            consistency check, not independent validation.
           </p>
         </div>
 
@@ -358,6 +357,11 @@ export function ComparisonPage({
         <div className="comparison-state-card">Select a verified Argo comparison profile.</div>
       ) : (
         <>
+          <div className="comparison-chart-grid">
+            <ComparisonProfileChart detail={detail} />
+            <ComparisonBiasChart detail={detail} />
+          </div>
+
           <section className="comparison-metrics" aria-label="Comparison summary metrics">
             <article>
               <span>Matched levels</span>
@@ -458,11 +462,6 @@ export function ComparisonPage({
               </article>
             </section>
           )}
-
-          <div className="comparison-chart-grid">
-            <ComparisonProfileChart detail={detail} />
-            <ComparisonBiasChart detail={detail} />
-          </div>
 
           <section className="comparison-evidence-grid">
             <article className="comparison-method-card">

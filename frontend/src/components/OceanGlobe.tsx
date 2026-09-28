@@ -68,6 +68,7 @@ interface Props {
   colorScale: ColorScaleMode;
   colorMinimum: number;
   colorMaximum: number;
+  colorRangeLabel?: string;
   presentationActive: boolean;
   profileCalloutOpen: boolean;
   onSelectProfile: (profileId: string) => void;
@@ -117,6 +118,7 @@ export function OceanGlobe({
   colorScale,
   colorMinimum,
   colorMaximum,
+  colorRangeLabel,
   presentationActive,
   profileCalloutOpen,
   onSelectProfile,
@@ -526,8 +528,11 @@ export function OceanGlobe({
           font: "13px system-ui",
           fillColor: Color.WHITE,
           outlineColor: Color.fromCssColorString("#04111d"),
-          outlineWidth: 4,
-          style: LabelStyle.FILL_AND_OUTLINE,
+          outlineWidth: 0,
+          style: LabelStyle.FILL,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.BOTTOM,
           horizontalOrigin: HorizontalOrigin.CENTER,
           pixelOffset: new Cartesian2(0, -18),
@@ -569,8 +574,11 @@ export function OceanGlobe({
           font: "13px system-ui",
           fillColor: Color.WHITE,
           outlineColor: Color.fromCssColorString("#04111d"),
-          outlineWidth: 4,
-          style: LabelStyle.FILL_AND_OUTLINE,
+          outlineWidth: 0,
+          style: LabelStyle.FILL,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.BOTTOM,
           horizontalOrigin: HorizontalOrigin.CENTER,
           pixelOffset: new Cartesian2(0, -19),
@@ -596,12 +604,15 @@ export function OceanGlobe({
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         },
         label: {
-          text: `Nearest model cell · ${selectedProfile.spatial_distance_km.toFixed(2)} km`,
-          font: "12px system-ui",
+          text: `Model cell · ${selectedProfile.spatial_distance_km.toFixed(1)} km away`,
+          font: "13px system-ui",
           fillColor: Color.fromCssColorString("#b8f4ff"),
           outlineColor: Color.fromCssColorString("#04111d"),
-          outlineWidth: 4,
-          style: LabelStyle.FILL_AND_OUTLINE,
+          outlineWidth: 0,
+          style: LabelStyle.FILL,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.TOP,
           horizontalOrigin: HorizontalOrigin.CENTER,
           pixelOffset: new Cartesian2(0, 16),
@@ -744,14 +755,16 @@ export function OceanGlobe({
               -field.depth_m * verticalExaggeration
             ),
             pixelSize: 7,
-            color: scalarColor(value, colorMinimum, colorMaximum, colorPalette, colorScale),
+            // Opaque so the dots render in the same pass as marker labels, which are drawn after them.
+            color: scalarColor(value, colorMinimum, colorMaximum, colorPalette, colorScale).withAlpha(1),
             outlineColor: Color.fromCssColorString("#00111c"),
             outlineWidth: 1,
             disableDepthTestDistance: Number.POSITIVE_INFINITY
           });
         }
       }
-      viewer.scene.primitives.add(collection);
+      // Index 0: draw the field first so observation markers and their labels stay readable on top.
+      viewer.scene.primitives.add(collection, 0);
       dynamicPrimitivesRef.current.push(collection);
     }
 
@@ -1397,10 +1410,11 @@ export function OceanGlobe({
         <span>{legendLabel}</span>
         <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
-          <span>{legendMin?.toFixed(3) ?? "—"}</span>
+          <span>{legendMin?.toFixed(2) ?? "—"}</span>
           <span>{displayUnits(legendUnits)}</span>
-          <span>{legendMax?.toFixed(3) ?? "—"}</span>
+          <span>{legendMax?.toFixed(2) ?? "—"}</span>
         </div>
+        {colorRangeLabel && <small className="legend-range-note">{colorRangeLabel}</small>}
       </div>
       {volume && (
         <div className="globe-overlay volume-note">

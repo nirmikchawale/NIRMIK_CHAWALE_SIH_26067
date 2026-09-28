@@ -1,0 +1,84 @@
+/* Loaded after workbench.css (see main.tsx). Kept in its own file so it does not
+   collide with ongoing edits at the end of workbench.css. Uses only --wb-* tokens. */
+
+/* ---------------------------------------------------------------------------
+   UX quick fixes (Sep 2026): guided demo bar, colour-range controls.
+   Uses only the --wb-* tokens defined in workbench.css; no new colours.
+   --------------------------------------------------------------------------- */
+.header-status[data-guided-demo="open"] { flex: 1 1 auto; justify-content: flex-end; }
+.guided-demo-bar { position: relative; display: flex; align-items: center; gap: 16px; min-width: 0; flex: 1 1 auto; justify-content: flex-end; }
+.guided-demo-title { display: grid; gap: 2px; min-width: 0; max-width: 340px; }
+.guided-demo-count { color: var(--wb-accent); font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.guided-demo-title strong { overflow: hidden; color: var(--wb-text); font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.guided-demo-progress { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.guided-demo-progress button { display: grid; gap: 5px; min-width: 64px; padding: 4px 2px; border: 0; color: var(--wb-muted); background: none; font: inherit; cursor: pointer; }
+.guided-demo-progress button span { display: block; height: 4px; border-radius: 2px; background: var(--wb-line); }
+.guided-demo-progress button em { font-size: 12px; font-style: normal; white-space: nowrap; }
+.guided-demo-progress button.done span { background: color-mix(in srgb, var(--wb-accent) 55%, var(--wb-line)); }
+.guided-demo-progress button.active span { background: var(--wb-accent); }
+.guided-demo-progress button.active em { color: var(--wb-text); font-weight: 650; }
+.guided-demo-progress button:focus-visible { outline: 2px solid var(--wb-accent); outline-offset: 2px; border-radius: 4px; }
+.guided-demo-actions { display: flex; gap: 6px; }
+.guided-demo-actions button { min-height: 40px; padding: 8px 12px; border: 1px solid var(--wb-line); border-radius: 6px; color: var(--wb-text); background: var(--wb-raised); font-size: 14px; cursor: pointer; }
+.guided-demo-actions button.primary { border-color: var(--wb-accent); color: var(--wb-bg); background: var(--wb-accent); font-weight: 650; }
+.guided-demo-actions button:disabled { opacity: .4; cursor: default; }
+.guided-demo-notes { position: absolute; z-index: 120; top: calc(100% + 14px); right: 0; width: min(380px, 90vw); padding: 14px 16px; border: 1px solid var(--wb-line); border-radius: 8px; background: var(--wb-panel); box-shadow: 0 16px 40px #0006; }
+.guided-demo-notes p { margin: 6px 0 0; color: var(--wb-text); font-size: 14px; line-height: 1.55; }
+@media (max-width: 1280px) {
+  .guided-demo-progress button { min-width: 0; }
+  .guided-demo-progress button em { display: none; }
+  .guided-demo-progress button span { width: 28px; }
+}
+@media (max-width: 760px) {
+  .guided-demo-bar { gap: 8px; }
+  .guided-demo-title { max-width: 120px; }
+  .guided-demo-title strong { font-size: 13px; }
+  .guided-demo-progress { display: none; }
+  .guided-demo-actions button { min-height: 36px; padding: 6px 9px; font-size: 13px; }
+}
+
+.color-range-mode { display: grid; grid-template-columns: 1fr 1fr; margin: 8px 0; }
+.legend-range-note { display: block; margin-top: 4px; color: var(--wb-muted); font-size: 12px; }
+
+/* Readability: no truncated control labels, nothing under 12px in the Explore controls. */
+.ocean-workbench .depth-zone-track button strong { overflow: visible; white-space: normal; font-size: 12px; line-height: 1.15; hyphens: manual; overflow-wrap: normal; }
+.ocean-workbench .depth-zone-track button span { font-size: 11px; }
+.camera-science-presets button { grid-template-columns: 1fr; min-height: 32px; padding: 5px 8px; text-align: center; }
+.camera-science-presets button span { display: none; }
+.camera-science-presets button strong { overflow: visible; font-size: 12px; text-overflow: clip; }
+.ocean-workbench .science-footer { font-size: 12px; }
+.telemetry-single-time { display: grid; gap: 2px; align-content: center; }
+.telemetry-single-time span { color: var(--wb-muted); font-size: 12px; }
+.telemetry-single-time strong { color: var(--wb-text); font-size: 14px; }
+.telemetry-single-time small { color: var(--wb-muted); font-size: 12px; }
+@media (max-width: 760px) {
+  .camera-science-presets button span { display: inline; font-size: 11px; }
+  .camera-science-presets button strong { display: none; }
+}
+/* Shorter page headings so each page's main content starts above the fold. */
+.ocean-workbench :is(.comparison-hero,.telemetry-hero,.anomaly-hero,.data-lab-hero,.feature-page-hero) h2 { font-size: clamp(26px, 2.4vw, 34px); line-height: 1.1; }
+.ocean-workbench .comparison-hero { padding: 8px 0 16px; }
+.data-lab-sources-divider { display: flex; align-items: center; gap: 12px; margin: 40px 0 16px; color: var(--wb-muted); font-size: 13px; font-weight: 650; letter-spacing: .04em; text-transform: uppercase; }
+.data-lab-sources-divider::before, .data-lab-sources-divider::after { content: ""; flex: 1; height: 1px; background: var(--wb-line); }
+.anomaly-residual-explainer { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--wb-line); border-left: 3px solid var(--wb-accent); border-radius: 6px; background: color-mix(in srgb, var(--wb-accent) 6%, var(--wb-panel)); }
+.anomaly-residual-explainer strong { color: var(--wb-text); font-size: 14px; }
+.anomaly-residual-explainer p { margin: 6px 0 0; color: var(--wb-text); font-size: 14px; line-height: 1.5; }
+.anomaly-residual-explainer p.floor-note { color: var(--wb-muted); }
+.anomaly-residual-explainer small { display: block; margin-top: 8px; color: var(--wb-muted); font-size: 12px; }
+.anomaly-flag-reasons { white-space: nowrap; }
+.flag-reason { display: inline-block; margin-right: 4px; padding: 1px 6px; border: 1px solid var(--wb-line); border-radius: 999px; color: var(--wb-text); font-size: 12px; }
+.flag-reason.physical { border-color: var(--wb-accent); }
+@media (min-width: 761px) {
+  .camera-orientation-hud { grid-template-columns: 64px 220px; width: 300px; }
+}
+.ocean-workbench.guided-demo-active .brand p { display: none; }
+.ocean-workbench.guided-demo-active .guided-demo-title { max-width: 420px; }
+.ocean-workbench.guided-demo-active .guided-demo-progress button { min-width: 0; }
+@media (max-width: 760px) {
+  .ocean-workbench.guided-demo-active .brand { display: none; }
+  .ocean-workbench.guided-demo-active .header-status { width: 100%; }
+  .ocean-workbench.guided-demo-active .guided-demo-title strong { display: none; }
+  .ocean-workbench.guided-demo-active .guided-demo-bar { justify-content: space-between; }
+}
+.colorbar-hud-actions { flex: none; }
+.colorbar-hud-actions .colorbar-range-toggle { flex: none; min-width: max-content; white-space: nowrap; font-size: 11px; }

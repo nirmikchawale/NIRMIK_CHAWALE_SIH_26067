@@ -292,38 +292,6 @@
 :root[data-theme="light"] .analysis-chart-legend i.observation { background: #86510a; }
 .analysis-limit-note { margin: 10px 0 0; color: var(--wb-muted); font-size: 10px; line-height: 1.45; }
 
-.presentation-mode-exit {
-  position: absolute;
-  z-index: 90;
-  top: 14px;
-  right: 14px;
-  min-height: 36px;
-  padding: 7px 10px;
-  border: 1px solid color-mix(in srgb,var(--wb-accent) 65%,transparent);
-  border-radius: 999px;
-  color: var(--wb-text);
-  background: color-mix(in srgb,var(--wb-panel) 78%,transparent);
-  backdrop-filter: blur(10px);
-  cursor: pointer;
-}
-.ocean-workbench[data-workspace-mode="presentation"] { grid-template-rows: 0 minmax(0,1fr) 0; }
-.ocean-workbench[data-workspace-mode="presentation"] .app-header,
-.ocean-workbench[data-workspace-mode="presentation"] .science-footer { display: none; }
-.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame { grid-template-rows: 0 minmax(0,1fr); }
-.ocean-workbench[data-workspace-mode="presentation"] .feature-rail,
-.ocean-workbench[data-workspace-mode="presentation"] .visualization-dock,
-.ocean-workbench[data-workspace-mode="presentation"] .control-panel,
-.ocean-workbench[data-workspace-mode="presentation"] .evidence-rail,
-.ocean-workbench[data-workspace-mode="presentation"] .evidence-status-pill,
-.ocean-workbench[data-workspace-mode="presentation"] .profile-panel,
-.ocean-workbench[data-workspace-mode="presentation"] .mobile-explore-tray,
-.ocean-workbench[data-workspace-mode="presentation"] .analysis-split-panel { display: none !important; }
-.ocean-workbench[data-workspace-mode="presentation"] .visualization-stage { top: 0 !important; right: 0; bottom: 0 !important; left: 0; }
-/* The header, footer and feature rail are display:none in presentation mode, so grid auto-placement
-   would drop the workspace into the 0px first row and clip everything (blank screen, unclickable exit).
-   Pin the workspace to its full-height row explicitly. */
-.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame,
-.ocean-workbench[data-workspace-mode="presentation"] .workspace-frame > .workspace { grid-row: 2; }
 .eyebrow { font-size: 11px; text-transform: uppercase; letter-spacing: .12em; color: var(--wb-accent); font-weight: 700; }
 .evidence-heading h2 { margin: 8px 0 12px; font-size: 21px; letter-spacing: -.035em; }
 .snapshot-badge { display: inline-flex; font-size: 11px; padding: 5px 8px; border: 1px solid var(--wb-line); border-radius: 4px; color: var(--wb-muted); }
@@ -498,7 +466,6 @@
 .ocean-workbench[data-evidence-inspector="open"] .camera-orientation-hud {
   right: calc(var(--wb-evidence-width) + 28px);
 }
-.ocean-workbench[data-workspace-mode="presentation"] .camera-orientation-hud { display: none; }
 .ocean-workbench .study-region-entry { top: 14px; right: 14px; left: auto; bottom: auto; width: 190px; min-width: 0; min-height: 65px; padding: 10px; transform: none; }
 .ocean-workbench .study-region-entry strong { font-size: 13px; }
 .ocean-workbench .study-region-entry small { display: none; }
@@ -614,12 +581,6 @@
 .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { background: var(--wb-bg); color: var(--wb-text); padding: 32px clamp(20px,4vw,64px) 64px; }
 .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) :is(p,label,select,button) { font-size: 14px; line-height: 1.55; }
 .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) :is(small,dt,td,th) { font-size: 12px; }
-.presentation-guide { position: absolute; z-index: 27; top: 12px; left: max(12px,calc((100% - 720px)/2)); right: max(12px,calc((100% - 720px)/2)); padding: 20px; border: 1px solid var(--wb-accent); border-radius: 10px; background: var(--wb-panel); box-shadow: 0 20px 70px #0008; }
-.presentation-guide h2 { font-size: 20px; margin: 8px 0; }
-.presentation-guide p { font-size: 14px; line-height: 1.6; color: var(--wb-muted); margin: 8px 0 16px; }
-.guide-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.guide-actions button { min-height: 40px; border: 1px solid var(--wb-line); border-radius: 5px; color: var(--wb-text); background: var(--wb-raised); padding: 8px 12px; font-size: 13px; cursor: pointer; }
-.guide-actions button:disabled { opacity: .4; cursor: default; }
 .ocean-workbench.focus-mode .workspace-frame { grid-template-columns: 1fr; grid-template-rows: 0 minmax(0,1fr); }
 .ocean-workbench.focus-mode .feature-rail,.ocean-workbench.focus-mode .control-panel,.ocean-workbench.focus-mode .evidence-rail,.ocean-workbench.focus-mode .evidence-status-pill { visibility: hidden; }
 .ocean-workbench.focus-mode .visualization-stage { left: 0; right: 0; }
@@ -696,7 +657,6 @@
   .ocean-workbench .interaction-hint { display: none; }
   .ocean-workbench .science-footer { min-height: 0; font-size: 10px; padding: 5px 10px; }
   .ocean-workbench :is(.feature-page,.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) { position: absolute; inset: 0; min-height: 0; overflow-y: auto; padding: 24px 16px 48px; }
-  .presentation-guide { max-height: calc(100% - 24px); overflow-y: auto; }
 }
 @media (max-width: 760px) {
   .ocean-workbench[data-workspace-mode="analysis"] .visualization-dock { right: 0 !important; }
@@ -710,8 +670,6 @@
     border-left: 0;
     border-top: 1px solid var(--wb-line);
   }
-  .ocean-workbench[data-workspace-mode="presentation"] .workspace-frame { grid-template-rows: 0 minmax(0,1fr); }
-  .ocean-workbench[data-workspace-mode="presentation"] .visualization-stage { top: 0 !important; bottom: 0 !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2560,7 +2518,6 @@
   min-width: 0;
   transform: none;
 }
-.ocean-workbench[data-workspace-mode="presentation"] .scientific-colorbar-hud { display: none; }
 
 @media (max-width: 980px) {
   .scientific-colorbar-hud,
@@ -2885,8 +2842,7 @@
   background: color-mix(in srgb,var(--wb-bg) 96%,transparent);
   pointer-events: none;
 }
-.ocean-workbench.focus-mode .argo-billboard-callout,
-.ocean-workbench[data-workspace-mode="presentation"] .argo-billboard-callout {
+.ocean-workbench.focus-mode .argo-billboard-callout {
   z-index: 34;
 }
 @media (max-width: 760px) {

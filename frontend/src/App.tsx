@@ -19,6 +19,7 @@ import { ProfilePanel } from "./components/ProfilePanel";
 import { ImportedObservationPanel } from "./components/ImportedObservationPanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
+import { friendlyLoadError, offlineSourcesLabel } from "./friendlyError";
 import {
   buildIncoisChlorophyllCatalog,
   buildIncoisChlorophyllField,
@@ -36,6 +37,7 @@ import {
 import type {
   Catalog,
   ColorPalette,
+  ColorRangeMode,
   ColorScaleMode,
   CurrentsResponse,
   CurrentsVolumeResponse,
@@ -53,7 +55,35 @@ import type {
 
 type ThemeMode = "dark" | "light";
 type MobileSheet = "none" | "controls" | "observation";
-type WorkspaceMode = "explorer" | "analysis" | "presentation";
+type WorkspaceMode = "explorer" | "analysis";
+
+/** Finite min/max of the values actually on screen, so the colour ramp uses its full range. */
+function displayedRange(field: FieldResponse | null, volume: VolumeResponse | null): [number, number] | null {
+  let minimum = Number.POSITIVE_INFINITY;
+  let maximum = Number.NEGATIVE_INFINITY;
+  if (field) {
+    for (const row of field.values) {
+      for (const value of row) {
+        if (value === null || !Number.isFinite(value)) continue;
+        if (value < minimum) minimum = value;
+        if (value > maximum) maximum = value;
+      }
+    }
+  } else if (volume) {
+    for (const point of volume.points) {
+      const value = point[3];
+      if (!Number.isFinite(value)) continue;
+      if (value < minimum) minimum = value;
+      if (value > maximum) maximum = value;
+    }
+  }
+  if (!Number.isFinite(minimum) || !Number.isFinite(maximum)) return null;
+  if (maximum - minimum < 1e-9) {
+    const pad = Math.max(Math.abs(minimum) * 0.001, 1e-6);
+    return [minimum - pad, maximum + pad];
+  }
+  return [minimum, maximum];
+}
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
 
@@ -84,6 +114,7 @@ export default function App() {
   const [controlDockOpen, setControlDockOpen] = useState(true);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [guideStep, setGuideStep] = useState(0);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
@@ -114,6 +145,7 @@ export default function App() {
   const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
   const [colorMinimum, setColorMinimum] = useState(0);
   const [colorMaximum, setColorMaximum] = useState(1);
+  const [colorRangeMode, setColorRangeMode] = useState<ColorRangeMode>("fit");
   const [isoSurfaceEnabled, setIsoSurfaceEnabled] = useState(false);
   const [isoValue, setIsoValue] = useState(0.5);
 
@@ -354,8 +386,7 @@ export default function App() {
         if (cancelled) return;
 
         if (catalogResult.status === "rejected") {
-          const reason = catalogResult.reason as Error;
-          setStartupError(reason?.message || "Scientific catalog unavailable.");
+          setStartupError(friendlyLoadError("the ocean data catalogue", catalogResult.reason));
           setScienceLoading(false);
           return;
         }
@@ -503,7 +534,10 @@ export default function App() {
 
     request
       .catch((reason: Error) => {
-        if (!cancelled) setError(reason.message);
+        if (!cancelled) {
+          const label = exploreCatalog.variables.find((item) => item.id === variable)?.label ?? "selected";
+          setError(friendlyLoadError(`the ${label.toLowerCase()} data`, reason));
+        }
       })
       .finally(() => {
         if (!cancelled) setScienceLoading(false);
@@ -548,6 +582,7 @@ export default function App() {
   const handleVariableChange = useCallback(
     (value: "thetao" | "so" | "currents" | "chlorophyll") => {
       setVariable(value);
+      setColorRangeMode((mode) => (mode === "custom" ? "fit" : mode));
       const nextVariable = exploreCatalog?.variables.find((item) => item.id === value);
       if (nextVariable && nextVariable.kind === "scalar") {
         setColorMinimum(nextVariable.minimum);
@@ -594,6 +629,7 @@ export default function App() {
 
     setSourceMode(nextSource);
     setVariable(targetVariable);
+    setColorRangeMode((mode) => (mode === "custom" ? "fit" : mode));
     setPlaying(false);
     setTimeIndex(0);
     setProfilePanelOpen(false);
@@ -639,12 +675,53 @@ export default function App() {
     } else {
       setControlDockOpen(false);
     }
-
-    if (nextMode === "presentation") {
-      setGuideOpen(false);
-      setVisualizationMode("globe");
-    }
   }, []);
+
+  const runGuideStep = useCallback((step: number) => {
+    setGuideStep(step);
+    setFocusMode(false);
+    setWorkspaceMode("explorer");
+    setControlDockOpen(true);
+    setProfilePanelOpen(false);
+    setEvidenceOpen(false);
+    setMobileSheet("none");
+
+    if (step === 0) {
+      navigate("explore");
+      handleSourceModeChange("glorys");
+      handleVariableChange("thetao");
+      setVisualizationMode("globe");
+    } else if (step === 1) {
+      navigate("explore");
+      handleSourceModeChange("glorys");
+      handleVariableChange("thetao");
+      setVisualizationMode("water-column");
+    } else if (step === 2) {
+      navigate("explore");
+      handleSourceModeChange("incois");
+      handleVariableChange("thetao");
+      setVisualizationMode("globe");
+    } else if (step === 3) {
+      navigate("explore");
+      handleSourceModeChange("glorys");
+      setVisualizationMode("globe");
+      const inSituProfile = importedProfiles[0];
+      if (inSituProfile) {
+        setSelectedImportedProfileId(inSituProfile.id);
+        setProfilePanelOpen(true);
+      }
+    } else if (step === 4) {
+      navigate("compare");
+    } else {
+      navigate("about");
+      setProvenanceOpen(true);
+    }
+  }, [navigate, handleSourceModeChange, handleVariableChange, importedProfiles]);
+
+  const startGuidedDemo = useCallback(() => {
+    setGuideOpen(true);
+    runGuideStep(0);
+  }, [runGuideStep]);
 
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
@@ -674,6 +751,44 @@ export default function App() {
     })),
     [profiles]
   );
+  useEffect(() => {
+    if (variable === "currents" || colorRangeMode === "custom") return;
+    if (colorRangeMode === "column") {
+      if (selectedVariable && selectedVariable.kind === "scalar") {
+        setColorMinimum(selectedVariable.minimum);
+        setColorMaximum(selectedVariable.maximum);
+      }
+      return;
+    }
+    const range = displayedRange(field, volume);
+    if (range) {
+      setColorMinimum(range[0]);
+      setColorMaximum(range[1]);
+    }
+    // colorMinimum/colorMaximum are dependencies so a handler that resets them to the catalogue
+    // range (variable/source change) is immediately re-fitted; identical values settle without looping.
+  }, [field, volume, colorRangeMode, selectedVariable, variable, colorMinimum, colorMaximum]);
+
+  const handleColorMinimumChange = useCallback((value: number) => {
+    setColorRangeMode("custom");
+    setColorMinimum(value);
+  }, []);
+  const handleColorMaximumChange = useCallback((value: number) => {
+    setColorRangeMode("custom");
+    setColorMaximum(value);
+  }, []);
+
+  const colorRangeLabel =
+    variable === "currents"
+      ? "Speed range at this depth"
+      : colorRangeMode === "column"
+        ? "Range: whole water column"
+        : colorRangeMode === "custom"
+          ? "Range: custom"
+          : visualizationMode === "water-column"
+            ? "Range: fitted to this 3D view"
+            : "Range: fitted to this depth";
+
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
     [profiles, selectedProfileId]
@@ -690,14 +805,13 @@ export default function App() {
         <div className="brand-mark">OT</div>
         <h1>OceanTwin 3D</h1>
         {startupError ? (
-          <div className="boot-error-card">
-            <strong>Scientific API unavailable</strong>
+          <div className="boot-error-card" role="alert">
+            <strong>OceanTwin couldn't start</strong>
             <p>{startupError}</p>
-            <p>Local fail-safe: launch START_OCEANTWIN.cmd. The Streamlit scientific reference remains the emergency fallback.</p>
-            <button onClick={() => window.location.reload()}>Retry connection</button>
+            <button onClick={() => window.location.reload()}>Try again</button>
           </div>
         ) : (
-          <p>Connecting to verified scientific evidence…</p>
+          <p>Loading ocean data…</p>
         )}
       </div>
     );
@@ -709,7 +823,7 @@ export default function App() {
 
   return (
     <div
-      className={`app-shell ocean-workbench ${focusMode ? "focus-mode" : ""}`}
+      className={`app-shell ocean-workbench ${focusMode ? "focus-mode" : ""} ${guideOpen ? "guided-demo-active" : ""}`}
       data-theme={theme}
       data-page={page}
       data-explore-source={sourceMode}
@@ -725,9 +839,17 @@ export default function App() {
             <p>Explainable water-column explorer · SIH26067</p>
           </div>
         </div>
-        <div className="header-status">
-          <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
-          {page === "explore" && (
+        <div className="header-status" data-guided-demo={guideOpen ? "open" : "closed"}>
+          {guideOpen ? (
+            <PresentationGuide
+              step={guideStep}
+              onStepChange={runGuideStep}
+              onClose={() => setGuideOpen(false)}
+            />
+          ) : (
+            <button className="present-button" type="button" onClick={startGuidedDemo}>Guided demo</button>
+          )}
+          {!guideOpen && page === "explore" && (
             <div className="workspace-mode-switcher" role="group" aria-label="Explorer workspace mode">
               <button
                 type="button"
@@ -747,15 +869,6 @@ export default function App() {
               >
                 Analysis Split
               </button>
-              <button
-                type="button"
-                className={workspaceMode === "presentation" ? "active" : ""}
-                aria-pressed={workspaceMode === "presentation"}
-                aria-label="Presentation workspace"
-                onClick={() => handleWorkspaceModeChange("presentation")}
-              >
-                Presentation
-              </button>
             </div>
           )}
           <div>
@@ -772,7 +885,7 @@ export default function App() {
                   : "GLORYS12V1"
             }</strong>
           </div>
-          {page === "explore" && !focusMode && (
+          {!guideOpen && page === "explore" && !focusMode && (
             <div className="header-workspace-actions" role="toolbar" aria-label="Explorer workspace actions">
               <button
                 type="button"
@@ -807,9 +920,12 @@ export default function App() {
               Show panels
             </button>
           )}
-          <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
-            {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● VERIFIED SNAPSHOT"}
-          </span>
+          {!guideOpen && <span
+            className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}
+            title={degradedWarnings.length > 0 ? `Not loaded: ${degradedWarnings.join("; ")}. Everything else works normally.` : "All bundled and optional sources loaded"}
+          >
+            {degradedWarnings.length > 0 ? `▲ ${offlineSourcesLabel(degradedWarnings.length)}` : "● All sources loaded"}
+          </span>}
           <button
             className="theme-toggle"
             type="button"
@@ -832,56 +948,8 @@ export default function App() {
         />
 
         <div className="workspace">
-          {guideOpen && <PresentationGuide onClose={() => setGuideOpen(false)} onStep={(step) => {
-            setFocusMode(false);
-            setWorkspaceMode("explorer");
-            setProfilePanelOpen(false);
-            setMobileSheet("none");
-
-            if (step === 0) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
-              setVisualizationMode("globe");
-            } else if (step === 1) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
-              setVisualizationMode("water-column");
-            } else if (step === 2) {
-              navigate("explore");
-              handleSourceModeChange("incois");
-              handleVariableChange("thetao");
-              setVisualizationMode("globe");
-            } else if (step === 3) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              setVisualizationMode("globe");
-              const inSituProfile = importedProfiles[0];
-              if (inSituProfile) {
-                setSelectedImportedProfileId(inSituProfile.id);
-                setProfilePanelOpen(true);
-              }
-            } else if (step === 4) {
-              navigate("compare");
-            } else {
-              navigate("about");
-              setProvenanceOpen(true);
-            }
-          }} />}
           {page === "explore" ? (
             <>
-              {workspaceMode === "presentation" && (
-                <button
-                  type="button"
-                  className="presentation-mode-exit"
-                  aria-label="Exit presentation workspace"
-                  onClick={() => handleWorkspaceModeChange("explorer")}
-                >
-                  Exit presentation
-                </button>
-              )}
-
               <EvidenceRail
                 catalog={activeExploreCatalog}
                 variable={selectedVariable}
@@ -1009,7 +1077,8 @@ export default function App() {
                     colorScale={colorScale}
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
-                    presentationActive={workspaceMode === "presentation"}
+                    colorRangeLabel={colorRangeLabel}
+                    presentationActive={guideOpen && guideStep === 0}
                     profileCalloutOpen={profileCalloutOpen}
                     onSelectProfile={handleProfilePinSelection}
                     onInspectProfile={handleProfileSelection}
@@ -1033,6 +1102,7 @@ export default function App() {
                     colorScale={colorScale}
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
+                    colorRangeLabel={colorRangeLabel}
                     isoSurfaceEnabled={isoSurfaceEnabled}
                     isoValue={isoValue}
                     theme={theme}
@@ -1053,8 +1123,11 @@ export default function App() {
                   values={colorbarValues}
                   onPaletteChange={setColorPalette}
                   onScaleChange={setColorScale}
-                  onMinimumChange={setColorMinimum}
-                  onMaximumChange={setColorMaximum}
+                  rangeMode={variable === "currents" ? undefined : colorRangeMode}
+                  rangeLabel={colorRangeLabel}
+                  onRangeModeChange={setColorRangeMode}
+                  onMinimumChange={handleColorMinimumChange}
+                  onMaximumChange={handleColorMaximumChange}
                 />
               )}
 
@@ -1172,16 +1245,16 @@ export default function App() {
           role={error ? "alert" : "status"}
           aria-live={error ? "assertive" : "polite"}
         >
-          {error ? error : "Loading selected verified ocean field…"}
+          {error ? error : "Loading ocean field…"}
         </div>
       )}
 
       <footer className="science-footer">
         <span>
-          Reanalysis · Cached verified · No runtime scientific-data download
-          {degradedWarnings.length > 0 ? ` · Degraded: ${degradedWarnings.join(" · ")}` : ""}
+          GLORYS12V1 reanalysis · bundled data, works offline
+          {degradedWarnings.length > 0 ? ` · Not loaded: ${degradedWarnings.join(" · ")}` : ""}
         </span>
-        <span>{catalog.scientific_disclaimer}</span>
+        <span title={catalog.scientific_disclaimer}>Model–observation comparison is diagnostic, not independent validation.</span>
       </footer>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../api";
+import { friendlyLoadError } from "../friendlyError";
 import type { AnomalyResponse, Catalog, ResidualAnomalyFlag, SpatialAnomalyFlag } from "../types";
 import { displayUnits } from "../units";
 
@@ -57,7 +58,7 @@ export function AnomalyPage({ catalog }: Props) {
     setError("");
     api.anomalies(variable, 0, depthIndex)
       .then((value) => { if (!cancelled) setPayload(value); })
-      .catch((reason: Error) => { if (!cancelled) { setPayload(null); setError(reason.message); } })
+      .catch((reason: Error) => { if (!cancelled) { setPayload(null); setError(friendlyLoadError("anomaly screening for this depth", reason)); } })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [variable, depthIndex]);
@@ -108,7 +109,7 @@ export function AnomalyPage({ catalog }: Props) {
         </div>
         <aside className="anomaly-method-chip">
           <span>FIXED METHOD</span><strong>|robust z| ≥ 3.5</strong>
-          <small>Median / MAD · two-sided · deterministic</small>
+          <small>or Argo |Model − Obs| &gt; 0.5 °C · residual MAD floored at 0.1 °C</small>
         </aside>
       </header>
 
@@ -136,7 +137,7 @@ export function AnomalyPage({ catalog }: Props) {
           <article><span>Spatial flags</span><strong>{payload.spatial_screen.flagged_count}</strong>
             <small>of {payload.spatial_screen.sample_count} finite model cells</small></article>
           <article><span>Residual flags</span><strong>{payload.residual_screen.flagged_count}</strong>
-            <small>of {payload.residual_screen.sample_count} matched Argo levels</small></article>
+            <small>of {payload.residual_screen.sample_count} Argo levels · {payload.residual_screen.statistical_flagged_count} by z · {payload.residual_screen.physical_flagged_count} &gt; {payload.residual_screen.physical_threshold_celsius} °C</small></article>
           <article><span>Profiles screened</span><strong>{payload.residual_screen.profiles_screened}</strong>
             <small>temperature residuals, profile-wise</small></article>
           <article className="locked"><span>Temporal screen</span><strong>LOCKED</strong>
@@ -191,7 +192,10 @@ export function AnomalyPage({ catalog }: Props) {
                     <div><dt>Absolute error</dt><dd>{strongestResidual.absolute_error_celsius.toFixed(3)} °C</dd></div>
                     <div><dt>Argo platform</dt><dd>{strongestResidual.platform_id}</dd></div>
                     <div><dt>Cycle</dt><dd>{strongestResidual.cycle}</dd></div>
-                    <div><dt>Screen</dt><dd>Within-profile residual</dd></div>
+                    <div><dt>Flagged by</dt><dd>{[
+                      strongestResidual.statistical_flag ? `|z| ≥ ${threshold}` : "",
+                      strongestResidual.physical_flag ? `> ${payload.residual_screen.physical_threshold_celsius} °C` : ""
+                    ].filter(Boolean).join(" and ")}</dd></div>
                   </dl>
                 ) : null}
               </div>
@@ -267,17 +271,27 @@ export function AnomalyPage({ catalog }: Props) {
             <div className="anomaly-card-heading"><div><span>OBSERVATION RESIDUALS</span>
               <h3>Argo model–observation residual outliers</h3></div><strong>Model − Observation</strong></div>
             <p className="anomaly-scope">{payload.residual_screen.scope}. Temperature-only because that is the bundled verified Argo comparison evidence.</p>
+            <div className="anomaly-residual-explainer" role="note">
+              <strong>How to read these flags</strong>
+              <p>{payload.residual_screen.explanation}</p>
+              {payload.residual_screen.floor_notes.map((note) => <p key={note} className="floor-note">{note}</p>)}
+              <small>{payload.residual_screen.flag_rule}</small>
+            </div>
             <div className="anomaly-profile-stats">
               {payload.residual_screen.profile_statistics.map((p) => <div key={p.profile_id}>
                 <span>Argo {p.platform_id} · cycle {p.cycle}</span><strong>{p.flagged_count} flag(s)</strong>
-                <small>median {p.median_bias_celsius.toFixed(3)} °C · MAD {p.mad_bias_celsius.toFixed(3)} °C</small></div>)}
+                <small>median {p.median_bias_celsius.toFixed(3)} °C · MAD {p.mad_bias_celsius.toFixed(3)} °C{p.mad_floor_applied ? ` (floor ${payload.residual_screen.mad_floor_celsius} °C used)` : ""}</small></div>)}
             </div>
             <div className="anomaly-table-wrap"><table className="anomaly-residual-table"><thead><tr>
-              <th>Profile</th><th>Depth</th><th>Bias</th><th>|error|</th><th>Robust z</th></tr></thead><tbody>
+              <th>Profile</th><th>Depth</th><th>Bias</th><th>|error|</th><th>Robust z</th><th>Flagged by</th></tr></thead><tbody>
               {residual.map((flag, i) => <tr key={i}><td>{flag.platform_id} / {flag.cycle}</td>
                 <td>{flag.observation_depth_m.toFixed(1)} m</td><td>{flag.signed_bias_celsius.toFixed(3)} °C</td>
                 <td>{flag.absolute_error_celsius.toFixed(3)} °C</td>
-                <td className={flag.robust_z >= 0 ? "positive" : "negative"}>{flag.robust_z.toFixed(2)}</td></tr>)}
+                <td className={flag.robust_z >= 0 ? "positive" : "negative"}>{flag.robust_z.toFixed(2)}</td>
+                <td className="anomaly-flag-reasons">
+                  {flag.statistical_flag && <span className="flag-reason">z ≥ {threshold}</span>}
+                  {flag.physical_flag && <span className="flag-reason physical">&gt; {payload.residual_screen.physical_threshold_celsius} °C</span>}
+                </td></tr>)}
             </tbody></table></div>
           </article>
         </section>
