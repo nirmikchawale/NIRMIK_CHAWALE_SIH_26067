@@ -607,9 +607,9 @@ export default function App() {
   }, [operationalCatalog, chlorophyllCatalog, catalog, variable]);
 
   const handleEnterWaterColumn = useCallback(() => {
-    if (sourceMode === "chlorophyll") return;
+    if (sourceMode === "chlorophyll" || (sourceMode === "incois" && variable === "currents")) return;
     setVisualizationMode("water-column");
-  }, [sourceMode]);
+  }, [sourceMode, variable]);
 
   const handleWorkspaceModeChange = useCallback((nextMode: WorkspaceMode) => {
     setWorkspaceMode(nextMode);
@@ -953,7 +953,7 @@ export default function App() {
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
-                    canEnterWaterColumn={activeExploreCatalog.capabilities.surface_only !== true}
+                    canEnterWaterColumn={sourceMode !== "chlorophyll" && (sourceMode === "glorys" || variable !== "currents")}
                   />
                 </div>
                 <div
