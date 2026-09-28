@@ -2990,3 +2990,61 @@
   }
   .analysis-chart-hover-readout small { grid-column: 1 / -1; }
 }
+
+
+/* SIH guide 5.1 — WCAG AA dark-theme contrast corrections. */
+:root {
+  --wb-meta-aa: #94a3b8;
+  --wb-micro-aa: #cbd5e1;
+  --wb-interactive-aa: rgba(56,189,248,.25);
+  --wb-success-aa: #34d399;
+  --wb-success-bg-aa: #064e3b;
+}
+:root[data-theme="light"] {
+  --wb-meta-aa: #475569;
+  --wb-micro-aa: #334155;
+  --wb-interactive-aa: rgba(7,107,128,.34);
+}
+.ocean-workbench dt,
+.ocean-workbench .evidence-facts dt,
+.ocean-workbench .section-kicker,
+.ocean-workbench .eyebrow,
+.ocean-workbench .analysis-context-grid span {
+  color: var(--wb-meta-aa);
+}
+.ocean-workbench .microcopy,
+.ocean-workbench .source-status-note,
+.ocean-workbench .analysis-limit-note,
+.ocean-workbench .evidence-footnote p,
+.ocean-workbench .depth-availability-note,
+.ocean-workbench .timeline-footer > small {
+  color: var(--wb-micro-aa);
+}
+.ocean-workbench .badge.success,
+.ocean-workbench .snapshot-badge.success {
+  border-color: color-mix(in srgb,var(--wb-success-aa) 72%,transparent);
+  color: var(--wb-success-aa);
+  background: var(--wb-success-bg-aa);
+}
+.ocean-workbench .variable-switcher button:not(.active),
+.ocean-workbench .timeline-transport button,
+.ocean-workbench .timeline-speed button,
+.ocean-workbench .header-action-button,
+.ocean-workbench .workspace-mode-switcher {
+  border-color: var(--wb-interactive-aa);
+}
+.ocean-workbench button:focus-visible,
+.ocean-workbench select:focus-visible,
+.ocean-workbench input:focus-visible,
+.ocean-workbench [tabindex]:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(56,189,248,.18);
+}
+:root[data-theme="light"] .ocean-workbench button:focus-visible,
+:root[data-theme="light"] .ocean-workbench select:focus-visible,
+:root[data-theme="light"] .ocean-workbench input:focus-visible,
+:root[data-theme="light"] .ocean-workbench [tabindex]:focus-visible {
+  outline-color: #076b80;
+  box-shadow: 0 0 0 3px rgba(7,107,128,.14);
+}
