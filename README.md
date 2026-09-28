@@ -39,20 +39,18 @@ See `docs/SIH26067_COMPLETION_MATRIX.md` and `docs/SIH26067_COMPLETION_STATE.md`
 
 ## Judge-facing product experience
 
-- Compact product header with explicit local/offline status.
-- Selected-profile identity chip and six responsive evidence metrics.
-- Genuine Plotly 3D `thetao` model context with actual-depth 2D fallback.
-- Enlarged offline collocation map showing Argo position, nearest valid model cell, connecting line and distance.
-- Argo-vs-Copernicus temperature profile directly in the primary dashboard flow.
-- Model − Observation bias-by-depth directly beside the profile chart.
-- Cyan Copernicus / amber Argo semantic series colours.
-- Zero-centred cool-to-warm bias presentation.
-- Compact provenance and method inspection.
-- Visible diagnostic-not-validation limitations.
-- Readable selected-profile CSV/JSON and provenance/config/verification downloads.
-- One-click **Reset to verified demo** recovery.
-- Friendly failure states; raw Python diagnostics are hidden unless explicitly enabled.
-- No required runtime scientific-data network request.
+- Earth → India → verified study-field orientation with replay, skip and reduced-motion support.
+- Browser-native Cesium Geographic View connected to a scientific Water Column 3D renderer.
+- Temperature and salinity depth slices plus genuine full-water-column scalar rendering.
+- Horizontal `uo/vo` current vectors at selected depth and across all 31 genuine model depths.
+- Genuine scalar isosurface extraction and dynamic palette/min/max/valid linear-log controls.
+- Separate genuine INCOIS multi-time physical playback without duplicating the single-time GLORYS baseline.
+- Genuine INCOIS surface chlorophyll with explicit surface-only semantics.
+- Argo, Glider, CTD and BGC markers/profile inspection through one canonical observation contract.
+- Argo model↔observation collocation with vertical interpolation, Model − Observation bias, MAE/RMSE and provenance.
+- Browser-native CF-aware NetCDF4 plus CSV/TSV/ASCII/JSON ingestion into temporary Explorer observation layers.
+- Analysis Split and Presentation workspaces, light/dark themes, camera presets, evidence inspector and source/QC drawer.
+- Public static scientific evidence, live Chromium judge-flow acceptance, local React/FastAPI recovery and Streamlit scientific fallback.
 
 ## Preserved scientific fallback hierarchy
 
@@ -101,29 +99,34 @@ NIRMIK_CHAWALE_SIH_PERSONAL/
 
 ## Windows PowerShell setup
 
-From the repository root:
+### Preferred judge-facing launch
+
+After one-time Python/Node setup, double-click:
+
+`START_OCEANTWIN.cmd`
+
+This launches FastAPI on port 8000 and the React + Cesium application on port 5173.
+
+For manual validation:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install -r backend\requirements.txt
+python -m pytest -q tests
+python -m pytest -q backend\tests
+cd frontend
+npm install
+npm run typecheck
+npm run build
 ```
 
-Run regression tests:
+The preserved Streamlit reference remains the emergency fallback:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-```
-
-Run the application:
-
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py
-```
-
-Expected local URL:
-
-```text
-http://localhost:8501
+python -m streamlit run app.py
 ```
 
 ## CI quality gates
@@ -138,18 +141,20 @@ Current scientific and product validation is enforced by the repository's active
 
 ## Offline demonstration
 
+The preferred judge path is the deployed React/Cesium MVP, with a local React/FastAPI copy prepared as recovery.
+
 Before judging:
 
-1. start from a fresh terminal;
-2. run the regression suite;
-3. start Streamlit;
-4. press **Reset to verified demo**;
-5. disconnect Wi-Fi;
-6. refresh once;
-7. verify the default profile, metrics, model/map row, profile/bias row and evidence downloads;
-8. if WebGL 3D is unreliable, enable the 2D compatibility fallback.
+1. confirm `tests`, `final-mvp` and `deploy-oceantwin-pages` are green for the same current `main` HEAD;
+2. open the public Explore URL once on the judging network;
+3. verify Geographic View → Water Column 3D and globe zoom;
+4. verify genuine INCOIS time controls;
+5. inspect one real Glider/CTD/BGC profile;
+6. open the Argo model–observation comparison;
+7. run `docs/VISUAL_DEMO_CHECKLIST.md` on the actual laptop/projector;
+8. keep `START_OCEANTWIN.cmd` and the Streamlit fallback ready locally.
 
-The runtime scientific data path is local. The 2D fallback uses the same actual model array at the selected depth.
+The static scientific evidence and local fallback paths are deliberate demo-resilience mechanisms, not substitutes for the primary web application.
 
 ## Planning implementation
 
@@ -170,10 +175,14 @@ The following remain intentionally bounded and must not be overstated:
 
 ## Scientific sources
 
-- Copernicus Marine Global Ocean Physics Reanalysis — `GLOBAL_MULTIYEAR_PHY_001_030`
-- Copernicus DOI — `10.48670/moi-00021`
-- Ifremer Argo GDAC
-- Argo DOI — `10.17882/42182`
+- Copernicus Marine Global Ocean Physics Reanalysis — `GLOBAL_MULTIYEAR_PHY_001_030`.
+- Copernicus DOI — `10.48670/moi-00021`.
+- Ifremer Argo GDAC / Argo DOI — `10.17882/42182`.
+- INCOIS ERDDAP — genuine multi-time physical analysis and IRS P4 OCM chlorophyll pathways.
+- NOAA AOML / IOOS ERDDAP — verified Glider physical profile and dissolved-oxygen optode evidence.
+- CCHDO / NOAA PMEL ERDDAP — verified GO-SHIP CTD temperature/salinity profile evidence.
+
+Provider measurements remain source-traceable; the verified observation breadth build rejects synthetic measurements/timestamps.
 
 ## Presentation rule
 
