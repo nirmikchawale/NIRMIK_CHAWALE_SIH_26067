@@ -2590,3 +2590,18 @@
 .ocean-workbench .water-column-smooth-zoom {
   z-index: 26;
 }
+
+
+/* Keep the geographic field-entry CTA visually and interactively clear of the persistent colorbar. */
+@media (min-width: 981px) {
+  .ocean-workbench .field-entry-actions {
+    bottom: 142px;
+    z-index: 27;
+  }
+}
+@media (min-width: 761px) and (max-width: 980px) {
+  .ocean-workbench .field-entry-actions {
+    bottom: 198px;
+    z-index: 27;
+  }
+}
