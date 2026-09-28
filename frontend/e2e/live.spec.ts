@@ -727,3 +727,45 @@ test("live OceanTwin anchors selected Argo evidence inside the 3D viewport", asy
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin T-Z chart cross-highlights the nearest verified 3D depth slice", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const skipJourney = page.getByRole("button", { name: "Skip journey", exact: true });
+  if (await skipJourney.isVisible().catch(() => false)) await skipJourney.click();
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await profileSelect.selectOption({ index: 1 });
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  const chart = page.locator(".analysis-profile-chart-interactive");
+  await expect(chart).toBeVisible();
+
+  const svg = chart.getByRole("img", {
+    name: "Interactive synchronized Argo observation and Copernicus model temperature profile by depth"
+  });
+  await expect(svg).toBeVisible();
+  await expect(svg.locator(".analysis-observation-diamond").first()).toBeVisible();
+
+  const depthIndicator = page.locator(".depth-indicator");
+  await expect(depthIndicator).toBeVisible();
+  const initialDepth = await depthIndicator.textContent();
+
+  const bounds = await svg.boundingBox();
+  if (!bounds) throw new Error("Interactive T-Z SVG missing");
+  await page.mouse.move(bounds.x + bounds.width * 0.55, bounds.y + bounds.height * 0.88);
+
+  await expect(chart).toHaveAttribute("data-hover-depth", /\d/);
+  await expect(chart.locator(".analysis-depth-crosshair")).toBeVisible();
+  await expect(chart.locator(".analysis-chart-hover-readout")).toContainText("nearest verified model depth slice");
+  await expect.poll(async () => await depthIndicator.textContent()).not.toBe(initialDepth);
+
+  expect(pageErrors).toEqual([]);
+});
