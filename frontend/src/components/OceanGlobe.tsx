@@ -54,10 +54,6 @@ interface Inspection {
   speed?: number;
 }
 
-// Resets on a real browser reload, but survives internal SPA route changes.
-// Fresh open/refresh replays Earth → India → ocean; internal navigation does not.
-let openingJourneyPlayedThisDocument = false;
-
 interface Props {
   field: FieldResponse | null;
   volume: VolumeResponse | null;
@@ -285,11 +281,10 @@ export function OceanGlobe({
         });
       }, 900);
     };
-    // Run once per browser document. A real open/refresh reloads this module
-    // and replays Earth → India → ocean; internal SPA navigation does not.
-    const shouldPlayOpeningJourney = !openingJourneyPlayedThisDocument;
-    openingJourneyPlayedThisDocument = true;
-    journeyRef.current(!shouldPlayOpeningJourney);
+    // Always orient the viewer from Earth → India → verified ocean field on mount.
+    // This guarantees a fresh open or refresh never drops a judge directly into
+    // an unexplained regional map. Skip remains available for repeat users.
+    journeyRef.current(false);
     // Keep judge-facing camera telemetry valid immediately, even while the
     // opening journey is still animating. This prevents transient 0-height
     // state from making zoom controls appear unresponsive in live checks.
@@ -1168,14 +1163,14 @@ export function OceanGlobe({
         </span>
         <strong>
           {introPhase === "earth"
-            ? "Start with the whole ocean."
+            ? "One ocean. One connected system."
             : introPhase === "india"
-              ? "India enters the frame."
-              : "Now move from map to measurable water column."}
+              ? "From national context to the Indian Ocean."
+              : "From map pixels to a measurable water column."}
         </strong>
         <small>
           {introPhase === "earth"
-            ? "OceanTwin begins at planetary scale so every model field and in-situ observation stays anchored to real geography."
+            ? "OceanTwin starts at planetary scale so model fields, currents and in-situ observations stay anchored to real geography before we zoom into evidence."
             : introPhase === "india"
               ? "We narrow to the northern Indian Ocean, where INCOIS multi-time analysis adds genuine temporal breadth to the verified model baseline."
               : "67–70°E · 12–14°N · verified GLORYS depth fields, real observation profiles and an explainable path beneath the surface."}
