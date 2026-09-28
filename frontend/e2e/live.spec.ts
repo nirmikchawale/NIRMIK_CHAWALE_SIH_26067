@@ -254,6 +254,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 });
 
 test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
+  // This test deliberately exercises the longest judge path against the
+  // deployed GitHub Pages site. Keep all assertions, but allow live-network
+  // rendering and camera transitions more time than the default 90 seconds.
+  test.setTimeout(180_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
