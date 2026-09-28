@@ -84,6 +84,7 @@ export default function App() {
   const [controlDockOpen, setControlDockOpen] = useState(true);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [tourStep, setTourStep] = useState<number | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
@@ -767,6 +768,60 @@ export default function App() {
     () => importedProfiles.find((item) => item.id === selectedImportedProfileId) ?? null,
     [importedProfiles, selectedImportedProfileId]
   );
+
+  const handlePresentationStep = useCallback((step: number) => {
+    setTourStep(step);
+    setFocusMode(false);
+    setWorkspaceMode("explorer");
+    setEvidenceOpen(false);
+    setMobileSheet("none");
+    setProvenanceOpen(false);
+
+    if (step === 0) {
+      navigate("explore");
+      setControlDockOpen(true);
+      handleSourceModeChange("glorys");
+      handleVariableChange("thetao");
+      setVisualizationMode("globe");
+      setProfilePanelOpen(false);
+    } else if (step === 1) {
+      navigate("explore");
+      setControlDockOpen(true);
+      handleSourceModeChange("glorys");
+      handleVariableChange("thetao");
+      setVisualizationMode("water-column");
+      setProfilePanelOpen(false);
+    } else if (step === 2) {
+      navigate("explore");
+      setControlDockOpen(true);
+      handleSourceModeChange("incois");
+      handleVariableChange("thetao");
+      setVisualizationMode("globe");
+      setProfilePanelOpen(false);
+    } else if (step === 3) {
+      navigate("explore");
+      setControlDockOpen(false);
+      handleSourceModeChange("glorys");
+      handleVariableChange("thetao");
+      setVisualizationMode("globe");
+      const argo = profiles[0];
+      if (argo) {
+        setSelectedImportedProfileId("");
+        setSelectedProfileId(argo.profile_id);
+        setProfilePanelOpen(true);
+      }
+    } else if (step === 4) {
+      const argo = profiles[0];
+      if (argo) setSelectedProfileId(argo.profile_id);
+      setProfilePanelOpen(false);
+      navigate("compare");
+    } else {
+      setProfilePanelOpen(false);
+      navigate("about");
+      setProvenanceOpen(true);
+    }
+  }, [navigate, handleSourceModeChange, handleVariableChange, profiles]);
+
   const currentPage = PAGE_ITEMS.find((item) => item.id === page) ?? PAGE_ITEMS[0];
 
   if (!catalog) {
@@ -799,6 +854,7 @@ export default function App() {
       data-page={page}
       data-explore-source={sourceMode}
       data-workspace-mode={workspaceMode}
+      data-tour-step={guideOpen && tourStep != null ? String(tourStep) : undefined}
       data-control-dock={controlDockOpen ? "open" : "closed"}
       data-evidence-inspector={evidenceOpen ? "open" : "closed"}
     >
@@ -811,7 +867,22 @@ export default function App() {
           </div>
         </div>
         <div className="header-status">
-          <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
+          <button
+            className="present-button"
+            type="button"
+            aria-expanded={guideOpen}
+            onClick={() => {
+              if (guideOpen) {
+                setGuideOpen(false);
+                setTourStep(null);
+              } else {
+                setGuideOpen(true);
+                handlePresentationStep(0);
+              }
+            }}
+          >
+            Present demo
+          </button>
           {page === "explore" && (
             <div className="workspace-mode-switcher" role="group" aria-label="Explorer workspace mode">
               <button
@@ -917,43 +988,15 @@ export default function App() {
         />
 
         <div className="workspace">
-          {guideOpen && <PresentationGuide onClose={() => setGuideOpen(false)} onStep={(step) => {
-            setFocusMode(false);
-            setWorkspaceMode("explorer");
-            setProfilePanelOpen(false);
-            setMobileSheet("none");
-
-            if (step === 0) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
-              setVisualizationMode("globe");
-            } else if (step === 1) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
-              setVisualizationMode("water-column");
-            } else if (step === 2) {
-              navigate("explore");
-              handleSourceModeChange("incois");
-              handleVariableChange("thetao");
-              setVisualizationMode("globe");
-            } else if (step === 3) {
-              navigate("explore");
-              handleSourceModeChange("glorys");
-              setVisualizationMode("globe");
-              const inSituProfile = importedProfiles[0];
-              if (inSituProfile) {
-                setSelectedImportedProfileId(inSituProfile.id);
-                setProfilePanelOpen(true);
-              }
-            } else if (step === 4) {
-              navigate("compare");
-            } else {
-              navigate("about");
-              setProvenanceOpen(true);
-            }
-          }} />}
+          {guideOpen && (
+            <PresentationGuide
+              onClose={() => {
+                setGuideOpen(false);
+                setTourStep(null);
+              }}
+              onStep={handlePresentationStep}
+            />
+          )}
           {page === "explore" ? (
             <>
               {workspaceMode === "presentation" && (
@@ -1097,6 +1140,7 @@ export default function App() {
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
                     resetCameraSignal={cameraResetSignal}
+                    tourStep={guideOpen ? tourStep : null}
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
@@ -1120,6 +1164,7 @@ export default function App() {
                     isoSurfaceEnabled={isoSurfaceEnabled}
                     isoValue={isoValue}
                     theme={theme}
+                    tourStep={guideOpen ? tourStep : null}
                   />
                 </div>
               </div>
