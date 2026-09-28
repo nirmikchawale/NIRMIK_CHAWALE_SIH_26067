@@ -2744,3 +2744,172 @@
   font-size: 9px;
   line-height: 1.45;
 }
+
+
+/* SIH guide P1 — direct, anchored Argo evidence callout inside the 3D canvas. */
+.argo-billboard-callout {
+  --argo-callout-x: 50%;
+  --argo-callout-y: 50%;
+  position: absolute;
+  z-index: 29;
+  top: 0;
+  left: 0;
+  width: min(312px,calc(100% - 28px));
+  transform:
+    translate3d(var(--argo-callout-x),var(--argo-callout-y),0)
+    translate(-50%,calc(-100% - 28px));
+  padding: 12px;
+  border: 1px solid color-mix(in srgb,#f0a93d 54%,var(--wb-line));
+  border-radius: 9px;
+  color: var(--wb-text);
+  background: color-mix(in srgb,var(--wb-panel) 95%,transparent);
+  box-shadow: 0 16px 46px rgba(0,0,0,.36),0 0 0 1px color-mix(in srgb,#f0a93d 11%,transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+.argo-callout-pointer {
+  position: absolute;
+  left: 50%;
+  bottom: -24px;
+  width: 2px;
+  height: 23px;
+  transform: translateX(-50%);
+  background: linear-gradient(#f0a93d,color-mix(in srgb,#f0a93d 12%,transparent));
+  pointer-events: none;
+}
+.argo-callout-pointer::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  bottom: -2px;
+  width: 8px;
+  height: 8px;
+  border: 1px solid #fff5d5;
+  border-radius: 999px;
+  background: #f0a93d;
+  box-shadow: 0 0 10px color-mix(in srgb,#f0a93d 72%,transparent);
+}
+.argo-callout-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--wb-line);
+}
+.argo-callout-heading > div {
+  display: grid;
+  gap: 2px;
+}
+.argo-callout-heading span {
+  color: #f7c66e;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.argo-callout-heading strong {
+  color: var(--wb-text);
+  font-size: 15px;
+}
+.argo-callout-heading small {
+  color: var(--wb-muted);
+  font-size: 9px;
+  text-align: right;
+}
+.argo-callout-position {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 9px;
+  padding: 8px 0;
+  color: var(--wb-muted);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.argo-callout-position span:last-child { flex-basis: 100%; }
+.argo-callout-temperature {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb,var(--wb-accent) 22%,var(--wb-line));
+  border-radius: 6px;
+  background: color-mix(in srgb,var(--wb-raised) 58%,var(--wb-bg));
+}
+.argo-callout-temperature > span {
+  color: var(--wb-muted);
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.argo-callout-temperature > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.argo-callout-temperature strong {
+  color: var(--wb-text);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.argo-callout-temperature small {
+  color: var(--wb-muted);
+  font-size: 9px;
+}
+.argo-callout-temperature.pending { min-height: 54px; }
+.argo-callout-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 8px;
+}
+.argo-callout-metrics > div {
+  display: grid;
+  gap: 2px;
+  padding: 7px;
+  border: 1px solid var(--wb-line);
+  border-radius: 5px;
+  background: var(--wb-bg);
+}
+.argo-callout-metrics span {
+  color: var(--wb-muted);
+  font-size: 8px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.argo-callout-metrics strong {
+  color: var(--wb-text);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.argo-callout-inspect {
+  width: 100%;
+  min-height: 34px;
+  margin-top: 8px;
+  border: 1px solid color-mix(in srgb,var(--wb-accent) 54%,var(--wb-line));
+  border-radius: 6px;
+  color: var(--wb-accent);
+  background: color-mix(in srgb,var(--wb-accent) 8%,var(--wb-bg));
+  font-size: 10px;
+  font-weight: 750;
+  cursor: pointer;
+}
+.argo-callout-inspect:hover,
+.argo-callout-inspect:focus-visible {
+  border-color: var(--wb-accent);
+  background: color-mix(in srgb,var(--wb-accent) 15%,var(--wb-bg));
+  box-shadow: 0 0 0 2px color-mix(in srgb,var(--wb-accent) 15%,transparent);
+}
+.ocean-workbench.focus-mode .argo-billboard-callout,
+.ocean-workbench[data-workspace-mode="presentation"] .argo-billboard-callout {
+  width: min(330px,calc(100% - 28px));
+}
+@media (max-width:760px) {
+  .argo-billboard-callout {
+    width: min(286px,calc(100% - 20px));
+    padding: 10px;
+    transform:
+      translate3d(var(--argo-callout-x),var(--argo-callout-y),0)
+      translate(-50%,calc(-100% - 22px));
+  }
+}
