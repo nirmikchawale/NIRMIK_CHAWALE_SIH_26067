@@ -162,8 +162,20 @@ def test_anomaly_screen_is_robust_explainable_and_never_invents_temporal_evidenc
     assert payload["spatial_screen"]["sample_count"] > 0
     assert payload["residual_screen"]["profiles_screened"] == 2
     assert payload["residual_screen"]["temperature_only"] is True
-    assert payload["residual_screen"]["flagged_count"] > 0
-    assert all(abs(item["robust_z"]) >= 3.5 for item in payload["residual_screen"]["flags"])
+    residual = payload["residual_screen"]
+    assert residual["flagged_count"] > 0
+    assert residual["mad_floor_celsius"] == 0.1
+    assert residual["physical_threshold_celsius"] == 0.5
+    for item in residual["flags"]:
+        assert item["statistical_flag"] or item["physical_flag"]
+        assert item["statistical_flag"] == (abs(item["robust_z"]) >= 3.5)
+        assert item["physical_flag"] == (abs(item["signed_bias_celsius"]) > 0.5)
+    # The floor must stop a near-zero residual spread from inflating robust z.
+    for stats in residual["profile_statistics"]:
+        assert stats["effective_scale_celsius"] >= 0.1
+        assert stats["mad_floor_applied"] == (stats["mad_bias_celsius"] < 0.1)
+    assert residual["statistical_flagged_count"] <= residual["unfloored_statistical_flagged_count"]
+    assert "matched levels" in residual["explanation"]
 
     assert payload["temporal_screen"]["available"] is False
     assert payload["temporal_screen"]["status"] == "locked"

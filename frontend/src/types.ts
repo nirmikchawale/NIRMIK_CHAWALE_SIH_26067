@@ -273,7 +273,12 @@ export interface ResidualAnomalyFlag {
   observation_depth_m: number;
   signed_bias_celsius: number;
   absolute_error_celsius: number;
+  /** Robust z with the residual MAD floored (see residual_screen.mad_floor_celsius). */
   robust_z: number;
+  /** Robust z with the raw MAD, kept for transparency; null when MAD is zero. */
+  robust_z_unfloored: number | null;
+  statistical_flag: boolean;
+  physical_flag: boolean;
 }
 export interface ResidualProfileAnomalyStat {
   profile_id: string;
@@ -283,7 +288,12 @@ export interface ResidualProfileAnomalyStat {
   sample_count: number;
   median_bias_celsius: number;
   mad_bias_celsius: number;
+  effective_scale_celsius: number;
+  mad_floor_applied: boolean;
   flagged_count: number;
+  statistical_flagged_count: number;
+  physical_flagged_count: number;
+  unfloored_statistical_flagged_count: number;
   screen_available: boolean;
 }
 export interface AnomalyResponse {
@@ -316,6 +326,14 @@ export interface AnomalyResponse {
     profiles_screened: number;
     sample_count: number;
     flagged_count: number;
+    statistical_flagged_count: number;
+    physical_flagged_count: number;
+    unfloored_statistical_flagged_count: number;
+    mad_floor_celsius: number;
+    physical_threshold_celsius: number;
+    flag_rule: string;
+    explanation: string;
+    floor_notes: string[];
     profile_statistics: ResidualProfileAnomalyStat[];
     flags: ResidualAnomalyFlag[];
   };
@@ -519,3 +537,6 @@ export interface VerifiedObservationPack {
     runtime_network_required: false;
   };
 }
+
+/** How the colour bar range is chosen: fitted to what is on screen, the whole water column, or typed by the user. */
+export type ColorRangeMode = "fit" | "column" | "custom";

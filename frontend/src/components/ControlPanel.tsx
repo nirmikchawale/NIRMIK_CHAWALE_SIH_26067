@@ -450,7 +450,7 @@ export function ControlPanel({
                 onClick={() => selectDepthZone(0, EPipelagic_END_M, 100)}
                 aria-label="Epipelagic zone 0 to 200 metres"
               >
-                <strong>Epipelagic</strong>
+                <strong>Epi­pelagic</strong>
                 <span>0–200 m</span>
               </button>
               <button
@@ -460,7 +460,7 @@ export function ControlPanel({
                 onClick={() => selectDepthZone(EPipelagic_END_M + Number.EPSILON, MESOPELAGIC_END_M, 600)}
                 aria-label="Mesopelagic zone 200 to 1000 metres"
               >
-                <strong>Mesopelagic</strong>
+                <strong>Meso­pelagic</strong>
                 <span>200–1,000 m</span>
               </button>
               <button
@@ -470,7 +470,7 @@ export function ControlPanel({
                 onClick={() => selectDepthZone(MESOPELAGIC_END_M + Number.EPSILON, Number.POSITIVE_INFINITY, 2000)}
                 aria-label="Bathypelagic zone deeper than 1000 metres"
               >
-                <strong>Bathypelagic</strong>
+                <strong>Bathy­pelagic</strong>
                 <span>1,000–4,000+ m</span>
               </button>
             </div>

@@ -14,6 +14,7 @@ import type {
   VerifiedObservationPack,
   VolumeResponse
 } from "./types";
+import { DataLoadError } from "./friendlyError";
 
 const API_BASE = (
   import.meta.env.VITE_API_BASE_URL ??
@@ -36,8 +37,7 @@ async function getJson<T>(path: string, staticPath: string): Promise<T> {
     headers: { Accept: "application/json" }
   });
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`${response.status} ${response.statusText}: ${body}`);
+    throw new DataLoadError(`${response.status} ${response.statusText} for ${target}`, response.status);
   }
   return response.json() as Promise<T>;
 }
@@ -46,7 +46,7 @@ export async function fetchIncoisOperational(): Promise<IncoisOperationalSnapsho
   const target = `${import.meta.env.BASE_URL}operational/incois-argo-10d-vam.json`;
   const response = await fetch(target, { headers: { Accept: "application/json" } });
   if (!response.ok) {
-    throw new Error(`INCOIS operational snapshot unavailable: ${response.status} ${response.statusText}`);
+    throw new DataLoadError(`INCOIS operational snapshot: ${response.status} ${response.statusText}`, response.status);
   }
   return response.json() as Promise<IncoisOperationalSnapshot>;
 }
@@ -56,7 +56,7 @@ export async function fetchIncoisChlorophyll(): Promise<IncoisChlorophyllSnapsho
   const target = `${import.meta.env.BASE_URL}operational/incois-chlorophyll.json`;
   const response = await fetch(target, { headers: { Accept: "application/json" } });
   if (!response.ok) {
-    throw new Error(`INCOIS chlorophyll snapshot unavailable: ${response.status} ${response.statusText}`);
+    throw new DataLoadError(`INCOIS chlorophyll snapshot: ${response.status} ${response.statusText}`, response.status);
   }
   return response.json() as Promise<IncoisChlorophyllSnapshot>;
 }
@@ -66,7 +66,7 @@ export async function fetchVerifiedObservationPack(): Promise<VerifiedObservatio
   const target = `${import.meta.env.BASE_URL}observations/verified-profiles.json`;
   const response = await fetch(target, { headers: { Accept: "application/json" } });
   if (!response.ok) {
-    throw new Error(`Verified observation pack unavailable: ${response.status} ${response.statusText}`);
+    throw new DataLoadError(`Observation pack: ${response.status} ${response.statusText}`, response.status);
   }
   return response.json() as Promise<VerifiedObservationPack>;
 }

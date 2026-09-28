@@ -22,6 +22,7 @@ interface Props {
   colorScale: ColorScaleMode;
   colorMinimum: number;
   colorMaximum: number;
+  colorRangeLabel?: string;
   isoSurfaceEnabled: boolean;
   isoValue: number;
   theme: "dark" | "light";
@@ -183,6 +184,7 @@ export function WaterColumn3D({
   colorScale,
   colorMinimum,
   colorMaximum,
+  colorRangeLabel,
   isoSurfaceEnabled,
   isoValue,
   theme
@@ -726,10 +728,11 @@ export function WaterColumn3D({
         <span>{dataLabel}</span>
         <div className="gradient-bar" data-palette={colorPalette} />
         <div className="legend-values">
-          <span>{colorMinimum.toFixed(3)}</span>
+          <span>{colorMinimum.toFixed(2)}</span>
           <span>{dataUnits}</span>
-          <span>{colorMaximum.toFixed(3)}</span>
+          <span>{colorMaximum.toFixed(2)}</span>
         </div>
+        {colorRangeLabel && <small className="legend-range-note">{colorRangeLabel}</small>}
       </div>
 
       <CameraOrientationHud

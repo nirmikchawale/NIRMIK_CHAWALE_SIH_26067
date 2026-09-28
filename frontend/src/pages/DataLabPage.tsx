@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import { api } from "../api";
+import { friendlyLoadError } from "../friendlyError";
 import { parseBrowserNetcdf, type NetcdfBrowserInspection } from "../netcdfImport";
 import { writeImportedObservationRecords } from "../observationSession";
 import type {
@@ -556,7 +557,7 @@ export function DataLabPage() {
         if (!cancelled) setConnectorRegistry(payload);
       })
       .catch((reason: Error) => {
-        if (!cancelled) setConnectorError(reason.message);
+        if (!cancelled) setConnectorError(friendlyLoadError("the list of data connectors", reason));
       });
     return () => {
       cancelled = true;
@@ -685,127 +686,6 @@ export function DataLabPage() {
         </aside>
       </section>
 
-      <section className="data-source-launchpad" aria-labelledby="official-data-launchpad-title">
-        <div className="data-source-heading">
-          <div>
-            <div className="section-kicker">START WITH TRUSTED SOURCES</div>
-            <h3 id="official-data-launchpad-title">Official data launchpad</h3>
-            <p>
-              Open a trusted ocean-data source, subset the measurements you need, then map them
-              into OceanTwin&apos;s guarded CSV/JSON contract for local validation.
-            </p>
-          </div>
-          <button type="button" onClick={downloadSchema}>Download import schema</button>
-        </div>
-
-        <div className="data-source-cards">
-          {OFFICIAL_DATA_SOURCES.map((source) => (
-            <article className="data-source-card" key={source.provider}>
-              <div className="data-source-card-top">
-                <div className={`data-source-icon ${source.kind}`}>
-                  <OfficialSourceIcon kind={source.kind} />
-                </div>
-                <div>
-                  <span>{source.provider}</span>
-                  <h4>{source.title}</h4>
-                </div>
-              </div>
-              <p>{source.role}</p>
-              <div className="data-source-variable-list">
-                {source.variables.map((variable) => <code key={variable}>{variable}</code>)}
-              </div>
-              <div className="data-source-native">{source.nativeFormat}</div>
-              <div className="data-source-actions">
-                <a href={source.url} target="_blank" rel="noreferrer">
-                  Open official source <span aria-hidden="true">↗</span>
-                </a>
-                <span>Map → lon · lat · depth · time · variable · value · units · source</span>
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="data-source-workflow" role="note">
-          <strong>Safe import path</strong>
-          <span>1 · Open official source</span>
-          <span>2 · Subset/export genuine measurements</span>
-          <span>3 · Reshape to OceanTwin schema</span>
-          <span>4 · Validate locally before analysis</span>
-        </div>
-      </section>
-
-      <section className="interoperability-panel" aria-labelledby="interoperability-title">
-        <div className="data-source-heading">
-          <div>
-            <div className="section-kicker">OPEN-STANDARDS INTEROPERABILITY</div>
-            <h3 id="interoperability-title">Registered source & protocol adapters</h3>
-            <p>
-              OceanTwin uses a discoverable adapter registry. Remote sources remain optional and fail closed;
-              the bundled verified evidence is never silently replaced when a network service is unavailable.
-            </p>
-          </div>
-          <span className="registry-status">
-            {connectorRegistry
-              ? connectorRegistry.connectors.length + " connectors"
-              : connectorError
-                ? "Registry unavailable"
-                : "Loading registry…"}
-          </span>
-        </div>
-        {connectorError && (
-          <div className="data-lab-processing-error">
-            <strong>Connector registry unavailable</strong>
-            <span>{connectorError}</span>
-          </div>
-        )}
-        {connectorRegistry && (
-          <>
-            <div className="connector-grid">
-              {connectorRegistry.connectors.map((connector) => (
-                <article className="connector-card" key={connector.id} data-runtime={connector.runtime}>
-                  <div className="connector-card-heading">
-                    <div>
-                      <span>{connector.provider}</span>
-                      <strong>{connector.title}</strong>
-                    </div>
-                    <code>{connector.adapter}</code>
-                  </div>
-                  <p>{connector.role}</p>
-                  <div className="connector-badges">
-                    {connector.protocols.map((protocol) => <span key={protocol}>{protocol}</span>)}
-                  </div>
-                  <div className="connector-badges standards">
-                    {connector.standards.map((standard) => <span key={standard}>{standard}</span>)}
-                  </div>
-                  <small>{connector.variables.join(" · ")}</small>
-                  <div className="connector-links">
-                    <a href={connector.source_url} target="_blank" rel="noreferrer">Provider metadata ↗</a>
-                    {connector.opendap_url && <a href={connector.opendap_url} target="_blank" rel="noreferrer">OPeNDAP ↗</a>}
-                    {connector.wms_url && <a href={connector.wms_url} target="_blank" rel="noreferrer">WMS ↗</a>}
-                    {connector.wcs_url && <a href={connector.wcs_url} target="_blank" rel="noreferrer">WCS ↗</a>}
-                  </div>
-                  {(connector.time_count || connector.depth_count) && (
-                    <div className="connector-dimensions">
-                      {connector.time_count && <span>{connector.time_count} times</span>}
-                      {connector.depth_count && <span>{connector.depth_count} depths</span>}
-                    </div>
-                  )}
-                </article>
-              ))}
-            </div>
-            <div className="plugin-contract-grid">
-              {Object.entries(connectorRegistry.plugin_contracts).map(([name, contract]) => (
-                <article key={name}>
-                  <code>{name}</code>
-                  <strong>{contract.output}</strong>
-                  <span>Input: {contract.input.join(", ")}</span>
-                </article>
-              ))}
-            </div>
-            <p className="interoperability-principle">{connectorRegistry.principle}</p>
-          </>
-        )}
-      </section>
       <section className="data-lab-grid">
         <article className="data-lab-upload-card">
           <div className="data-lab-card-heading">
@@ -900,7 +780,7 @@ export function DataLabPage() {
           <div className="data-lab-empty-icon">DATA</div>
           <div>
             <strong>No user dataset loaded</strong>
-            <span>Use the documented schema above. Validation begins locally after file selection.</span>
+            <span>Choose a file above. It is checked in this browser and never uploaded.</span>
           </div>
         </section>
       )}
@@ -1067,6 +947,131 @@ export function DataLabPage() {
           </section>
         </>
       )}
+
+      <div className="data-lab-sources-divider" role="presentation">
+        <span>Need data to try? Official sources and connectors</span>
+      </div>
+      <section className="data-source-launchpad" aria-labelledby="official-data-launchpad-title">
+        <div className="data-source-heading">
+          <div>
+            <div className="section-kicker">START WITH TRUSTED SOURCES</div>
+            <h3 id="official-data-launchpad-title">Official data launchpad</h3>
+            <p>
+              Open a trusted ocean-data source, subset the measurements you need, then map them
+              into OceanTwin&apos;s guarded CSV/JSON contract for local validation.
+            </p>
+          </div>
+          <button type="button" onClick={downloadSchema}>Download import schema</button>
+        </div>
+
+        <div className="data-source-cards">
+          {OFFICIAL_DATA_SOURCES.map((source) => (
+            <article className="data-source-card" key={source.provider}>
+              <div className="data-source-card-top">
+                <div className={`data-source-icon ${source.kind}`}>
+                  <OfficialSourceIcon kind={source.kind} />
+                </div>
+                <div>
+                  <span>{source.provider}</span>
+                  <h4>{source.title}</h4>
+                </div>
+              </div>
+              <p>{source.role}</p>
+              <div className="data-source-variable-list">
+                {source.variables.map((variable) => <code key={variable}>{variable}</code>)}
+              </div>
+              <div className="data-source-native">{source.nativeFormat}</div>
+              <div className="data-source-actions">
+                <a href={source.url} target="_blank" rel="noreferrer">
+                  Open official source <span aria-hidden="true">↗</span>
+                </a>
+                <span>Map → lon · lat · depth · time · variable · value · units · source</span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="data-source-workflow" role="note">
+          <strong>Safe import path</strong>
+          <span>1 · Open official source</span>
+          <span>2 · Subset/export genuine measurements</span>
+          <span>3 · Reshape to OceanTwin schema</span>
+          <span>4 · Validate locally before analysis</span>
+        </div>
+      </section>
+
+      <section className="interoperability-panel" aria-labelledby="interoperability-title">
+        <div className="data-source-heading">
+          <div>
+            <div className="section-kicker">OPEN-STANDARDS INTEROPERABILITY</div>
+            <h3 id="interoperability-title">Registered source & protocol adapters</h3>
+            <p>
+              OceanTwin uses a discoverable adapter registry. Remote sources remain optional and fail closed;
+              the bundled verified evidence is never silently replaced when a network service is unavailable.
+            </p>
+          </div>
+          <span className="registry-status">
+            {connectorRegistry
+              ? connectorRegistry.connectors.length + " connectors"
+              : connectorError
+                ? "Registry unavailable"
+                : "Loading registry…"}
+          </span>
+        </div>
+        {connectorError && (
+          <div className="data-lab-processing-error">
+            <strong>Connector registry unavailable</strong>
+            <span>{connectorError}</span>
+          </div>
+        )}
+        {connectorRegistry && (
+          <>
+            <div className="connector-grid">
+              {connectorRegistry.connectors.map((connector) => (
+                <article className="connector-card" key={connector.id} data-runtime={connector.runtime}>
+                  <div className="connector-card-heading">
+                    <div>
+                      <span>{connector.provider}</span>
+                      <strong>{connector.title}</strong>
+                    </div>
+                    <code>{connector.adapter}</code>
+                  </div>
+                  <p>{connector.role}</p>
+                  <div className="connector-badges">
+                    {connector.protocols.map((protocol) => <span key={protocol}>{protocol}</span>)}
+                  </div>
+                  <div className="connector-badges standards">
+                    {connector.standards.map((standard) => <span key={standard}>{standard}</span>)}
+                  </div>
+                  <small>{connector.variables.join(" · ")}</small>
+                  <div className="connector-links">
+                    <a href={connector.source_url} target="_blank" rel="noreferrer">Provider metadata ↗</a>
+                    {connector.opendap_url && <a href={connector.opendap_url} target="_blank" rel="noreferrer">OPeNDAP ↗</a>}
+                    {connector.wms_url && <a href={connector.wms_url} target="_blank" rel="noreferrer">WMS ↗</a>}
+                    {connector.wcs_url && <a href={connector.wcs_url} target="_blank" rel="noreferrer">WCS ↗</a>}
+                  </div>
+                  {(connector.time_count || connector.depth_count) && (
+                    <div className="connector-dimensions">
+                      {connector.time_count && <span>{connector.time_count} times</span>}
+                      {connector.depth_count && <span>{connector.depth_count} depths</span>}
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+            <div className="plugin-contract-grid">
+              {Object.entries(connectorRegistry.plugin_contracts).map(([name, contract]) => (
+                <article key={name}>
+                  <code>{name}</code>
+                  <strong>{contract.output}</strong>
+                  <span>Input: {contract.input.join(", ")}</span>
+                </article>
+              ))}
+            </div>
+            <p className="interoperability-principle">{connectorRegistry.principle}</p>
+          </>
+        )}
+      </section>
     </main>
   );
 }

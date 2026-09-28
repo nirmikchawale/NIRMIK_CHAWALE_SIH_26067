@@ -69,12 +69,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).toContainText("genuine model depths");
   await expect(telemetryPage).toContainText("1");
   await expect(telemetryPage).toContainText("genuine timestamps");
-  await expect(telemetryPage).toContainText("TIME SERIES LOCKED");
+  await expect(telemetryPage).not.toContainText("TIME SERIES LOCKED");
+  await expect(telemetryPage.locator(".telemetry-time-card")).toHaveCount(0);
   await expect(telemetryPage.locator(".telemetry-current-card")).toContainText("Mean speed");
-  const depthLadder = telemetryPage.locator(".telemetry-depth-ladder");
-  await expect(depthLadder).toBeVisible();
-  await expect(depthLadder).toContainText("Jump to any verified model depth");
-  await expect(depthLadder.locator("button")).toHaveCount(31);
+  await expect(telemetryPage.locator(".telemetry-depth-ladder")).toHaveCount(0);
   const depthNeighborhood = telemetryPage.locator(".telemetry-neighborhood-card");
   await expect(depthNeighborhood).toBeVisible();
   await expect(depthNeighborhood).toContainText("Local mean gradient");
@@ -88,7 +86,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", telemetryInitialDepth ?? "");
 
   const firstDepthFromSlider = await telemetryPage.getAttribute("data-selected-depth");
-  await depthLadder.getByRole("button", { name: /Select telemetry depth/ }).nth(10).click();
+  await telemetryDepth.press("End");
   await expect(telemetryPage).not.toHaveAttribute("data-selected-depth", firstDepthFromSlider ?? "");
   await expect(depthNeighborhood.locator("tbody tr.selected")).toHaveCount(1);
 
@@ -602,15 +600,18 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
   await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
   await expect(appShell).toHaveAttribute("data-control-dock", "open");
 
-  await page.getByRole("button", { name: "Presentation workspace" }).click();
-  await expect(appShell).toHaveAttribute("data-workspace-mode", "presentation");
-  await expect(page.locator(".app-header")).toBeHidden();
-  await expect(page.locator(".globe-shell").first()).toHaveAttribute("data-presentation-active", "true");
-  await expect(page.getByRole("button", { name: "Exit presentation workspace" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Presentation workspace" })).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Exit presentation workspace" }).click();
-  await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
-  await expect(page.locator(".app-header")).toBeVisible();
+  await page.getByRole("button", { name: "Guided demo", exact: true }).click();
+  const guide = page.getByRole("region", { name: "Guided demo" });
+  await expect(guide).toBeVisible();
+  await expect(guide).toContainText("Step 1 of 6");
+  await expect(page.locator(".globe-shell").first()).toHaveAttribute("data-presentation-active", "true");
+  await guide.getByRole("button", { name: "Next" }).click();
+  await expect(guide).toContainText("Step 2 of 6");
+  await guide.getByRole("button", { name: "Exit guided demo" }).click();
+  await expect(guide).toBeHidden();
+  await expect(page.getByRole("button", { name: "Guided demo", exact: true })).toBeVisible();
 
   expect(pageErrors).toEqual([]);
 });

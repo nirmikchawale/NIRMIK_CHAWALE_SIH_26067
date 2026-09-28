@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { friendlyLoadError } from "../friendlyError";
 import { api } from "../api";
 import { IncoisOperationalPanel } from "../components/IncoisOperationalPanel";
 import type {
@@ -128,57 +129,6 @@ function DepthTelemetryChart({
         Each depth statistic uses all finite model grid cells at that exact depth for the selected
         genuine timestamp. Depth is positive downward.
       </p>
-    </section>
-  );
-}
-
-function DepthLadder({
-  telemetry,
-  selectedDepthIndex,
-  onSelectDepth
-}: {
-  telemetry: TelemetryResponse;
-  selectedDepthIndex: number;
-  onSelectDepth: (depthIndex: number) => void;
-}) {
-  const means = telemetry.depth_stats.map((item) => item.mean);
-  const minMean = Math.min(...means);
-  const maxMean = Math.max(...means);
-  const span = Math.max(maxMean - minMean, 1e-12);
-
-  return (
-    <section className="telemetry-card telemetry-depth-ladder">
-      <div className="telemetry-card-heading">
-        <div>
-          <span>INTERACTIVE WATER-COLUMN INDEX</span>
-          <h3>Jump to any verified model depth</h3>
-        </div>
-        <strong>{telemetry.depth_stats.length} exact levels</strong>
-      </div>
-      <p>
-        Each button is one genuine GLORYS12V1 model depth. Bar length shows the full-grid spatial
-        mean at that level; selecting a level updates all telemetry cards together.
-      </p>
-      <div className="telemetry-depth-ladder-grid" role="group" aria-label="Verified telemetry depths">
-        {telemetry.depth_stats.map((item) => {
-          const width = 14 + 86 * ((item.mean - minMean) / span);
-          const selected = item.depth_index === selectedDepthIndex;
-          return (
-            <button
-              key={item.depth_index}
-              type="button"
-              className={selected ? "active" : ""}
-              aria-pressed={selected}
-              aria-label={`Select telemetry depth ${item.depth_m.toFixed(2)} m`}
-              onClick={() => onSelectDepth(item.depth_index)}
-            >
-              <span>{item.depth_m.toFixed(item.depth_m < 100 ? 1 : 0)} m</span>
-              <i><b style={{ width: `${width}%` }} /></i>
-              <strong>{item.mean.toFixed(3)}</strong>
-            </button>
-          );
-        })}
-      </div>
     </section>
   );
 }
@@ -490,7 +440,7 @@ export function TelemetryPage({ catalog, provenance }: Props) {
       .catch((reason: Error) => {
         if (!cancelled) {
           setTelemetry(null);
-          setError(reason.message);
+          setError(friendlyLoadError("depth statistics for this level", reason));
         }
       })
       .finally(() => {
@@ -591,18 +541,25 @@ export function TelemetryPage({ catalog, provenance }: Props) {
             onChange={(event) => setDepthIndex(Number(event.target.value))}
           />
         </label>
-        <label>
-          <span>Genuine timestamp <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "")}</strong></span>
-          <input
-            aria-label="Telemetry time"
-            type="range"
-            min={0}
-            max={Math.max(0, catalog.coordinates.time.length - 1)}
-            value={timeIndex}
-            disabled={catalog.coordinates.time.length < 2}
-            onChange={(event) => setTimeIndex(Number(event.target.value))}
-          />
-        </label>
+        {catalog.coordinates.time.length > 1 ? (
+          <label>
+            <span>Model time <strong>{catalog.coordinates.time[timeIndex]?.replace("T00:00:00Z", "")}</strong></span>
+            <input
+              aria-label="Telemetry time"
+              type="range"
+              min={0}
+              max={catalog.coordinates.time.length - 1}
+              value={timeIndex}
+              onChange={(event) => setTimeIndex(Number(event.target.value))}
+            />
+          </label>
+        ) : (
+          <div className="telemetry-single-time">
+            <span>Model time</span>
+            <strong>{catalog.coordinates.time[0]?.replace("T00:00:00Z", "")}</strong>
+            <small>single daily snapshot</small>
+          </div>
+        )}
         <button
           type="button"
           className="telemetry-download"
@@ -617,7 +574,7 @@ export function TelemetryPage({ catalog, provenance }: Props) {
         <section className="telemetry-state-card">Loading full-grid telemetry…</section>
       ) : error ? (
         <section className="telemetry-state-card error">
-          <strong>Telemetry unavailable</strong>
+          <strong>Depth statistics unavailable</strong>
           <span>{error}</span>
         </section>
       ) : telemetry && selectedStat ? (
@@ -650,12 +607,6 @@ export function TelemetryPage({ catalog, provenance }: Props) {
             </article>
           </section>
 
-          <DepthLadder
-            telemetry={telemetry}
-            selectedDepthIndex={depthIndex}
-            onSelectDepth={setDepthIndex}
-          />
-
           <section className="telemetry-main-grid">
             <DepthTelemetryChart telemetry={telemetry} selectedDepthM={telemetry.selected_depth_m} />
             <div className="telemetry-side-stack">
@@ -666,7 +617,7 @@ export function TelemetryPage({ catalog, provenance }: Props) {
 
           <DepthNeighborhood telemetry={telemetry} selectedDepthIndex={depthIndex} />
 
-          <TimeTelemetryCard telemetry={telemetry} />
+          {telemetry.time_series_available && <TimeTelemetryCard telemetry={telemetry} />}
 
           <section className="telemetry-method-card">
             <div>

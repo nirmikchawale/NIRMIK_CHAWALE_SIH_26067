@@ -354,18 +354,31 @@ def scalar_telemetry(
 
 ROBUST_Z_THRESHOLD = 3.5
 ROBUST_Z_NORMALIZER = 0.67448975
+# Residual (Model − Observation) screening guards. A profile whose residuals are
+# almost identical has a tiny MAD, which inflates robust z for differences that
+# are physically negligible. The floor is a conservative stand-in for the
+# expected model-vs-float temperature uncertainty; the physical threshold is an
+# independent, unit-bearing criterion reported alongside the statistical one.
+RESIDUAL_MAD_FLOOR_CELSIUS = 0.1
+PHYSICAL_BIAS_THRESHOLD_CELSIUS = 0.5
 
 
-def _robust_scores(values: np.ndarray) -> tuple[np.ndarray, float, float]:
+def _robust_scores(values: np.ndarray, mad_floor: float = 0.0) -> tuple[np.ndarray, float, float]:
+    """Robust z-scores. With ``mad_floor`` > 0 the divisor is max(MAD, floor); the raw MAD is still returned."""
     array = np.asarray(values, dtype=float)
     finite = array[np.isfinite(array)]
     if finite.size == 0:
         raise HTTPException(status_code=404, detail="No finite values are available for anomaly screening.")
     median = float(np.median(finite))
     mad = float(np.median(np.abs(finite - median)))
-    if mad <= 0:
+    scale = max(mad, mad_floor)
+    if scale <= 0:
         return np.full(array.shape, np.nan, dtype=float), median, mad
-    return ROBUST_Z_NORMALIZER * (array - median) / mad, median, mad
+    return ROBUST_Z_NORMALIZER * (array - median) / scale, median, mad
+
+
+def _percent(part: int, whole: int) -> str:
+    return f"{(100.0 * part / whole):.0f}%" if whole else "0%"
 
 
 @app.get("/api/anomalies")
@@ -407,29 +420,57 @@ def anomaly_screen(
     residual_flags = []
     residual_profiles = []
     residual_sample_count = 0
+    statistical_total = 0
+    physical_total = 0
+    unfloored_statistical_total = 0
+    floor_notes = []
     for profile in profile_items:
         table = profile["_table"]
         biases = np.asarray(table["signed_bias_celsius"], dtype=float)
-        scores, median, mad = _robust_scores(biases)
+        scores, median, mad = _robust_scores(biases, mad_floor=RESIDUAL_MAD_FLOOR_CELSIUS)
+        raw_scores, _, _ = _robust_scores(biases)
         finite_count = int(np.isfinite(biases).sum())
         residual_sample_count += finite_count
+        floor_applied = mad < RESIDUAL_MAD_FLOOR_CELSIUS
+        profile_statistical = 0
+        profile_physical = 0
         profile_flag_count = 0
-        if mad > 0:
-            for row_index, (_, row) in enumerate(table.iterrows()):
-                bias = float(row["signed_bias_celsius"])
-                score = float(scores[row_index])
-                if math.isfinite(bias) and math.isfinite(score) and abs(score) >= ROBUST_Z_THRESHOLD:
-                    profile_flag_count += 1
-                    residual_flags.append({
-                        "profile_id": str(profile["profile_id"]),
-                        "platform_id": str(profile["platform_id"]),
-                        "cycle": int(profile["cycle"]),
-                        "direction": str(profile["direction"]),
-                        "observation_depth_m": float(row["observation_depth_m"]),
-                        "signed_bias_celsius": bias,
-                        "absolute_error_celsius": float(row["absolute_error_celsius"]),
-                        "robust_z": score,
-                    })
+        profile_unfloored = int(np.sum(np.isfinite(raw_scores) & (np.abs(raw_scores) >= ROBUST_Z_THRESHOLD)))
+        for row_index, (_, row) in enumerate(table.iterrows()):
+            bias = float(row["signed_bias_celsius"])
+            score = float(scores[row_index])
+            if not math.isfinite(bias):
+                continue
+            statistical = math.isfinite(score) and abs(score) >= ROBUST_Z_THRESHOLD
+            physical = abs(bias) > PHYSICAL_BIAS_THRESHOLD_CELSIUS
+            profile_statistical += int(statistical)
+            profile_physical += int(physical)
+            if statistical or physical:
+                profile_flag_count += 1
+                raw_score = float(raw_scores[row_index])
+                residual_flags.append({
+                    "profile_id": str(profile["profile_id"]),
+                    "platform_id": str(profile["platform_id"]),
+                    "cycle": int(profile["cycle"]),
+                    "direction": str(profile["direction"]),
+                    "observation_depth_m": float(row["observation_depth_m"]),
+                    "signed_bias_celsius": bias,
+                    "absolute_error_celsius": float(row["absolute_error_celsius"]),
+                    "robust_z": score,
+                    "robust_z_unfloored": raw_score if math.isfinite(raw_score) else None,
+                    "statistical_flag": statistical,
+                    "physical_flag": physical,
+                })
+        statistical_total += profile_statistical
+        physical_total += profile_physical
+        unfloored_statistical_total += profile_unfloored
+        if floor_applied:
+            floor_notes.append(
+                f"Argo {profile['platform_id']} cycle {int(profile['cycle'])}: residual spread (MAD) is "
+                f"{mad:.3f} °C, below the {RESIDUAL_MAD_FLOOR_CELSIUS:.1f} °C floor, so the floor was used. "
+                f"Without it, {profile_unfloored} of {finite_count} levels would pass |robust z| ≥ {ROBUST_Z_THRESHOLD} "
+                "even though the differences are physically small."
+            )
         residual_profiles.append({
             "profile_id": str(profile["profile_id"]),
             "platform_id": str(profile["platform_id"]),
@@ -438,10 +479,25 @@ def anomaly_screen(
             "sample_count": finite_count,
             "median_bias_celsius": median,
             "mad_bias_celsius": mad,
+            "effective_scale_celsius": max(mad, RESIDUAL_MAD_FLOOR_CELSIUS),
+            "mad_floor_applied": floor_applied,
             "flagged_count": profile_flag_count,
-            "screen_available": mad > 0,
+            "statistical_flagged_count": profile_statistical,
+            "physical_flagged_count": profile_physical,
+            "unfloored_statistical_flagged_count": profile_unfloored,
+            "screen_available": finite_count > 0,
         })
-    residual_flags.sort(key=lambda item: abs(item["robust_z"]), reverse=True)
+    residual_flags.sort(
+        key=lambda item: (item["statistical_flag"] and item["physical_flag"], abs(item["robust_z"])),
+        reverse=True,
+    )
+    residual_explanation = (
+        f"{statistical_total} of {residual_sample_count} matched levels ({_percent(statistical_total, residual_sample_count)}) "
+        f"pass |robust z| ≥ {ROBUST_Z_THRESHOLD} with a {RESIDUAL_MAD_FLOOR_CELSIUS:.1f} °C spread floor; "
+        f"{physical_total} of {residual_sample_count} ({_percent(physical_total, residual_sample_count)}) differ from the "
+        f"model by more than {PHYSICAL_BIAS_THRESHOLD_CELSIUS:.1f} °C. Without the floor, "
+        f"{unfloored_statistical_total} levels ({_percent(unfloored_statistical_total, residual_sample_count)}) would be flagged."
+    )
     genuine_time_count = len(dataset["time"])
 
     return {
@@ -457,7 +513,10 @@ def anomaly_screen(
             "formula": "0.67448975 × (x − median) / MAD",
             "absolute_threshold": ROBUST_Z_THRESHOLD,
             "two_sided": True,
-            "zero_mad_policy": "fail closed: no robust score or flag is produced when MAD is zero",
+            "zero_mad_policy": (
+                "spatial screen: fail closed, no robust score or flag is produced when MAD is zero; "
+                f"residual screen: MAD is floored at {RESIDUAL_MAD_FLOOR_CELSIUS:.1f} °C"
+            ),
         },
         "spatial_screen": {
             "scope": "finite model grid cells at the exact selected depth and genuine timestamp",
@@ -474,6 +533,18 @@ def anomaly_screen(
             "profiles_screened": len(residual_profiles),
             "sample_count": residual_sample_count,
             "flagged_count": len(residual_flags),
+            "statistical_flagged_count": statistical_total,
+            "physical_flagged_count": physical_total,
+            "unfloored_statistical_flagged_count": unfloored_statistical_total,
+            "mad_floor_celsius": RESIDUAL_MAD_FLOOR_CELSIUS,
+            "physical_threshold_celsius": PHYSICAL_BIAS_THRESHOLD_CELSIUS,
+            "flag_rule": (
+                f"A level is listed when |robust z| ≥ {ROBUST_Z_THRESHOLD} (MAD floored at "
+                f"{RESIDUAL_MAD_FLOOR_CELSIUS:.1f} °C) or |Model − Observation| > {PHYSICAL_BIAS_THRESHOLD_CELSIUS:.1f} °C; "
+                "each criterion is reported separately."
+            ),
+            "explanation": residual_explanation,
+            "floor_notes": floor_notes,
             "profile_statistics": residual_profiles,
             "flags": residual_flags[:80],
         },
