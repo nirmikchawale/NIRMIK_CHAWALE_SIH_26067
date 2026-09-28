@@ -1138,16 +1138,10 @@ export function OceanGlobe({
               journeyRef.current(false);
               return;
             }
-            // Skip must be immediate and independent of an in-flight Cesium
-            // completion callback. Cancel the current generation, frame the
-            // verified study window synchronously, then expose the Explorer.
-            stopJourneyRef.current();
-            const viewer = viewerRef.current;
-            if (viewer && !viewer.isDestroyed()) {
-              viewer.camera.setView({ destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65) });
-              setCameraHeight(viewer.camera.positionCartographic.height);
-              viewer.scene.requestRender();
-            }
+            // Use the canonical skip path so generation cancellation,
+            // synchronous basin framing and the final "region" state happen
+            // atomically even while a Cesium flight is active.
+            journeyRef.current(true);
           }}
         >
           {introPhase === "region" ? "Replay journey" : "Skip journey"}
