@@ -286,6 +286,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(modeDock.getByRole("button", { name: /Geographic View/ })).toBeVisible();
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
+  await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeGreaterThan(0);
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
   await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeLessThan(initialGlobeHeight);
