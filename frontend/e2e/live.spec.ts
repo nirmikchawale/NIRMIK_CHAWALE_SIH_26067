@@ -769,3 +769,63 @@ test("live OceanTwin T-Z chart cross-highlights the nearest verified 3D depth sl
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin keyboard shortcuts and WCAG contrast controls work", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const skipJourney = page.getByRole("button", { name: "Skip journey", exact: true });
+  if (await skipJourney.isVisible().catch(() => false)) await skipJourney.click();
+
+  const body = page.locator("body");
+  await body.press("2");
+  await expect(page.getByRole("button", { name: /Salinity/ })).toHaveAttribute("aria-pressed", "true");
+  await body.press("3");
+  await expect(page.getByRole("button", { name: /Currents/ })).toHaveAttribute("aria-pressed", "true");
+  await body.press("1");
+  await expect(page.getByRole("button", { name: /Temperature/ })).toHaveAttribute("aria-pressed", "true");
+
+  const depthIndicator = page.locator(".depth-indicator");
+  await expect(depthIndicator).toBeVisible();
+  const initialDepth = await depthIndicator.textContent();
+  await body.press("ArrowDown");
+  await expect.poll(async () => await depthIndicator.textContent()).not.toBe(initialDepth);
+
+  const globe = page.locator(".globe-shell").first();
+  await body.press("r");
+  await expect(globe).toHaveAttribute("data-camera-preset", "basin");
+
+  await body.press("f");
+  await expect(page.locator(".app-shell")).toHaveClass(/focus-mode/);
+  await body.press("f");
+  await expect(page.locator(".app-shell")).not.toHaveClass(/focus-mode/);
+
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
+  const timeline = page.getByLabel("Explore genuine timestamp");
+  const initialTime = await timeline.inputValue();
+  await body.press("ArrowRight");
+  await expect.poll(async () => await timeline.inputValue()).not.toBe(initialTime);
+  await body.press("Space");
+  await expect(page.getByRole("button", { name: "Pause genuine Explore time playback" })).toBeVisible();
+  await body.press("Space");
+  await expect(page.getByRole("button", { name: "Play genuine Explore time playback" })).toBeVisible();
+
+  const rootTheme = await page.locator("html").getAttribute("data-theme");
+  if (rootTheme !== "dark") {
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  }
+  const metadataColor = await page.locator(".section-kicker").first().evaluate((node) => getComputedStyle(node).color);
+  expect(metadataColor).toBe("rgb(148, 163, 184)");
+  const microcopyColor = await page.locator(".source-status-note").evaluate((node) => getComputedStyle(node).color);
+  expect(microcopyColor).toBe("rgb(203, 213, 225)");
+  const successColor = await page.locator(".badge.success").first().evaluate((node) => getComputedStyle(node).color);
+  expect(successColor).toBe("rgb(52, 211, 153)");
+
+  expect(pageErrors).toEqual([]);
+});
