@@ -988,6 +988,7 @@ export default function App() {
                     currents={visualizationMode === "globe" ? currents : null}
                     profiles={activeComparisonProfiles}
                     selectedProfileId={sourceMode === "glorys" ? selectedProfileId : ""}
+                    profileDetail={sourceMode === "glorys" ? profileDetail : null}
                     importedProfiles={importedProfiles}
                     selectedImportedProfileId={selectedImportedProfileId}
                     verticalExaggeration={verticalExaggeration}
