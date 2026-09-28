@@ -695,3 +695,40 @@ test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }
   await expect(scrubber.locator(".timeline-footer")).toContainText(/verified Argo surfacing/i);
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin anchored Argo billboard exposes verified evidence", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const journey = page.locator(".globe-shell[data-journey-phase]");
+  if ((await journey.getAttribute("data-journey-phase")) !== "region") {
+    const skip = page.getByRole("button", { name: "Skip journey", exact: true });
+    if (await skip.isVisible()) await skip.click();
+    await expect(journey).toHaveAttribute("data-journey-phase", "region", { timeout: 15_000 });
+  }
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
+  await profileSelect.selectOption({ index: 1 });
+
+  const callout = page.getByLabel(/Anchored Argo profile callout for/);
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText("Matched levels");
+  await expect(callout).toContainText("MAE");
+  await expect(callout).toContainText("RMSE");
+  await expect(callout).toContainText("Diagnostic model–observation evidence");
+  await expect(callout.getByRole("button", { name: "Inspect Profile ↗" })).toBeVisible();
+
+  await callout.getByRole("button", { name: "Inspect Profile ↗" }).click();
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  await callout.getByRole("button", { name: "Close anchored Argo callout" }).click();
+  await expect(page.getByLabel(/Anchored Argo profile callout for/)).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});

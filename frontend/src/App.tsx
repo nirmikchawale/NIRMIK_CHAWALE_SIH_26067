@@ -88,6 +88,7 @@ export default function App() {
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
+  const [profileCalloutOpen, setProfileCalloutOpen] = useState(false);
   const [sessionImportedProfiles, setSessionImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
     groupImportedObservationProfiles(readImportedObservationRecords())
   );
@@ -516,10 +517,22 @@ export default function App() {
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId("");
     setSelectedProfileId(profileId);
+    setProfileCalloutOpen(true);
     setProfilePanelOpen(true);
     setEvidenceOpen(false);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
+    }
+  }, []);
+
+  const handleProfilePinSelection = useCallback((profileId: string) => {
+    setSelectedImportedProfileId("");
+    setSelectedProfileId(profileId);
+    setProfileCalloutOpen(true);
+    setProfilePanelOpen(false);
+    setEvidenceOpen(false);
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setMobileSheet("none");
     }
   }, []);
 
@@ -584,6 +597,7 @@ export default function App() {
     setPlaying(false);
     setTimeIndex(0);
     setProfilePanelOpen(false);
+    setProfileCalloutOpen(false);
     setSelectedProfileId((current) => current);
 
     if (nextSource === "chlorophyll") {
@@ -996,7 +1010,10 @@ export default function App() {
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
-                    onSelectProfile={handleProfileSelection}
+                    profileCalloutOpen={profileCalloutOpen}
+                    onSelectProfile={handleProfilePinSelection}
+                    onInspectProfile={handleProfileSelection}
+                    onCloseProfileCallout={() => setProfileCalloutOpen(false)}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
                     canEnterWaterColumn={activeExploreCatalog.capabilities.surface_only !== true}

@@ -2744,3 +2744,159 @@
   font-size: 9px;
   line-height: 1.45;
 }
+
+
+/* SIH guide P1 — anchored in-scene Argo evidence callout. */
+.argo-billboard-callout {
+  position: absolute;
+  z-index: 31;
+  width: min(340px, calc(100% - 28px));
+  transform: translate(-50%, calc(-100% - 24px));
+  border: 1px solid color-mix(in srgb,#f0a93d 54%,var(--wb-line));
+  border-radius: 10px;
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--wb-panel) 96%,transparent),
+      color-mix(in srgb,var(--wb-bg) 94%,transparent));
+  box-shadow: 0 20px 54px rgba(0,0,0,.38),0 0 0 1px color-mix(in srgb,#f0a93d 10%,transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 140ms ease,visibility 140ms ease;
+}
+.argo-billboard-callout[data-anchor-visible="true"] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.argo-callout-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px 9px;
+  border-bottom: 1px solid var(--wb-line);
+}
+.argo-callout-heading > div {
+  display: grid;
+  gap: 3px;
+}
+.argo-callout-heading span {
+  color: #f5bd61;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+.argo-callout-heading strong {
+  color: var(--wb-text);
+  font-size: 12px;
+}
+.argo-callout-heading button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--wb-line);
+  border-radius: 6px;
+  color: var(--wb-muted);
+  background: var(--wb-bg);
+  cursor: pointer;
+}
+.argo-callout-heading button:hover,
+.argo-callout-heading button:focus-visible {
+  border-color: #f0a93d;
+  color: #f5bd61;
+}
+.argo-callout-location {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  padding: 8px 12px;
+  color: var(--wb-muted);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.argo-callout-metrics {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+  padding: 0 12px 10px;
+}
+.argo-callout-metrics > div {
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid color-mix(in srgb,var(--wb-line) 88%,transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb,var(--wb-raised) 48%,transparent);
+}
+.argo-callout-metrics span {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--wb-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.argo-callout-metrics strong {
+  color: var(--wb-text);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.argo-callout-footer {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px 11px;
+  border-top: 1px solid var(--wb-line);
+}
+.argo-callout-footer > span {
+  color: var(--wb-muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+.argo-callout-footer button {
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb,#f0a93d 58%,var(--wb-line));
+  border-radius: 6px;
+  color: #ffd37d;
+  background: color-mix(in srgb,#f0a93d 10%,var(--wb-bg));
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.argo-callout-footer button:hover,
+.argo-callout-footer button:focus-visible {
+  border-color: #f0a93d;
+  background: color-mix(in srgb,#f0a93d 17%,var(--wb-bg));
+}
+.argo-callout-anchor {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 18px;
+  height: 18px;
+  transform: translateX(-50%) rotate(45deg);
+  border-right: 1px solid color-mix(in srgb,#f0a93d 54%,var(--wb-line));
+  border-bottom: 1px solid color-mix(in srgb,#f0a93d 54%,var(--wb-line));
+  background: color-mix(in srgb,var(--wb-bg) 96%,transparent);
+  pointer-events: none;
+}
+.ocean-workbench.focus-mode .argo-billboard-callout,
+.ocean-workbench[data-workspace-mode="presentation"] .argo-billboard-callout {
+  z-index: 34;
+}
+@media (max-width: 760px) {
+  .argo-billboard-callout {
+    width: min(320px,calc(100% - 20px));
+  }
+  .argo-callout-footer {
+    grid-template-columns: 1fr;
+  }
+  .argo-callout-footer button {
+    width: 100%;
+  }
+}
