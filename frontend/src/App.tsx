@@ -108,6 +108,7 @@ export default function App() {
   const [timeIndex, setTimeIndex] = useState(0);
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
   const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [colorPalette, setColorPalette] = useState<ColorPalette>("thermal");
   const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
   const [colorMinimum, setColorMinimum] = useState(0);
@@ -401,9 +402,9 @@ export default function App() {
     if (!playing) return;
     const timer = window.setInterval(() => {
       setTimeIndex((current) => (current + 1) % exploreCatalog.coordinates.time.length);
-    }, 1300);
+    }, 1300 / playbackSpeed);
     return () => window.clearInterval(timer);
-  }, [exploreCatalog, playing]);
+  }, [exploreCatalog, playing, playbackSpeed]);
 
   useEffect(() => {
     if (!selectedProfileId) return;
@@ -652,6 +653,13 @@ export default function App() {
     }
     return [];
   }, [variable, visualizationMode, viewMode, field, volume, currents, currentsVolume]);
+  const timelineObservations = useMemo(
+    () => profiles.map((profile) => ({
+      timestamp: profile.observation_time_utc,
+      label: `Argo ${profile.platform_id} · cycle ${profile.cycle} ${profile.direction}`
+    })),
+    [profiles]
+  );
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
     [profiles, selectedProfileId]
@@ -924,6 +932,8 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
+                playbackSpeed={playbackSpeed}
+                timelineObservations={timelineObservations}
                 isoSurfaceEnabled={isoSurfaceEnabled}
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
@@ -937,6 +947,7 @@ export default function App() {
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
+                onPlaybackSpeedChange={setPlaybackSpeed}
                 onIsoSurfaceEnabledChange={setIsoSurfaceEnabled}
                 onIsoValueChange={setIsoValue}
               />
