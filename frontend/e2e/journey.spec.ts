@@ -6,26 +6,30 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
   // Public GitHub Pages can spend substantial time initializing Cesium and
   // switching between two WebGL-heavy views. Preserve every interaction
   // assertion, but give the complete repeated-entry journey a realistic live budget.
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required");
-  await page.goto(liveUrl);
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
   const globe = page.locator(".globe-shell[data-journey-phase]");
-  await expect(globe).toHaveAttribute("data-journey-phase", "region");
 
-  // The orientation story is part of the product, not a one-time onboarding.
-  // A browser refresh must start the Earth → India → ocean sequence again.
+  // A fresh document load must visibly orient Earth → India → ocean.
+  await expect(globe).toHaveAttribute("data-journey-phase", "earth", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "india", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "flying", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 45_000 });
+
+  // A browser refresh creates a new document and must replay the same story.
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(globe).toHaveAttribute("data-journey-phase", "earth");
-  await expect(globe).toHaveAttribute("data-journey-phase", "india");
-  await expect(globe).toHaveAttribute("data-journey-phase", "flying");
-  await expect(globe).toHaveAttribute("data-journey-phase", "region");
+  await expect(globe).toHaveAttribute("data-journey-phase", "earth", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "india", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "flying", { timeout: 45_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 45_000 });
 
   await page.getByRole("button", { name: "Replay journey", exact: true }).click();
-  await expect(globe).toHaveAttribute("data-journey-phase", "earth");
-  await expect(globe).toHaveAttribute("data-journey-phase", "india");
-  await expect(globe).toHaveAttribute("data-journey-phase", "flying");
+  await expect(globe).toHaveAttribute("data-journey-phase", "earth", { timeout: 30_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "india", { timeout: 30_000 });
+  await expect(globe).toHaveAttribute("data-journey-phase", "flying", { timeout: 30_000 });
   await page.getByRole("button", { name: "Skip journey", exact: true }).click();
-  await expect(globe).toHaveAttribute("data-journey-phase", "region");
+  await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 10_000 });
   await page.getByRole("button", { name: "Inspect points on map", exact: true }).click();
   await expect(page.getByRole("button", { name: "Enable field-click entry" })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Enable field-click entry" }).click();
@@ -44,7 +48,9 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
     // already disappeared on a slower public deployment.
     await page.mouse.click(bounds.x + bounds.width * 0.50, bounds.y + bounds.height * 0.50);
     await expect(page.getByRole("button", { name: "Water Column 3D", exact: true })).toHaveAttribute("aria-pressed", "true");
-    await page.getByRole("button", { name: "Geographic View", exact: true }).click();
+    const geographicView = page.getByRole("button", { name: "Geographic View", exact: true });
+    await expect(geographicView).toBeVisible({ timeout: 30_000 });
+    await geographicView.click({ timeout: 30_000 });
   }
 });
 
