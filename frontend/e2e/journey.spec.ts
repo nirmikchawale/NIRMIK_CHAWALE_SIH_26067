@@ -25,7 +25,11 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
     const mapCanvas = page.locator(".globe-shell canvas");
     const bounds = await mapCanvas.boundingBox();
     if (!bounds) throw new Error("Geographic canvas missing");
-    await mapCanvas.click({ position: { x: bounds.width * 0.50, y: bounds.height * 0.50 } });
+    // Use an actual coordinate mouse click rather than locator.click(): the
+    // successful interaction intentionally hides the geographic canvas as it
+    // switches modes, which can make locator.click wait for a target that has
+    // already disappeared on a slower public deployment.
+    await page.mouse.click(bounds.x + bounds.width * 0.50, bounds.y + bounds.height * 0.50);
     await expect(page.getByRole("button", { name: "Water Column 3D", exact: true })).toHaveAttribute("aria-pressed", "true");
     await page.getByRole("button", { name: "Geographic View", exact: true }).click();
   }
