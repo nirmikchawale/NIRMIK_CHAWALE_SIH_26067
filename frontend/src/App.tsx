@@ -12,7 +12,7 @@ import { AnomalyPage } from "./pages/AnomalyPage";
 import { TelemetryPage } from "./pages/TelemetryPage";
 import { DataLabPage } from "./pages/DataLabPage";
 import { InfoPage } from "./pages/InfoPage";
-import { OceanGlobe } from "./components/OceanGlobe";
+import { OceanGlobe, type GlobeCameraCommand } from "./components/OceanGlobe";
 import { WaterColumn3D } from "./components/WaterColumn3D";
 import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
@@ -67,6 +67,11 @@ function initialTheme(): ThemeMode {
   return "dark";
 }
 
+function isEditableKeyboardTarget(target: EventTarget | null) {
+  const element = target instanceof HTMLElement ? target : null;
+  return Boolean(element?.closest('input, select, textarea, [contenteditable="true"]'));
+}
+
 export default function App() {
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [sourceMode, setSourceMode] = useState<ExploreSourceMode>("glorys");
@@ -84,6 +89,7 @@ export default function App() {
   const [controlDockOpen, setControlDockOpen] = useState(true);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [cameraCommand, setCameraCommand] = useState<GlobeCameraCommand | null>(null);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
@@ -667,6 +673,90 @@ export default function App() {
     setDepthIndex(nearestIndex);
   }, [exploreCatalog]);
 
+  const requestGlobeCamera = useCallback((command: Omit<GlobeCameraCommand, "id">) => {
+    setCameraCommand((current) => ({
+      ...command,
+      id: (current?.id ?? 0) + 1
+    }));
+  }, []);
+
+  useEffect(() => {
+    if (page !== "explore") return;
+
+    const handleExplorerShortcut = (event: KeyboardEvent) => {
+      if (isEditableKeyboardTarget(event.target)) return;
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+      const key = event.key;
+      const lowerKey = key.toLowerCase();
+      const animated = exploreCatalog?.capabilities.time_animation === true;
+      const times = exploreCatalog?.coordinates.time ?? [];
+      const depths = exploreCatalog?.coordinates.depth ?? [];
+      const surfaceOnly = exploreCatalog?.capabilities.surface_only === true;
+
+      if (key === " " || event.code === "Space") {
+        if (!animated || times.length < 2) return;
+        event.preventDefault();
+        setPlaying((current) => !current);
+        return;
+      }
+
+      if (key === "ArrowUp" || key === "ArrowDown") {
+        if (surfaceOnly || depths.length < 2) return;
+        event.preventDefault();
+        setPlaying(false);
+        setVisualizationMode("globe");
+        setViewMode("slice");
+        setDepthIndex((current) => {
+          const delta = key === "ArrowUp" ? -1 : 1;
+          return Math.max(0, Math.min(depths.length - 1, current + delta));
+        });
+        return;
+      }
+
+      if (key === "ArrowLeft" || key === "ArrowRight") {
+        if (!animated || times.length < 2) return;
+        event.preventDefault();
+        setPlaying(false);
+        setTimeIndex((current) => {
+          const delta = key === "ArrowLeft" ? -1 : 1;
+          return Math.max(0, Math.min(times.length - 1, current + delta));
+        });
+        return;
+      }
+
+      if (event.repeat) return;
+
+      if (lowerKey === "f") {
+        event.preventDefault();
+        setFocusMode((current) => !current);
+        return;
+      }
+
+      if (lowerKey === "r") {
+        event.preventDefault();
+        setVisualizationMode("globe");
+        requestGlobeCamera({ preset: "basin" });
+        return;
+      }
+
+      const variableByKey: Record<string, "thetao" | "so" | "currents"> = {
+        "1": "thetao",
+        "2": "so",
+        "3": "currents"
+      };
+      const shortcutVariable = variableByKey[key];
+      if (!shortcutVariable) return;
+      if (!exploreCatalog?.variables.some((item) => item.id === shortcutVariable)) return;
+
+      event.preventDefault();
+      handleVariableChange(shortcutVariable);
+    };
+
+    window.addEventListener("keydown", handleExplorerShortcut);
+    return () => window.removeEventListener("keydown", handleExplorerShortcut);
+  }, [page, exploreCatalog, handleVariableChange, requestGlobeCamera]);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
@@ -1031,6 +1121,7 @@ export default function App() {
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
+                    cameraCommand={cameraCommand}
                     profileCalloutOpen={profileCalloutOpen}
                     onSelectProfile={handleProfilePinSelection}
                     onInspectProfile={handleProfileSelection}
