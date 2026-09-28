@@ -261,18 +261,46 @@ export function ControlPanel({
             </button>
           ))}
         </div>
-        {catalog.variables.find((item) => item.id === variable) && (
-          <p className="active-range">
-            Verified range{" "}
-            <strong>
-              {catalog.variables.find((item) => item.id === variable)?.minimum.toFixed(3)}
-              {" – "}
-              {catalog.variables.find((item) => item.id === variable)?.maximum.toFixed(3)}
-              {" "}
-              {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}
-            </strong>
-          </p>
+        {selectedVariable && (
+          <>
+            <p className="active-range">
+              Verified range{" "}
+              <strong>
+                {selectedVariable.minimum.toFixed(3)}
+                {" – "}
+                {selectedVariable.maximum.toFixed(3)}
+                {" "}
+                {displayUnits(selectedVariable.units)}
+              </strong>
+            </p>
+            <div className="variable-insight-card">
+              <span>WHAT YOU ARE READING</span>
+              <strong>{selectedVariable.label}</strong>
+              <p>
+                {variable === "thetao"
+                  ? "Trace warm and cool structures across the verified region and follow how the scalar field changes with depth."
+                  : variable === "so"
+                    ? "Inspect salinity structure and water-mass gradients across the same verified model geometry."
+                    : variable === "currents"
+                      ? "Read genuine horizontal u/v flow vectors at their scientific depths. No vertical-current component is inferred."
+                      : "Inspect genuine satellite chlorophyll at the ocean surface; Water Column 3D is intentionally unavailable for this source."}
+              </p>
+            </div>
+          </>
         )}
+
+        <div className="explorer-mode-story" aria-label="Connected 3D visualization modes">
+          <article className={visualizationMode === "globe" ? "active" : ""}>
+            <span>GEOGRAPHIC VIEW</span>
+            <strong>Where is the ocean structure?</strong>
+            <small>Depth-aware overlays, real coordinates and clickable observation markers.</small>
+          </article>
+          <article className={visualizationMode === "water-column" ? "active" : ""}>
+            <span>WATER COLUMN 3D</span>
+            <strong>What happens beneath the surface?</strong>
+            <small>Vertical structure, scientific depth levels and genuine scalar geometry.</small>
+          </article>
+        </div>
 
         <details className="advanced-control-group">
           <summary>
@@ -280,7 +308,7 @@ export function ControlPanel({
             <small>3D mode · rendering · vertical display</small>
           </summary>
           <div className="advanced-control-body">
-            <div className="section-kicker visualization-kicker">Active 3D mode</div>
+            <div className="section-kicker visualization-kicker">Rendering controls · active 3D mode</div>
             <div className="active-3d-mode-card">
               <strong>{visualizationMode === "globe" ? "Geographic View" : "Water Column 3D"}</strong>
               <span>
@@ -448,7 +476,7 @@ export function ControlPanel({
         </details>
       </section>
 
-      <section>
+      <section className="water-column-story">
         <div className="section-kicker">Water column</div>
         {surfaceOnly ? (
           <div className="surface-only-control" aria-label="Surface-only scientific field">
@@ -461,9 +489,10 @@ export function ControlPanel({
             data-depth-zone={currentDepthZone.toLowerCase()}
             data-track-allocation="40-35-25"
           >
-            <div className="label-row">
-              <span>Depth · {currentDepthZone}</span>
+            <div className="selected-depth-hero">
+              <span>SELECTED DEPTH · {currentDepthZone.toUpperCase()}</span>
               <strong>{depth.toFixed(2)} m</strong>
+              <small>Depth is positive downward · display exaggeration never changes source metres</small>
             </div>
 
             <div className="depth-zone-track" aria-label="Oceanographic depth zones">
@@ -529,7 +558,7 @@ export function ControlPanel({
         )}
       </section>
 
-      <section>
+      <section className="time-story">
         <div className="section-kicker">Time</div>
         {catalog.capabilities.time_animation ? (
           <>
@@ -563,14 +592,19 @@ export function ControlPanel({
           <div className="time-row static-time-row" aria-label="Verified model timestamp">
             <div>
               <strong>{time.replace("T00:00:00Z", "")}</strong>
-              <span>Verified model timestamp · static snapshot</span>
+              <span>One genuine model timestamp · static GLORYS baseline · never duplicated to simulate time</span>
             </div>
           </div>
         )}
       </section>
 
-      <section>
+      <section className="observation-story">
         <div className="section-kicker">Observations</div>
+        <p className="section-story-copy">
+          In-situ profiles connect the numerical field to measured ocean conditions. Argo provides
+          the deepest model-comparison workflow; Glider, CTD and BGC profiles share the same
+          geospatial observation contract in the Explorer.
+        </p>
         <label>
           Argo profile
           <select
@@ -604,6 +638,10 @@ export function ControlPanel({
           <span className="badge success">CACHED VERIFIED</span>
         </div>
         <small>{catalog.dataset.region}</small>
+        <p className="source-status-note">
+          This bounded verified window keeps the live demonstration reproducible while preserving
+          the same adapter and provenance architecture used for broader operational deployment.
+        </p>
       </section>
     </aside>
   );
