@@ -162,7 +162,13 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const importedGlobeShell = page.locator(".globe-shell:not(.water-column-shell)");
   await expect.poll(async () => Number(await importedGlobeShell.getAttribute("data-imported-profile-count"))).toBeGreaterThanOrEqual(4);
   await expect(page.locator(".judge-summary")).toContainText("sensor plugin profiles");
+  const importedExplorerShell = page.locator(".app-shell");
+  if ((await importedExplorerShell.getAttribute("data-control-dock")) === "open") {
+    await page.getByRole("button", { name: "Hide explorer controls" }).click();
+    await expect(importedExplorerShell).toHaveAttribute("data-control-dock", "closed");
+  }
   const importedSelector = page.locator(".imported-observation-chips");
+  await expect(importedSelector).toBeVisible();
   await expect(importedSelector).toContainText("GLIDER");
   await expect(importedSelector).toContainText("CTD");
   await expect(importedSelector).toContainText("BGC");
@@ -397,6 +403,11 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".water-column-axis-key")).toContainText("Depth m ↓");
   await expect(page.locator(".water-column-smooth-zoom")).toBeVisible();
 
+  const waterExplorerShell = page.locator(".app-shell");
+  if ((await waterExplorerShell.getAttribute("data-control-dock")) === "open") {
+    await page.getByRole("button", { name: "Hide explorer controls" }).click();
+    await expect(waterExplorerShell).toHaveAttribute("data-control-dock", "closed");
+  }
   const waterCameraHud = waterColumnShell.locator(".camera-orientation-hud");
   await expect(waterCameraHud).toBeVisible();
   await waterCameraHud.getByRole("button", { name: "Equatorial cross-section view" }).click();
