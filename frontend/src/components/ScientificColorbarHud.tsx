@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type CSSProperties } from "react";
 import type { ColorPalette, ColorScaleMode } from "../types";
 import { displayUnits } from "../units";
 
@@ -90,7 +90,7 @@ export function ScientificColorbarHud({
       <div
         className="colorbar-interactive-track"
         data-palette={palette}
-        style={{ "--range-start": `${lowerPct}%`, "--range-end": `${upperPct}%` } as React.CSSProperties}
+        style={{ "--range-start": `${lowerPct}%`, "--range-end": `${upperPct}%` } as CSSProperties}
       >
         <svg className="colorbar-histogram" viewBox="0 0 240 44" preserveAspectRatio="none" aria-hidden="true">
           {histogram.map((height, index) => (
