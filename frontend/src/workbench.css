@@ -225,7 +225,7 @@
 .evidence-status-pill {
   position: absolute;
   z-index: 24;
-  top: 204px;
+  top: 304px;
   right: 14px;
   display: grid;
   gap: 2px;
@@ -654,7 +654,7 @@
   .ocean-workbench .control-panel[data-mobile-open="true"] { transform: none; visibility: visible; }
   .ocean-workbench .profile-panel { position: fixed !important; inset: 64px 0 0 auto; max-height: calc(100dvh - 64px); width: min(360px,100%); z-index: 60; }
   .evidence-rail { position: fixed; z-index: 61; top: 64px; right: 0; bottom: 0; width: min(360px,100%); border-radius: 10px 0 0 10px; }
-  .evidence-status-pill { top: 136px; right: 10px; max-width: calc(100% - 20px); }
+  .evidence-status-pill { top: 292px; right: 10px; max-width: calc(100% - 20px); }
   .ocean-workbench .mobile-sheet-header { display: flex; gap: 12px; margin-bottom: 16px; }
   .ocean-workbench .mobile-sheet-header button { min-height: 40px; font-size: 13px; }
   .ocean-workbench .depth-zone-track button strong { font-size: 9px; }
@@ -727,7 +727,7 @@
   .ocean-workbench[data-control-dock="open"] .visualization-stage .imported-observation-chips {
     left: 10px;
   }
-  .evidence-status-pill { top: 204px; }
+  .evidence-status-pill { top: 292px; }
 }
 
 /* Explorer overlap fixes for laptop/projector sizes (1280x720, ~1400x600).
@@ -767,7 +767,7 @@
 }
 @media (max-width: 760px) {
   /* Evidence pill sat on top of the "Verified study region" card on phones. */
-  .ocean-workbench .evidence-status-pill { top: 222px; }
+  .ocean-workbench .evidence-status-pill { top: 292px; }
 }
 
 /* Header fit at laptop/projector widths now that the workspace-mode switcher shares the row:
