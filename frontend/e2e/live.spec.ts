@@ -751,7 +751,7 @@ test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane"
   const appShell = page.locator(".app-shell");
   await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
 
-  const split = page.getByLabel("Analysis Split workspace");
+  const split = page.getByRole("complementary", { name: "Analysis Split workspace" });
   const chart = page.getByRole("application", {
     name: "Interactive synchronized model and Argo temperature profile"
   });
