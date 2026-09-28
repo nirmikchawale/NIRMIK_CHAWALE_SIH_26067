@@ -3014,3 +3014,76 @@
 @media (max-width: 760px) {
   .analysis-sync-values { grid-template-columns: 1fr; }
 }
+
+
+/* SIH guide 5.1 — explicit WCAG AA dark-theme contrast corrections. */
+:root:not([data-theme="light"]) {
+  --wb-line: rgba(56, 189, 248, .25);
+}
+
+:root:not([data-theme="light"]) .ocean-workbench :is(
+  .evidence-facts dt,
+  .evidence-readout > span,
+  .evidence-metrics span,
+  .analysis-context-grid span,
+  .analysis-context-grid small,
+  .analysis-metrics span,
+  .analysis-chart-header,
+  .analysis-chart-legend,
+  .snapshot-badge,
+  .source-card > span,
+  .source-card small,
+  .verified-time-card span,
+  .chart-title-row,
+  .chart-legend,
+  .drawer-muted
+) {
+  color: #94a3b8;
+}
+
+:root:not([data-theme="light"]) .ocean-workbench :is(
+  .microcopy,
+  .evidence-rail p,
+  .evidence-footnote p,
+  .analysis-limit-note,
+  .source-status-note,
+  .timeline-footer > small,
+  .analysis-sync-readout > small,
+  .presentation-guide p,
+  .provenance-drawer p,
+  .provenance-drawer small
+) {
+  color: #cbd5e1;
+}
+
+:root:not([data-theme="light"]) .ocean-workbench :is(.badge.success, .qc-pill) {
+  border-color: color-mix(in srgb, #34d399 58%, transparent);
+  color: #34d399;
+  background: #064e3b;
+}
+
+:root:not([data-theme="light"]) .ocean-workbench :is(
+  .header-action-button,
+  .workspace-mode-switcher button,
+  .feature-rail button,
+  .variable-switcher button,
+  .timeline-transport button,
+  .timeline-speed button,
+  .evidence-rail button,
+  .control-panel button
+):hover:not(:disabled) {
+  border-color: rgba(56, 189, 248, .62);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, .20),
+    0 0 14px rgba(56, 189, 248, .18);
+}
+
+:root:not([data-theme="light"]) .ocean-workbench :is(
+  button,
+  select,
+  input[type="range"],
+  input[type="number"]
+):focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 2px;
+}
