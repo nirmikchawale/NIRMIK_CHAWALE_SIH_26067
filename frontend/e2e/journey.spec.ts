@@ -11,6 +11,15 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
   await page.goto(liveUrl);
   const globe = page.locator(".globe-shell[data-journey-phase]");
   await expect(globe).toHaveAttribute("data-journey-phase", "region");
+
+  // The orientation story is part of the product, not a one-time onboarding.
+  // A browser refresh must start the Earth → India → ocean sequence again.
+  await page.reload({ waitUntil: "domcontentloaded" });
+  await expect(globe).toHaveAttribute("data-journey-phase", "earth");
+  await expect(globe).toHaveAttribute("data-journey-phase", "india");
+  await expect(globe).toHaveAttribute("data-journey-phase", "flying");
+  await expect(globe).toHaveAttribute("data-journey-phase", "region");
+
   await page.getByRole("button", { name: "Replay journey", exact: true }).click();
   await expect(globe).toHaveAttribute("data-journey-phase", "earth");
   await expect(globe).toHaveAttribute("data-journey-phase", "india");
