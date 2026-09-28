@@ -1,0 +1,32 @@
+.presentation-guide-copy {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.presentation-guide-copy h2,
+.presentation-guide-copy p {
+  margin: 0;
+}
+
+.presentation-guide-question,
+.presentation-guide-line {
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid currentColor;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  border-radius: 0 0.6rem 0.6rem 0;
+}
+
+.presentation-guide-question {
+  font-size: 1rem;
+}
+
+.presentation-guide-line {
+  opacity: 0.9;
+}
+
+@media (max-width: 760px) {
+  .presentation-guide-question,
+  .presentation-guide-line {
+    padding: 0.65rem 0.75rem;
+  }
+}
