@@ -1,15 +1,20 @@
 # SIH26067 Full Compliance State
 
 PROJECT: OceanTwin 3D  
-BRANCH: main  
-STATUS: **FINAL VERIFIED MVP REQUIREMENT BASELINE**
+BRANCH: `main`  
+STATUS: **IMPLEMENTATION COMPLETE; RELEASE STATUS IS DETERMINED BY CURRENT-HEAD CI**
 
-## Authoritative records
+## Source of truth
 
-- `docs/SIH26067_COMPLETION_MATRIX.md` — requirement-by-requirement evidence.
-- `docs/SIH26067_COMPLETION_STATE.md` — current release-readiness and recovery rules.
-- `docs/FINAL_AUDIT.md` — concise final scientific/product audit.
-- `frontend/e2e/live.spec.ts` and `frontend/e2e/journey.spec.ts` — deployed judge-flow acceptance.
+The requirement program is complete. Final release status is never inferred from an old SHA or old run number.
+
+Use, in order:
+
+1. current `main` HEAD;
+2. current `tests` result for that HEAD;
+3. current `final-mvp` result for that HEAD;
+4. current `deploy-oceantwin-pages` result for that HEAD, including live Chromium acceptance;
+5. public Pages artifact from that HEAD.
 
 ## Completed compliance program
 
@@ -22,20 +27,26 @@ STATUS: **FINAL VERIFIED MVP REQUIREMENT BASELINE**
 7. genuine Glider/CTD/BGC observation breadth;
 8. first-class INCOIS surface chlorophyll;
 9. full-water-column horizontal currents across 31 genuine model depths;
-10. sponsor-first presentation path and public deployment verification.
+10. public/static deployment and browser acceptance verification.
 
-## Release gate
+## Authoritative supporting records
 
-Do not preserve a stale commit/run-number snapshot here. The final release state is the current `main` HEAD **only when** the latest `tests`, `final-mvp` and `deploy-oceantwin-pages` runs for that same HEAD are all successful.
+- `docs/SIH26067_COMPLETION_MATRIX.md`
+- `docs/SIH26067_COMPLETION_STATE.md`
+- `docs/FINAL_AUDIT.md`
+- `frontend/e2e/live.spec.ts`
+- `frontend/e2e/journey.spec.ts`
 
-## Scientific guardrails
+## Guardrails
 
-- Never duplicate timestamps to simulate time.
-- Never invent a vertical current component.
-- Never give satellite chlorophyll a fabricated depth axis.
-- Keep GLORYS–Argo wording diagnostic rather than independent validation.
-- Do not describe anomaly screening as ML event detection.
-- Do not claim INCOIS WCS; OceanTwin provides its own WCS compatibility service.
-- Do not claim a continuously running national digital twin.
+- no synthetic timestamps;
+- no fabricated vertical current;
+- no fabricated chlorophyll depth;
+- no independent/global-validation claim;
+- no ML-event-detection claim for anomaly screening;
+- no INCOIS-WCS claim;
+- no 24/7 national-digital-twin claim.
 
-NEXT_EXACT_ACTION: **Freeze only after current-main CI/deployment is fully green and presentation-machine QA is complete.**
+## Release condition
+
+The implementation may be described as the final verified SIH MVP only when all current-HEAD release gates are green. Otherwise describe it as “implementation complete, release verification in progress.”
