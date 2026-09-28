@@ -135,6 +135,7 @@ export function ControlPanel({
   const scalar = variable !== "currents";
   const surfaceOnly = catalog.capabilities.surface_only === true;
   const currentDepthZone = depthZone(depth);
+  const selectedVariable = catalog.variables.find((item) => item.id === variable);
 
   const selectDepthFromTrack = (trackPosition: number) => {
     const physicalDepth = trackPositionToDepth(trackPosition, deepestVerifiedDepth);
@@ -173,6 +174,23 @@ export function ControlPanel({
           Close
         </button>
       </div>
+
+      <section className="explorer-story-intro" aria-label="Explainable 3D digital twin overview">
+        <div className="section-kicker">EXPLAINABLE 3D DIGITAL-TWIN WORKSPACE</div>
+        <h2>From ocean data to an explainable 3D digital-twin workspace.</h2>
+        <p>
+          Move from a verified numerical field to depth, time and real in-situ evidence without
+          losing the scientific trail. Every control below changes either the selected source or
+          the way genuine values are rendered—never the underlying measurements.
+        </p>
+        <div className="explorer-story-flow" aria-label="OceanTwin scientific workflow">
+          <article><span>01</span><strong>Choose evidence</strong><small>Model, INCOIS time or ocean colour</small></article>
+          <article><span>02</span><strong>Explore 3D</strong><small>Geography, depth and water-column structure</small></article>
+          <article><span>03</span><strong>Connect observations</strong><small>Argo and multi-sensor in-situ profiles</small></article>
+        </div>
+        <div className="explorer-scroll-cue">Scroll the intelligence panel ↓</div>
+      </section>
+
       <section className="explore-source-section">
         <div className="section-kicker">Scientific source</div>
         <div className="segmented explore-source-selector" aria-label="Explore scientific source">
@@ -203,13 +221,29 @@ export function ControlPanel({
             INCOIS chlorophyll
           </button>
         </div>
-        <p className="microcopy">
-          {sourceMode === "incois"
-            ? "Build-verified INCOIS analysis · genuine timestamps and depths · source values unchanged."
-            : sourceMode === "chlorophyll"
-              ? "Build-verified INCOIS satellite ocean colour · genuine surface chlorophyll timestamps · no depth axis is inferred."
-              : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
-        </p>
+        <div className="source-explainer-card" data-source-mode={sourceMode}>
+          <span>
+            {sourceMode === "glorys" ? "MODEL BASELINE" : sourceMode === "incois" ? "GENUINE MULTI-TIME" : "SURFACE OCEAN COLOUR"}
+          </span>
+          <strong>
+            {sourceMode === "glorys"
+              ? "GLORYS12V1 · reproducible model baseline"
+              : sourceMode === "incois"
+                ? "INCOIS · real timestamps for temporal exploration"
+                : "INCOIS chlorophyll · surface-only context"}
+          </strong>
+          <p>
+            {sourceMode === "incois"
+              ? "Build-verified INCOIS analysis with genuine timestamps and genuine depth coordinates. Source values remain unchanged; this is the temporal-breadth pathway."
+              : sourceMode === "chlorophyll"
+                ? "Verified satellite chlorophyll extends the workspace into ocean-colour context. It is explicitly surface-only, so OceanTwin never fabricates a depth axis."
+                : "Immutable GLORYS12V1 evidence provides temperature, salinity and horizontal currents through 31 verified depths. The bundled comparison baseline has one genuine timestamp and supports the Argo diagnostic workflow."}
+          </p>
+          <div className="source-proof-row">
+            <span>{sourceMode === "glorys" ? "31 verified depths" : sourceMode === "incois" ? "genuine time steps" : "surface only"}</span>
+            <span>{sourceMode === "glorys" ? "Argo comparison" : sourceMode === "incois" ? "no synthetic time" : "no fabricated depth"}</span>
+          </div>
+        </div>
       </section>
 
       <section>
