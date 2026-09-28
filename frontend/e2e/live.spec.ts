@@ -790,3 +790,84 @@ test("live OceanTwin T-Z profile hover cross-highlights exact observation depth 
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin keyboard shortcuts and dark-theme contrast contract work", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const root = page.locator("html");
+  if ((await root.getAttribute("data-theme")) !== "dark") {
+    await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  }
+  await expect(root).toHaveAttribute("data-theme", "dark");
+
+  const tokens = await page.evaluate(() => {
+    const style = getComputedStyle(document.documentElement);
+    return {
+      muted: style.getPropertyValue("--wb-muted").trim(),
+      micro: style.getPropertyValue("--wb-micro").trim(),
+      line: style.getPropertyValue("--wb-line").replace(/\s+/g, " ").trim(),
+      successText: style.getPropertyValue("--wb-success-text").trim(),
+      successBg: style.getPropertyValue("--wb-success-bg").trim()
+    };
+  });
+  expect(tokens.muted.toLowerCase()).toBe("#94a3b8");
+  expect(tokens.micro.toLowerCase()).toBe("#cbd5e1");
+  expect(tokens.line).toContain("56");
+  expect(tokens.successText.toLowerCase()).toBe("#34d399");
+  expect(tokens.successBg.toLowerCase()).toBe("#064e3b");
+
+  const journey = page.locator(".globe-shell[data-journey-phase]");
+  if ((await journey.getAttribute("data-journey-phase")) !== "region") {
+    const skip = page.getByRole("button", { name: "Skip journey", exact: true });
+    if (await skip.isVisible()) await skip.click();
+    await expect(journey).toHaveAttribute("data-journey-phase", "region", { timeout: 15_000 });
+  }
+
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  await page.keyboard.press("2");
+  await expect(page.getByRole("button", { name: /Salinity/ })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("3");
+  await expect(page.getByRole("button", { name: /Currents/ })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("1");
+  await expect(page.getByRole("button", { name: /Temperature/ })).toHaveAttribute("aria-pressed", "true");
+
+  const depthIndicator = page.locator(".depth-indicator");
+  const initialDepth = await depthIndicator.textContent();
+  await page.keyboard.press("ArrowDown");
+  await expect(depthIndicator).not.toHaveText(initialDepth ?? "");
+
+  const shell = page.locator(".app-shell");
+  await page.keyboard.press("f");
+  await expect(shell).toHaveClass(/focus-mode/);
+  await page.keyboard.press("f");
+  await expect(shell).not.toHaveClass(/focus-mode/);
+
+  const globe = page.locator(".globe-shell").first();
+  const resetBefore = Number(await globe.getAttribute("data-keyboard-camera-reset") ?? "0");
+  await page.keyboard.press("r");
+  await expect.poll(async () => Number(await globe.getAttribute("data-keyboard-camera-reset") ?? "0")).toBeGreaterThan(resetBefore);
+  await expect(globe).toHaveAttribute("data-camera-preset", "basin");
+
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+
+  const timeSlider = page.getByLabel("Explore genuine timestamp");
+  const initialTime = await timeSlider.inputValue();
+  await page.keyboard.press("ArrowRight");
+  await expect(timeSlider).not.toHaveValue(initialTime);
+
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Pause genuine Explore time playback" })).toBeVisible();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Play genuine Explore time playback" })).toBeVisible();
+
+  await expect(page.getByLabel("Explore keyboard shortcuts")).toContainText("Space play");
+  expect(pageErrors).toEqual([]);
+});
