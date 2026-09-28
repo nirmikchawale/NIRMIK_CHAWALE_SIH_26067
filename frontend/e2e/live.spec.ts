@@ -761,6 +761,8 @@ test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane"
   await expect(page.locator(".analysis-model-line")).toHaveCount(1);
 
   const initialDepth = await split.getAttribute("data-synced-model-depth");
+  // Analysis is scrollable; a visible SVG can still extend below the viewport.
+  await chart.scrollIntoViewIfNeeded();
   const bounds = await chart.boundingBox();
   if (!bounds) throw new Error("Synchronized T-Z chart missing");
 
