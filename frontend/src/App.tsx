@@ -89,6 +89,7 @@ export default function App() {
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
   const [profileCalloutOpen, setProfileCalloutOpen] = useState(false);
+  const [comparisonHighlightDepthM, setComparisonHighlightDepthM] = useState<number | null>(null);
   const [sessionImportedProfiles, setSessionImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
     groupImportedObservationProfiles(readImportedObservationRecords())
   );
@@ -598,6 +599,7 @@ export default function App() {
     setTimeIndex(0);
     setProfilePanelOpen(false);
     setProfileCalloutOpen(false);
+    setComparisonHighlightDepthM(null);
     setSelectedProfileId((current) => current);
 
     if (nextSource === "chlorophyll") {
@@ -633,6 +635,7 @@ export default function App() {
     setEvidenceOpen(false);
     setProfilePanelOpen(false);
     setMobileSheet("none");
+    if (nextMode !== "analysis") setComparisonHighlightDepthM(null);
 
     if (nextMode === "explorer") {
       setControlDockOpen(true);
@@ -1011,6 +1014,7 @@ export default function App() {
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
                     profileCalloutOpen={profileCalloutOpen}
+                    comparisonHighlightDepthM={workspaceMode === "analysis" && visualizationMode === "globe" ? comparisonHighlightDepthM : null}
                     onSelectProfile={handleProfilePinSelection}
                     onInspectProfile={handleProfileSelection}
                     onCloseProfileCallout={() => setProfileCalloutOpen(false)}
@@ -1064,6 +1068,7 @@ export default function App() {
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
                 detail={sourceMode === "glorys" ? profileDetail : null}
+                onHoverDepth={setComparisonHighlightDepthM}
               />
 
               {selectedImportedProfile ? (
