@@ -5,6 +5,7 @@ import { AppNavigation } from "./components/AppNavigation";
 import { AnalysisSplitPanel } from "./components/AnalysisSplitPanel";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
+import { ScientificColorbarHud } from "./components/ScientificColorbarHud";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
@@ -634,6 +635,23 @@ export default function App() {
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
   );
+  const colorbarValues = useMemo(() => {
+    if (variable === "currents") {
+      if (visualizationMode === "water-column" && currentsVolume) {
+        return currentsVolume.vectors.map((vector) => vector[5]).filter(Number.isFinite);
+      }
+      return currents?.vectors.map((vector) => vector[4]).filter(Number.isFinite) ?? [];
+    }
+    if ((visualizationMode === "water-column" || viewMode === "volume") && volume) {
+      return volume.points.map((point) => point[3]).filter(Number.isFinite);
+    }
+    if (field) {
+      return field.values.flatMap((row) =>
+        row.filter((value): value is number => typeof value === "number" && Number.isFinite(value))
+      );
+    }
+    return [];
+  }, [variable, visualizationMode, viewMode, field, volume, currents, currentsVolume]);
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
     [profiles, selectedProfileId]
@@ -906,10 +924,6 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
-                colorPalette={colorPalette}
-                colorScale={colorScale}
-                colorMinimum={colorMinimum}
-                colorMaximum={colorMaximum}
                 isoSurfaceEnabled={isoSurfaceEnabled}
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
@@ -923,10 +937,6 @@ export default function App() {
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
-                onColorPaletteChange={setColorPalette}
-                onColorScaleChange={setColorScale}
-                onColorMinimumChange={setColorMinimum}
-                onColorMaximumChange={setColorMaximum}
                 onIsoSurfaceEnabledChange={setIsoSurfaceEnabled}
                 onIsoValueChange={setIsoValue}
               />
@@ -1001,6 +1011,24 @@ export default function App() {
                   />
                 </div>
               </div>
+
+              {selectedVariable && (
+                <ScientificColorbarHud
+                  label={selectedVariable.label}
+                  units={selectedVariable.units}
+                  palette={colorPalette}
+                  scale={colorScale}
+                  minimum={colorMinimum}
+                  maximum={colorMaximum}
+                  domainMinimum={selectedVariable.minimum}
+                  domainMaximum={selectedVariable.maximum}
+                  values={colorbarValues}
+                  onPaletteChange={setColorPalette}
+                  onScaleChange={setColorScale}
+                  onMinimumChange={setColorMinimum}
+                  onMaximumChange={setColorMaximum}
+                />
+              )}
 
               <AnalysisSplitPanel
                 catalog={activeExploreCatalog}
