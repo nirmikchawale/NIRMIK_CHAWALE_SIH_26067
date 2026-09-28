@@ -775,3 +775,35 @@ test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane"
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin dark theme uses the guide WCAG contrast tokens", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+
+  const metadataColor = await page.locator(".evidence-facts dt").first().evaluate(
+    (element) => getComputedStyle(element).color
+  );
+  expect(metadataColor).toBe("rgb(148, 163, 184)");
+
+  const microcopyColor = await page.locator(".microcopy:not(.warning)").first().evaluate(
+    (element) => getComputedStyle(element).color
+  );
+  expect(microcopyColor).toBe("rgb(203, 213, 225)");
+
+  const successBadge = page.locator(".badge.success").first();
+  await expect(successBadge).toBeVisible();
+  expect(await successBadge.evaluate((element) => getComputedStyle(element).color))
+    .toBe("rgb(52, 211, 153)");
+  expect(await successBadge.evaluate((element) => getComputedStyle(element).backgroundColor))
+    .toBe("rgb(6, 78, 59)");
+
+  const inactiveHeaderAction = page.locator(".header-action-button").first();
+  expect(await inactiveHeaderAction.evaluate((element) => getComputedStyle(element).borderTopColor))
+    .toBe("rgba(56, 189, 248, 0.25)");
+  await inactiveHeaderAction.hover();
+  expect(await inactiveHeaderAction.evaluate((element) => getComputedStyle(element).boxShadow))
+    .not.toBe("none");
+});
