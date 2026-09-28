@@ -70,6 +70,7 @@ interface Props {
   colorMaximum: number;
   presentationActive: boolean;
   profileCalloutOpen: boolean;
+  comparisonHighlightDepthM: number | null;
   onSelectProfile: (profileId: string) => void;
   onInspectProfile: (profileId: string) => void;
   onCloseProfileCallout: () => void;
@@ -119,6 +120,7 @@ export function OceanGlobe({
   colorMaximum,
   presentationActive,
   profileCalloutOpen,
+  comparisonHighlightDepthM,
   onSelectProfile,
   onInspectProfile,
   onCloseProfileCallout,
@@ -711,6 +713,43 @@ export function OceanGlobe({
 
   useEffect(() => {
     const viewer = viewerRef.current;
+    if (!viewer || viewer.isDestroyed()) return;
+
+    const id = "comparison-hover-depth-plane";
+    if (comparisonHighlightDepthM == null) {
+      viewer.entities.removeById(id);
+      viewer.scene.requestRender();
+      return;
+    }
+
+    const displayHeight = -comparisonHighlightDepthM * verticalExaggeration;
+    let plane = viewer.entities.getById(id);
+    if (!plane) {
+      plane = viewer.entities.add({
+        id,
+        rectangle: {
+          coordinates: Rectangle.fromDegrees(67, 12, 70, 14),
+          height: displayHeight,
+          material: Color.fromCssColorString("#f0a93d").withAlpha(0.10),
+          outline: true,
+          outlineColor: Color.fromCssColorString("#ffd56a").withAlpha(0.88)
+        }
+      });
+    } else if (plane.rectangle) {
+      plane.rectangle.height = new ConstantProperty(displayHeight);
+    }
+
+    viewer.scene.requestRender();
+    return () => {
+      if (!viewer.isDestroyed()) {
+        viewer.entities.removeById(id);
+        viewer.scene.requestRender();
+      }
+    };
+  }, [comparisonHighlightDepthM, verticalExaggeration]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
     if (!viewer) return;
 
     for (const primitive of dynamicPrimitivesRef.current) {
@@ -1140,6 +1179,7 @@ export function OceanGlobe({
       data-color-max={colorMaximum}
       data-imported-profile-count={importedProfiles.length}
       data-selected-imported-profile={selectedImportedProfileId}
+      data-comparison-highlight-depth={comparisonHighlightDepthM == null ? "none" : comparisonHighlightDepthM.toFixed(2)}
     >
       <div ref={containerRef} className="cesium-host" />
       {selectedProfile && profileCalloutOpen && (

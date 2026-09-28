@@ -732,3 +732,61 @@ test("live OceanTwin anchored Argo billboard exposes verified evidence", async (
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin T-Z profile hover cross-highlights exact observation depth in 3D", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const journey = page.locator(".globe-shell[data-journey-phase]");
+  if ((await journey.getAttribute("data-journey-phase")) !== "region") {
+    const skip = page.getByRole("button", { name: "Skip journey", exact: true });
+    if (await skip.isVisible()) await skip.click();
+    await expect(journey).toHaveAttribute("data-journey-phase", "region", { timeout: 15_000 });
+  }
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  const shell = page.locator(".app-shell");
+  await expect(shell).toHaveAttribute("data-workspace-mode", "analysis");
+
+  const chart = page.getByRole("application", { name: "Interactive model and Argo temperature profile by depth" });
+  await expect(chart).toBeVisible();
+  const bounds = await chart.boundingBox();
+  if (!bounds) throw new Error("Interactive T-Z chart missing");
+
+  await page.mouse.move(bounds.x + bounds.width * 0.52, bounds.y + bounds.height * 0.52);
+  const readout = page.locator(".analysis-profile-hover-readout");
+  await expect(readout).toBeVisible();
+  await expect(readout).toContainText("Depth");
+  await expect(readout).toContainText("Argo");
+  await expect(readout).toContainText("Model");
+
+  const globe = page.locator(".globe-shell").first();
+  await expect.poll(async () => await globe.getAttribute("data-comparison-highlight-depth")).not.toBe("none");
+
+  await chart.focus();
+  await chart.press("ArrowDown");
+  await expect(readout).toBeVisible();
+  await expect.poll(async () => await globe.getAttribute("data-comparison-highlight-depth")).not.toBe("none");
+
+  await page.mouse.move(2, 2);
+  await expect(globe).toHaveAttribute("data-comparison-highlight-depth", "none");
+
+  await page.getByRole("button", { name: "Compare" }).click();
+  await expect(page).toHaveURL(/#\/compare$/);
+  const comparisonChart = page.getByRole("application", { name: "Interactive Argo observed and Copernicus model temperature profiles by depth" });
+  await expect(comparisonChart).toBeVisible();
+  expect(await page.locator(".comparison-observation-diamond").count()).toBeGreaterThan(0);
+
+  const comparisonDepth = page.getByLabel("Matched comparison depth");
+  const initialComparisonIndex = await comparisonDepth.inputValue();
+  await comparisonChart.focus();
+  await comparisonChart.press("ArrowDown");
+  await expect(comparisonDepth).not.toHaveValue(initialComparisonIndex);
+
+  expect(pageErrors).toEqual([]);
+});
