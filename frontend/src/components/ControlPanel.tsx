@@ -1,5 +1,6 @@
 import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 import { displayUnits } from "../units";
+import { TimelineScrubber } from "./TimelineScrubber";
 
 const DEPTH_TRACK_MAX = 1000;
 const EPipelagic_END_M = 200;
@@ -63,6 +64,8 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
+  playbackSpeed: number;
+  timelineObservations: Array<{ timestamp: string; label: string }>;
   isoSurfaceEnabled: boolean;
   isoValue: number;
   mobileOpen: boolean;
@@ -76,6 +79,7 @@ interface Props {
   onVerticalExaggerationChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
+  onPlaybackSpeedChange: (value: number) => void;
   onIsoSurfaceEnabledChange: (value: boolean) => void;
   onIsoValueChange: (value: number) => void;
 }
@@ -95,6 +99,8 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
+  playbackSpeed,
+  timelineObservations,
   isoSurfaceEnabled,
   isoValue,
   mobileOpen,
@@ -108,6 +114,7 @@ export function ControlPanel({
   onVerticalExaggerationChange,
   onProfileChange,
   onPlayingChange,
+  onPlaybackSpeedChange,
   onIsoSurfaceEnabledChange,
   onIsoValueChange
 }: Props) {
@@ -501,33 +508,16 @@ export function ControlPanel({
       <section className="time-story">
         <div className="section-kicker">Time</div>
         {catalog.capabilities.time_animation ? (
-          <>
-            <div className="time-row">
-              <button
-                className="play-button"
-                aria-label={playing ? "Pause genuine Explore time playback" : "Play genuine Explore time playback"}
-                aria-pressed={playing}
-                onClick={() => onPlayingChange(!playing)}
-                title="Play verified time steps"
-              >
-                {playing ? "■" : "▶"}
-              </button>
-              <div>
-                <strong>{time.replace("T00:00:00Z", "")}</strong>
-                <span>
-                  {catalog.capabilities.time_steps} verified timesteps
-                </span>
-              </div>
-            </div>
-            <input
-              type="range"
-              aria-label="Explore genuine timestamp"
-              min={0}
-              max={Math.max(0, catalog.coordinates.time.length - 1)}
-              value={timeIndex}
-              onChange={(event) => onTimeChange(Number(event.target.value))}
-            />
-          </>
+          <TimelineScrubber
+            times={catalog.coordinates.time}
+            currentIndex={timeIndex}
+            playing={playing}
+            playbackSpeed={playbackSpeed}
+            observations={timelineObservations}
+            onIndexChange={onTimeChange}
+            onPlayingChange={onPlayingChange}
+            onPlaybackSpeedChange={onPlaybackSpeedChange}
+          />
         ) : (
           <div className="time-row static-time-row" aria-label="Verified model timestamp">
             <div>
