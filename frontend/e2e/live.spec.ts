@@ -12,6 +12,7 @@ async function revealCanvasTools(page: Page) {
 }
 
 test("live OceanTwin judge flow renders and core interactions work", async ({ page }) => {
+  test.setTimeout(240_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -275,7 +276,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   // This test deliberately exercises the longest judge path against the
   // deployed GitHub Pages site. Keep all assertions, but allow live-network
   // rendering and camera transitions more time than the default 90 seconds.
-  test.setTimeout(180_000);
+  test.setTimeout(360_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -428,9 +429,17 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
   await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialWaterZoom);
 
+  const waterWorkbench = page.locator(".ocean-workbench").first();
+  if ((await waterWorkbench.getAttribute("data-control-dock")) === "closed") {
+    await page.getByRole("button", { name: "Show explorer controls" }).click();
+    await expect(waterWorkbench).toHaveAttribute("data-control-dock", "open");
+  }
   const viewSettings = page.locator(".advanced-control-group");
+  const viewSettingsSummary = viewSettings.locator("summary");
+  await viewSettingsSummary.scrollIntoViewIfNeeded();
+  await expect(viewSettingsSummary).toBeVisible();
   if (!(await viewSettings.getAttribute("open"))) {
-    await viewSettings.locator("summary").click();
+    await viewSettingsSummary.click();
   }
   const opacitySlider = page.getByLabel("Point opacity");
   await expect(opacitySlider).toBeVisible();
