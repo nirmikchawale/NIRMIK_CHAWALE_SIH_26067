@@ -2278,7 +2278,7 @@
   .ocean-workbench .variable-switcher-rich { grid-template-columns: 1fr 1fr; }
   .scientific-colorbar-hud,
   .ocean-workbench[data-control-dock="open"] .scientific-colorbar-hud {
-    bottom: 78px;
+    bottom: 190px;
     padding: 8px;
   }
   .colorbar-hud-heading { align-items: flex-start; }
@@ -2289,4 +2289,11 @@
   .colorbar-handle::-moz-range-track { height: 42px; }
   .colorbar-handle::-webkit-slider-thumb { height: 42px; }
   .colorbar-handle::-moz-range-thumb { height: 38px; }
+}
+
+
+/* Keep direct camera manipulation controls above the persistent colorbar. */
+.ocean-workbench .cesium-smooth-zoom.camera-control-stack,
+.ocean-workbench .water-column-smooth-zoom {
+  z-index: 26;
 }
