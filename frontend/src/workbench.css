@@ -2436,11 +2436,12 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  pointer-events: auto;
+  pointer-events: none;
 }
 .colorbar-hud-actions button,
 .colorbar-hud-actions select {
   min-height: 28px;
+  pointer-events: auto;
   border: 1px solid var(--wb-line);
   border-radius: 5px;
   color: var(--wb-text);
