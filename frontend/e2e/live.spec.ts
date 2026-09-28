@@ -695,3 +695,35 @@ test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }
   await expect(scrubber.locator(".timeline-footer")).toContainText(/verified Argo surfacing/i);
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin anchors selected Argo evidence inside the 3D viewport", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const skipJourney = page.getByRole("button", { name: "Skip journey", exact: true });
+  if (await skipJourney.isVisible().catch(() => false)) await skipJourney.click();
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
+  await profileSelect.selectOption({ index: 1 });
+
+  const callout = page.locator(".argo-billboard-callout");
+  await expect(callout).toBeVisible();
+  await expect(callout).toHaveAttribute("data-anchor-profile", /.+/);
+  await expect(callout.locator(".argo-callout-heading")).toContainText("ARGO FLOAT");
+  await expect(callout.locator(".argo-callout-metrics")).toContainText("MAE");
+  await expect(callout.locator(".argo-callout-metrics")).toContainText("Matched");
+  await expect(callout.locator(".argo-callout-temperature")).toContainText("Signed bias", { timeout: 15_000 });
+  await expect(callout.locator(".argo-callout-temperature")).toContainText("Model");
+  await expect(callout.locator(".argo-callout-temperature")).toContainText("Argo");
+
+  await callout.getByRole("button", { name: "Inspect Profile" }).click();
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
