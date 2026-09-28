@@ -46,6 +46,28 @@ export function InfoPage({ catalog, provenance }: Props) {
         </aside>
       </section>
 
+      <section className="info-evidence-ladder" aria-label="OceanTwin evidence ladder">
+        <article>
+          <span>01</span>
+          <div><small>MODEL</small><strong>Numerical ocean state</strong><p>GLORYS temperature, salinity and horizontal currents across verified model depths.</p></div>
+        </article>
+        <i aria-hidden="true">→</i>
+        <article>
+          <span>02</span>
+          <div><small>TIME</small><strong>Operational breadth</strong><p>Genuine INCOIS timestamps add temporal exploration without duplicating the static GLORYS baseline.</p></div>
+        </article>
+        <i aria-hidden="true">→</i>
+        <article>
+          <span>03</span>
+          <div><small>OBSERVATION</small><strong>Measured ocean profiles</strong><p>Argo, Glider, CTD and BGC evidence places real in-situ measurements into the same geospatial workspace.</p></div>
+        </article>
+        <i aria-hidden="true">→</i>
+        <article>
+          <span>04</span>
+          <div><small>EXPLAIN</small><strong>Defensible 3D decisions</strong><p>Depth, provenance, residuals, QC and display-only controls remain visible instead of becoming black-box graphics.</p></div>
+        </article>
+      </section>
+
       <section className="info-problem-grid">
         <article className="info-problem-card">
           <span className="info-icon"><Icon name="problem" /></span>
