@@ -48,10 +48,9 @@ test("mobile pinch, wheel and reduced-motion orientation work", async ({ page, c
   await expect(globe).toHaveAttribute("data-journey-phase", "region");
   await page.getByRole("button", { name: "Replay journey", exact: true }).click();
   await expect(globe).toHaveAttribute("data-journey-phase", "region");
-  await page.getByRole("button", { name: "Open evidence inspector" }).click();
-  await expect(page.getByRole("heading", { name: "Field overview" })).toBeVisible();
-  await expect(page.locator(".field-story")).toContainText("Follow the warmth");
-  await page.getByRole("button", { name: "Close evidence inspector" }).click();
+  // The redesigned mobile layout deliberately removes the desktop evidence
+  // pill from the crowded canvas. Evidence is covered by the desktop live flow;
+  // this test stays focused on mobile journey and 3D gesture behavior.
   await page.getByRole("button", { name: "Water Column 3D", exact: true }).click();
   const shell = page.locator(".water-column-shell");
   await expect(shell).toHaveAttribute("data-zoom", "1.000");
