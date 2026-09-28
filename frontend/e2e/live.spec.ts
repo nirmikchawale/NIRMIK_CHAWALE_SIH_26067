@@ -605,3 +605,44 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin variable pills and interactive colorbar work", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const variableButtons = page.locator(".variable-switcher-rich button");
+  await expect(variableButtons).toHaveCount(3);
+  await expect(variableButtons.first()).toContainText(/Temperature/i);
+  await expect(variableButtons.first()).toContainText(/°C/);
+
+  const colorbar = page.getByRole("region", { name: "Interactive scientific colorbar" });
+  await expect(colorbar).toBeVisible();
+  await expect(colorbar.locator(".colorbar-histogram rect")).toHaveCount(24);
+
+  const globe = page.locator(".globe-shell").first();
+  const minSlider = page.getByRole("slider", { name: "Color minimum threshold" });
+  const maxSlider = page.getByRole("slider", { name: "Color maximum threshold" });
+  await expect(minSlider).toBeVisible();
+  await expect(maxSlider).toBeVisible();
+
+  const initialMinimum = await minSlider.inputValue();
+  await minSlider.focus();
+  await minSlider.press("ArrowRight");
+  await expect(minSlider).not.toHaveValue(initialMinimum);
+
+  await page.getByRole("combobox", { name: "Color palette" }).selectOption("viridis");
+  await expect(globe).toHaveAttribute("data-color-palette", "viridis");
+
+  const scaleButton = page.getByRole("button", { name: "Toggle linear logarithmic color scale" });
+  if (await scaleButton.isEnabled()) {
+    await scaleButton.click();
+    await expect(globe).toHaveAttribute("data-color-scale", "log");
+  }
+
+  expect(pageErrors).toEqual([]);
+});
