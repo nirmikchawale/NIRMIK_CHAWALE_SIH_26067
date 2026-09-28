@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import "./JudgeClarity.css";
+
 const STEPS = [
   {
     title: "1. Establish the ocean question",
