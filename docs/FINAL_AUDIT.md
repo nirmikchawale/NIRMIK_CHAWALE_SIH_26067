@@ -1,55 +1,67 @@
 # OceanTwin 3D — Final SIH26067 Audit
 
-## Current architecture
+## Audit basis
 
-- React + TypeScript + CesiumJS browser application.
-- FastAPI scientific/API layer.
-- GitHub Pages static scientific fail-safe.
-- Streamlit + Plotly emergency scientific fallback.
-- Discoverable source registry and model/sensor adapter contracts.
-- Browser-native CF-aware NetCDF4 plus CSV/TSV/ASCII/JSON ingestion.
+OceanTwin is judged against the current repository implementation, not an older Streamlit-only snapshot or an old fixed commit.
 
-## Verified functional coverage
+The primary product is a React + TypeScript + CesiumJS multi-page web application backed by FastAPI contracts and static-hosted scientific evidence. Streamlit remains the emergency scientific fallback.
 
-- GLORYS12V1 temperature, salinity and horizontal-current model fields.
-- Selected-depth and all-depth horizontal `uo/vo` visualization; no fabricated vertical component.
-- Genuine scalar isosurfaces.
-- Dynamic palettes, min/max and valid linear/log scaling.
-- Genuine INCOIS multi-time physical source.
-- Genuine INCOIS surface chlorophyll.
-- Argo, Glider, CTD and BGC in-situ observation pathways.
-- Argo model–observation collocation, vertical interpolation, bias, MAE/RMSE and provenance.
-- Temporary Explorer layers from validated delimited/JSON/NetCDF observation imports.
-- OPeNDAP verification plus WMS/WCS interoperability surfaces.
-- CF-style coordinate/unit/depth metadata validation.
-- Sponsor-first live demonstration guide.
+## Current implemented evidence
 
-## Release-readiness rule
+- genuine GLORYS12V1 temperature and salinity fields;
+- genuine horizontal `uo/vo` currents at selected depth and across all 31 bundled model depths;
+- genuine scalar isosurfaces;
+- configurable palette, range and valid linear/log scaling;
+- genuine INCOIS multi-time physical playback;
+- genuine INCOIS IRS P4 OCM chlorophyll, explicitly surface-only;
+- Argo, Glider, CTD and BGC observation pathways;
+- canonical geospatial profile inspector with source/QC metadata;
+- Argo model↔observation collocation, vertical matching, Model − Observation bias and MAE/RMSE;
+- browser-native CF-aware NetCDF4 plus delimited/JSON ingestion;
+- OPeNDAP verification and WMS/WCS interoperability surfaces;
+- provenance, telemetry, anomaly screening, evidence downloads and recovery paths.
 
-Historical run numbers and hard-coded commit IDs are intentionally not treated as final truth.
+## Central PS interpretation
 
-For a release candidate, the **current main HEAD** must have all of the following green together:
+The project genuinely integrates numerical ocean-model outputs and in-situ observations in one browser-native 3D system.
 
-1. `tests`;
-2. `final-mvp`;
-3. `deploy-oceantwin-pages`, including HTTPS/static evidence verification and the live Chromium judge-flow.
+Argo currently has the deepest analytical integration because it includes model collocation and error diagnostics. Glider/CTD/BGC are integrated as real geolocated observation layers and depth-profile inspection pathways through the same canonical observation contract.
 
-The public URL is:
+## Release verification
 
-`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/`
+Never quote an old run number as the final state.
 
-## Scientific boundaries
+A release is green only when the current `main` HEAD has:
 
-1. GLORYS comparison baseline has one genuine timestamp; genuine playback is supplied by the separately verified INCOIS source.
-2. Currents are horizontal `uo/vo`; no vertical `w` is invented.
-3. INCOIS chlorophyll is surface-only.
-4. GLORYS–Argo comparison is diagnostic, not independent/global validation.
-5. Anomaly screening is descriptive statistical screening, not ML event detection.
-6. External providers can fail; cached validated evidence provides a recovery path.
-7. OceanTwin is a verified SIH MVP, not a claim of a continuously running national operational service.
+- `tests` PASS;
+- `final-mvp` PASS;
+- `deploy-oceantwin-pages` PASS including live Chromium judge-flow acceptance.
 
-## Final interpretation
+The public Pages artifact and current workflow results are authoritative.
 
-The central problem-statement requirement is implemented: OceanTwin integrates numerical ocean-model outputs and genuine in-situ observations in one interactive browser-native 3D platform. Argo currently has the deepest model-vs-observation diagnostic workflow, while Glider/CTD/BGC use the shared geospatial/profile-inspection path.
+## Sponsor-first demonstration
 
-Release freeze is permitted only after the current-main CI/deployment rule above is fully green and the actual presentation machine passes human visual QA.
+1. numerical model field;
+2. depth + Water Column 3D;
+3. genuine INCOIS time;
+4. real in-situ profile;
+5. Argo model↔observation comparison;
+6. sources/QC/provenance + bounded operational-scaling explanation.
+
+Show telemetry/anomaly features after this required story.
+
+## Deliberate boundaries
+
+- GLORYS bundled comparison baseline has one genuine timestamp;
+- INCOIS provides the genuine multi-time demonstration;
+- currents are horizontal only;
+- satellite chlorophyll is surface-only;
+- GLORYS–Argo comparison is diagnostic rather than independent validation;
+- anomaly screening is descriptive statistical screening;
+- this is a bounded, extensible SIH MVP, not a 24/7 national operational service.
+
+## Final judgement rule
+
+Implementation completeness and release health are separate.
+
+The requirement implementation is complete at hackathon-MVP level. Final demo readiness depends on the current-head release gates and the actual-presentation-machine checklist.
