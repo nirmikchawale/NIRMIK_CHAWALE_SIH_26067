@@ -655,3 +655,43 @@ test("live OceanTwin variable pills and interactive colorbar work", async ({ pag
 
   expect(pageErrors).toEqual([]);
 });
+
+test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "incois");
+
+  const scrubber = page.getByLabel("Genuine ocean timeline scrubber");
+  await expect(scrubber).toBeVisible();
+  await expect(scrubber).toHaveAttribute("data-playback-speed", "1");
+  await expect(page.getByRole("group", { name: "Timeline playback controls" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Timeline playback speed" })).toBeVisible();
+  await expect(page.getByLabel("Verified Argo surfacing date markers")).toBeVisible();
+
+  const slider = page.getByLabel("Explore genuine timestamp");
+  const initial = Number(await slider.inputValue());
+  await page.getByRole("button", { name: "Next genuine time step" }).click();
+  await expect.poll(async () => Number(await slider.inputValue())).not.toBe(initial);
+  await page.getByRole("button", { name: "Previous genuine time step" }).click();
+  await expect(slider).toHaveValue(String(initial));
+
+  await page.getByRole("button", { name: "Playback speed 2 times" }).click();
+  await expect(scrubber).toHaveAttribute("data-playback-speed", "2");
+  await expect(page.getByRole("button", { name: "Playback speed 2 times" })).toHaveAttribute("aria-pressed", "true");
+
+  const play = page.getByRole("button", { name: "Play genuine Explore time playback" });
+  await play.click();
+  await expect(page.getByRole("button", { name: "Pause genuine Explore time playback" })).toBeVisible();
+  await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
+
+  await expect(scrubber.locator(".timeline-footer")).toContainText(/verified Argo surfacing/i);
+  expect(pageErrors).toEqual([]);
+});
