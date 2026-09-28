@@ -34,6 +34,7 @@ import type {
   CurrentsResponse,
   FieldResponse,
   ImportedObservationProfile,
+  ProfileDetail,
   ProfileSummary,
   VolumeResponse
 } from "../types";
@@ -60,6 +61,7 @@ interface Props {
   currents: CurrentsResponse | null;
   profiles: ProfileSummary[];
   selectedProfileId: string;
+  profileDetail: ProfileDetail | null;
   importedProfiles: ImportedObservationProfile[];
   selectedImportedProfileId: string;
   verticalExaggeration: number;
@@ -106,6 +108,7 @@ export function OceanGlobe({
   currents,
   profiles,
   selectedProfileId,
+  profileDetail,
   importedProfiles,
   selectedImportedProfileId,
   verticalExaggeration,
@@ -121,6 +124,7 @@ export function OceanGlobe({
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
+  const profileCalloutRef = useRef<HTMLDivElement | null>(null);
   const enterWaterColumnRef = useRef(onEnterWaterColumn);
   const regionEntryArmedRef = useRef(true);
   const stopJourneyRef = useRef<() => void>(() => {});
@@ -882,6 +886,52 @@ export function OceanGlobe({
   }, [field, volume, currents, verticalExaggeration, colorPalette, colorScale, colorMinimum, colorMaximum]);
 
   const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
+  const selectedProfileDetail =
+    selectedProfile && profileDetail?.summary.profile_id === selectedProfile.profile_id
+      ? profileDetail
+      : null;
+  const selectedCalloutLevel = selectedProfileDetail?.levels[0] ?? null;
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const element = profileCalloutRef.current;
+    if (!viewer || viewer.isDestroyed() || !selectedProfile || !element) return;
+
+    const anchor = Cartesian3.fromDegrees(
+      selectedProfile.observation_longitude,
+      selectedProfile.observation_latitude,
+      7_500
+    );
+
+    const updateCalloutPosition = () => {
+      if (viewer.isDestroyed()) return;
+      const screen = viewer.scene.cartesianToCanvasCoordinates(anchor);
+      const canvas = viewer.scene.canvas;
+      if (
+        !screen ||
+        !Number.isFinite(screen.x) ||
+        !Number.isFinite(screen.y) ||
+        screen.x < -60 ||
+        screen.x > canvas.clientWidth + 60 ||
+        screen.y < -60 ||
+        screen.y > canvas.clientHeight + 60
+      ) {
+        element.style.visibility = "hidden";
+        return;
+      }
+
+      const x = Math.max(156, Math.min(canvas.clientWidth - 156, screen.x));
+      const y = Math.max(122, Math.min(canvas.clientHeight - 28, screen.y));
+      element.style.setProperty("--argo-callout-x", `${x}px`);
+      element.style.setProperty("--argo-callout-y", `${y}px`);
+      element.style.visibility = "visible";
+    };
+
+    const removePostRender = viewer.scene.postRender.addEventListener(updateCalloutPosition);
+    updateCalloutPosition();
+    return () => removePostRender();
+  }, [selectedProfile]);
+
   const scalar = field ?? volume;
   const legendMin = scalar ? colorMinimum : currents?.minimum;
   const legendMax = scalar ? colorMaximum : currents?.maximum;
@@ -1247,6 +1297,60 @@ export function OceanGlobe({
           DEPTH PLANE · {(field?.depth_m ?? currents?.depth_m ?? 0).toFixed(2)} m
         </div>
       )}
+      {selectedProfile && (
+        <div
+          ref={profileCalloutRef}
+          className="argo-billboard-callout"
+          data-anchor-profile={selectedProfile.profile_id}
+          data-anchor-longitude={selectedProfile.observation_longitude.toFixed(5)}
+          data-anchor-latitude={selectedProfile.observation_latitude.toFixed(5)}
+          aria-live="polite"
+        >
+          <div className="argo-callout-pointer" aria-hidden="true" />
+          <div className="argo-callout-heading">
+            <div>
+              <span>ARGO FLOAT</span>
+              <strong>#{selectedProfile.platform_id}</strong>
+            </div>
+            <small>Cycle {selectedProfile.cycle} · {selectedProfile.direction === "A" ? "Ascending" : selectedProfile.direction === "D" ? "Descending" : selectedProfile.direction}</small>
+          </div>
+          <div className="argo-callout-position">
+            <span>{selectedProfile.observation_latitude.toFixed(4)}°N</span>
+            <span>{selectedProfile.observation_longitude.toFixed(4)}°E</span>
+            <span>{selectedProfile.observation_time_utc.replace("T", " ").replace("Z", " UTC")}</span>
+          </div>
+          {selectedCalloutLevel ? (
+            <div className="argo-callout-temperature">
+              <span>Matched depth · {selectedCalloutLevel.observation_depth_m.toFixed(1)} m</span>
+              <div>
+                <strong>Argo {selectedCalloutLevel.observed_temperature.toFixed(2)} °C</strong>
+                <strong>Model {selectedCalloutLevel.model_temperature_interpolated.toFixed(2)} °C</strong>
+              </div>
+              <small>
+                Signed bias {selectedCalloutLevel.signed_bias_celsius >= 0 ? "+" : ""}
+                {selectedCalloutLevel.signed_bias_celsius.toFixed(2)} °C · diagnostic comparison
+              </small>
+            </div>
+          ) : (
+            <div className="argo-callout-temperature pending">
+              <span>Matched profile detail</span>
+              <small>Loading the verified depth-resolved comparison…</small>
+            </div>
+          )}
+          <div className="argo-callout-metrics">
+            <div><span>MAE</span><strong>{selectedProfile.mae_celsius.toFixed(3)} °C</strong></div>
+            <div><span>Matched</span><strong>{selectedProfile.matched_level_count} levels</strong></div>
+          </div>
+          <button
+            type="button"
+            className="argo-callout-inspect"
+            onClick={() => onSelectProfile(selectedProfile.profile_id)}
+          >
+            Inspect Profile ↗
+          </button>
+        </div>
+      )}
+
       <CameraOrientationHud
         context="globe"
         activePreset={cameraPreset}
