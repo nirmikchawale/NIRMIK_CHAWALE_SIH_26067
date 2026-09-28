@@ -807,3 +807,54 @@ test("live OceanTwin dark theme uses the guide WCAG contrast tokens", async ({ p
   expect(await inactiveHeaderAction.evaluate((element) => getComputedStyle(element).boxShadow))
     .not.toBe("none");
 });
+
+test("live OceanTwin presenter and scientist keyboard shortcuts work", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const skipJourney = page.getByRole("button", { name: "Skip journey", exact: true });
+  if (await skipJourney.isVisible()) await skipJourney.click();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+
+  await page.keyboard.press("2");
+  await expect(page.getByRole("button", { name: /Salinity/ })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("1");
+  await expect(page.getByRole("button", { name: /Temperature/ })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("3");
+  await expect(page.getByRole("button", { name: /Horizontal current speed/ })).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("1");
+
+  const depthSlider = page.getByLabel("Model depth");
+  const initialDepthIndex = Number(await depthSlider.inputValue());
+  await page.keyboard.press("ArrowUp");
+  await expect.poll(async () => Number(await depthSlider.inputValue())).toBeLessThan(initialDepthIndex);
+
+  const appShell = page.locator(".app-shell");
+  await page.keyboard.press("f");
+  await expect(appShell).toHaveClass(/focus-mode/);
+  await page.keyboard.press("f");
+  await expect(appShell).not.toHaveClass(/focus-mode/);
+
+  await page.keyboard.press("r");
+  await expect(page.locator(".globe-shell").first()).toHaveAttribute("data-camera-preset", "basin");
+
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
+  const timeSlider = page.getByLabel("Explore genuine timestamp");
+  const initialTimeIndex = Number(await timeSlider.inputValue());
+  await page.keyboard.press("ArrowRight");
+  await expect.poll(async () => Number(await timeSlider.inputValue())).toBeGreaterThan(initialTimeIndex);
+
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Pause genuine Explore time playback" })).toBeVisible();
+  await page.keyboard.press("Space");
+  await expect(page.getByRole("button", { name: "Play genuine Explore time playback" })).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
