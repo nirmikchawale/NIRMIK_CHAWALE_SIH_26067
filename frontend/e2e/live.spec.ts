@@ -1,6 +1,15 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const liveUrl = process.env.OCEANTWIN_LIVE_URL;
+
+async function revealCanvasTools(page: Page) {
+  const shell = page.locator(".ocean-workbench").first();
+  await expect(shell).toHaveAttribute("data-control-dock", /^(open|closed)$/);
+  if ((await shell.getAttribute("data-control-dock")) === "open") {
+    await page.getByRole("button", { name: "Hide explorer controls" }).click();
+    await expect(shell).toHaveAttribute("data-control-dock", "closed");
+  }
+}
 
 test("live OceanTwin judge flow renders and core interactions work", async ({ page }) => {
   if (!liveUrl) {
@@ -162,11 +171,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const importedGlobeShell = page.locator(".globe-shell:not(.water-column-shell)");
   await expect.poll(async () => Number(await importedGlobeShell.getAttribute("data-imported-profile-count"))).toBeGreaterThanOrEqual(4);
   await expect(page.locator(".judge-summary")).toContainText("sensor plugin profiles");
-  const importedExplorerShell = page.locator(".app-shell");
-  if ((await importedExplorerShell.getAttribute("data-control-dock")) === "open") {
-    await page.getByRole("button", { name: "Hide explorer controls" }).click();
-    await expect(importedExplorerShell).toHaveAttribute("data-control-dock", "closed");
-  }
+  await revealCanvasTools(page);
   const importedSelector = page.locator(".imported-observation-chips");
   await expect(importedSelector).toBeVisible();
   await expect(importedSelector).toContainText("GLIDER");
@@ -196,6 +201,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" })).toBeEnabled();
   await dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
+  await revealCanvasTools(page);
   await expect(page.locator(".imported-observation-chips")).toContainText("test-ctd-profile-001");
   await page.locator(".imported-observation-chips").getByRole("button", { name: /CTD.*test-ctd-profile-001/i }).click();
   await expect(page.locator(".imported-profile-panel")).toContainText("CTD");
@@ -330,7 +336,8 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
 
   await expect(page.locator(".play-button")).toHaveCount(0);
   await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
-  await expect(page.locator(".static-time-row")).toContainText("Verified model timestamp · static snapshot");
+  await expect(page.locator(".static-time-row")).toContainText("One genuine model timestamp");
+  await expect(page.locator(".static-time-row")).toContainText("never duplicated to simulate time");
 
   const sourceSelector = page.getByLabel("Explore scientific source");
   const incoisSource = sourceSelector.getByRole("button", { name: "INCOIS multi-time" });
