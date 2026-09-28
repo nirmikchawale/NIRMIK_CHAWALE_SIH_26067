@@ -11,6 +11,63 @@
     <title>OceanTwin 3D · SIH26067</title>
   </head>
   <body>
+    <style>
+      .ocean-launch { --ink:#f2eee4; --mist:#a9c1cc; --sea:#abd5df; position:fixed; inset:0; z-index:10000; overflow:auto; display:grid; grid-template-rows:auto 1fr auto; background:#0d1c26; color:var(--ink); padding:clamp(22px,5vw,72px); font:14px/1.5 "Segoe UI",sans-serif; transition:opacity .36s ease,visibility .36s; }
+      .ocean-launch * { box-sizing:border-box; }
+      .launch-masthead,.launch-footer { display:flex; align-items:center; justify-content:space-between; gap:24px; }
+      .launch-wordmark { font-weight:650; letter-spacing:.01em; font-size:20px; margin:0; }
+      .launch-wordmark span { color:var(--sea); }
+      .launch-edition,.launch-eyebrow { font-size:10px; letter-spacing:.18em; text-transform:uppercase; color:var(--mist); }
+      .launch-body { display:grid; grid-template-columns:1fr 1.15fr; align-items:center; gap:3vw; max-width:1320px; width:100%; margin:auto; }
+      .launch-copy h1 { font-size:clamp(38px,5.5vw,76px); line-height:1.06; font-weight:450; letter-spacing:-.055em; margin:22px 0; max-width:600px; }
+      .launch-copy h1 em { color:var(--sea); font-style:normal; }
+      .launch-copy > p:last-child { color:var(--mist); max-width:360px; font-size:15px; line-height:1.7; }
+      .launch-art { width:100%; max-height:62vh; overflow:visible; color:var(--sea); }
+      .launch-contour { fill:none; stroke:currentColor; stroke-width:1; vector-effect:non-scaling-stroke; opacity:.38; }
+      .launch-probe { animation:launch-sounding 4.2s ease-in-out infinite alternate; }
+      .launch-ring { transform-origin:320px 265px; animation:launch-tide 5s ease-in-out infinite alternate; }
+      .launch-status { display:flex; align-items:center; gap:12px; font-size:13px; color:var(--mist); }
+      .launch-beacon { width:7px; height:7px; background:var(--sea); border-radius:50%; animation:launch-breathe 2s ease-in-out infinite; flex:none; }
+      .launch-footer { border-top:1px solid #344b56; padding-top:22px; }
+      .launch-help { position:relative; max-width:300px; font-size:12px; color:var(--mist); }
+      .launch-help summary { cursor:pointer; min-height:44px; display:flex; align-items:center; }
+      .launch-help div { position:absolute; bottom:100%; right:0; width:260px; padding:18px; background:#142833; border:1px solid #36505f; border-radius:8px; }
+      .launch-help a,.launch-help button { color:var(--ink); font:inherit; background:transparent; border:1px solid #78939f; border-radius:4px; display:inline-flex; align-items:center; min-height:44px; padding:8px 12px; text-decoration:none; cursor:pointer; }
+      .ocean-launch :focus-visible { outline:2px solid var(--sea); outline-offset:4px; }
+      .ocean-launch[data-paused="true"] * { animation-play-state:paused; }
+      .ocean-launch[data-state="complete"] { opacity:0; visibility:hidden; pointer-events:none; }
+      @keyframes launch-sounding { from { transform:translateY(-45px); } to { transform:translateY(78px); } }
+      @keyframes launch-tide { from { transform:translateY(-4px); opacity:.28; } to { transform:translateY(4px); opacity:.6; } }
+      @keyframes launch-breathe { 50% { opacity:.35; } }
+      @media(max-width:680px) { .ocean-launch { padding:24px; } .launch-body { grid-template-columns:1fr; gap:0; margin:28px auto; } .launch-copy h1 { font-size:clamp(38px,10vw,58px); max-width:420px; margin:16px 0; } .launch-art { max-height:34vh; } .launch-edition { max-width:92px; text-align:right; font-size:9px; } .launch-footer { align-items:flex-start; gap:12px; } .launch-status { max-width:210px; padding-top:12px; } .launch-help summary { white-space:nowrap; } }
+      @media(prefers-reduced-motion:reduce) { .ocean-launch,.ocean-launch * { animation:none!important; transition:none!important; } }
+    </style>
+    <section id="ocean-launch" class="ocean-launch" aria-label="Opening OceanTwin" aria-busy="true">
+      <header class="launch-masthead"><p class="launch-wordmark">OceanTwin <span>3D</span></p><span class="launch-edition">Ocean intelligence<br>SIH26067</span></header>
+      <div class="launch-body">
+        <div class="launch-copy"><p class="launch-eyebrow">From the surface to the story below</p><h1>A deeper view<br>of <em>our ocean.</em></h1><p>Explore the layers. Follow the evidence.<br>Find the connections beneath the surface.</p></div>
+        <svg class="launch-art" viewBox="0 0 640 490" aria-hidden="true" focusable="false">
+          <defs><path id="launch-isobath" d="M95 240 C70 187 142 144 214 145 C244 99 338 98 389 140 C457 128 548 174 551 219 C585 259 524 312 456 315 C405 354 313 350 274 323 C190 340 118 303 95 240Z"/></defs>
+          <g class="launch-contour" stroke-dasharray="2 8" opacity=".2"><path d="M55 390 L575 150 M55 150 L575 390 M320 60 V440"/></g>
+          <g class="launch-ring"><use href="#launch-isobath" class="launch-contour"/><use href="#launch-isobath" class="launch-contour" transform="translate(320 240) scale(.82) translate(-320 -240)"/><use href="#launch-isobath" class="launch-contour" transform="translate(320 240) scale(.63) translate(-320 -240)"/><use href="#launch-isobath" class="launch-contour" transform="translate(320 240) scale(.43) translate(-320 -240)"/><use href="#launch-isobath" class="launch-contour" transform="translate(320 240) scale(.24) translate(-320 -240)"/></g>
+          <g class="launch-contour" opacity=".22"><use href="#launch-isobath" transform="translate(0 28)"/><use href="#launch-isobath" transform="translate(0 56)"/><use href="#launch-isobath" transform="translate(0 84)"/></g>
+          <path d="M320 123 V380" stroke="currentColor" stroke-width="1" stroke-dasharray="3 6" opacity=".65"/>
+          <g class="launch-probe"><circle cx="320" cy="240" r="5" fill="#f2eee4"/><circle cx="320" cy="240" r="12" fill="none" stroke="currentColor" opacity=".6"/></g>
+          <g fill="currentColor" font-family="Segoe UI,sans-serif" font-size="10" letter-spacing="2"><text x="335" y="124">SURFACE</text><text x="335" y="398">A WORLD BELOW</text></g>
+        </svg>
+      </div>
+      <footer class="launch-footer"><div class="launch-status" role="status" aria-live="polite"><span class="launch-beacon" aria-hidden="true"></span><span id="launch-status-text">Preparing your ocean workspace</span></div><details class="launch-help"><summary>Loading help</summary><div><p>The workspace opens as soon as its evidence is ready. On a slow connection, the first visit can take a little longer.</p><button id="launch-motion" type="button" aria-pressed="false">Pause animation</button> <a href="">Reload</a></div></details></footer>
+      <noscript><p>OceanTwin needs JavaScript to open its interactive maps. Enable JavaScript and reload this page.</p></noscript>
+    </section>
+    <script>
+      document.getElementById('launch-motion').addEventListener('click', function () {
+        const launch = document.getElementById('ocean-launch');
+        const paused = launch.dataset.paused !== 'true';
+        launch.dataset.paused = String(paused);
+        this.setAttribute('aria-pressed', String(paused));
+        this.textContent = paused ? 'Resume animation' : 'Pause animation';
+      });
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
