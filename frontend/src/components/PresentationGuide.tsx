@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 
 const STEPS = [
-  { title: "Start with the numerical ocean field", body: "Open the verified Indian Ocean model field first. Show temperature or salinity in geographic 3D so the sponsor immediately sees the numerical-model side of the problem statement." },
-  { title: "Go beneath the surface", body: "Enter Water Column 3D, move through genuine model depths, then briefly show opacity, palette, vertical exaggeration and an isosurface. Keep the explanation tied to the actual data coordinates." },
-  { title: "Prove genuine time integration", body: "Switch to the INCOIS multi-time source. Move the genuine timestamp control or press playback and state clearly that the separate GLORYS comparison baseline remains a truthful single-time snapshot." },
-  { title: "Show in-situ observations", body: "Return to the geographic Explorer and inspect a real Glider, CTD or BGC profile. Point out position, time, depth, variable, QC/source provenance and the shared sensor-plugin path." },
-  { title: "Compare model and observation", body: "Open the Argo comparison. Explain horizontal collocation, vertical interpolation, Model − Observation bias, MAE/RMSE and why the result is diagnostic rather than independent validation." },
-  { title: "Close with trust and scale", body: "Finish with sources, QC, provenance and interoperability. State the bounded SIH-MVP scope honestly, then explain how scheduled acquisition and caching extend the same adapters toward operational deployment." }
-];
+  { title: "Start with the numerical ocean field", body: "Open the verified GLORYS temperature field in geographic 3D. Establish the Indian Ocean study window, model source and real coordinates before discussing analytics." },
+  { title: "Go beneath the surface", body: "Change depth, enter Water Column 3D and show genuine depth coordinates. Briefly demonstrate one required rendering control such as opacity, color range or isosurface." },
+  { title: "Show genuine ocean time", body: "Switch to the INCOIS multi-time physical source. Move through real timestamps or start playback and state explicitly that the GLORYS comparison baseline itself remains single-time." },
+  { title: "Inspect a real in-situ sensor", body: "Return to the geographic Explorer and open a Glider, CTD or BGC profile. Point out position, UTC time, depth, variable, QC/source provenance and the observed profile shape." },
+  { title: "Compare model and observation", body: "Open the Argo diagnostic comparison. Explain collocation, vertical matching, Model − Observation bias, MAE/RMSE and why this is diagnostic rather than independent validation." },
+  { title: "Finish with trust and scale", body: "Open sources, QC and provenance. Explain that bounded verified windows prove the architecture; scheduled acquisition, cache services and additional adapters are the path to continuous operations." }
+]
 
 export function PresentationGuide({ onStep, onClose }: { onStep: (step: number) => void; onClose: () => void }) {
   const [step, setStep] = useState(0);
