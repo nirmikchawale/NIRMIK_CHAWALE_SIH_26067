@@ -874,3 +874,4 @@
  .ocean-workbench .imported-observation-chips[data-expanded="true"] { width:calc(100% - 20px); }
  .ocean-workbench .evidence-status-pill { max-width:175px; }
 }
+:root[data-theme="light"] .ocean-workbench .present-button { color: #f7f5ef; }
