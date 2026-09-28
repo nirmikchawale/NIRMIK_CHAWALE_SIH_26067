@@ -172,7 +172,7 @@ CONNECTORS: list[dict[str, Any]] = [
         "adapter": "bgc_argo_profile",
         "kind": "remote_observation",
         "provider": "Argo GDAC / Ifremer",
-        "title": "BGC-Argo synthetic profiles",
+        "title": "BGC-Argo biogeochemical profiles",
         "role": "Biogeochemical profile pathway for chlorophyll, oxygen, nitrate, pH and optical variables.",
         "variables": ["CHLA", "DOXY", "NITRATE", "PH_IN_SITU_TOTAL", "BBP", "temperature", "salinity", "pressure"],
         "protocols": ["Argo GDAC", "NetCDF", "S-profile index"],
