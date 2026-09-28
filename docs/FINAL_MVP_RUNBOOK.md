@@ -1,8 +1,18 @@
-# OceanTwin 3D — Final MVP Local Runbook
+# OceanTwin 3D — Final MVP Runbook
 
-## 1. Python environment
+## 1. Preferred local launch
 
-From the repository root:
+From the repository root, use:
+
+```text
+START_OCEANTWIN.cmd
+```
+
+This launches the FastAPI scientific API and the React + Cesium judge-facing application. Keep the Streamlit app as the emergency scientific fallback.
+
+## 2. Manual validation
+
+### Python/scientific layer
 
 ```powershell
 py -m venv .venv
@@ -10,88 +20,71 @@ py -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pip install -r backend\requirements.txt
-```
-
-## 2. Validate the frozen scientific reference
-
-```powershell
 python -m pytest -q tests
-```
-
-Expected result: the existing Streamlit regression suite passes unchanged.
-
-## 3. Validate the FastAPI layer
-
-```powershell
 python -m pytest -q backend\tests
-python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
-Check:
-
-- `http://localhost:8000/api/health`
-- `http://localhost:8000/api/catalog`
-- `http://localhost:8000/docs`
-
-Leave this terminal running.
-
-## 4. Start the React + Cesium final MVP
-
-Open a second terminal:
+### React/Cesium layer
 
 ```powershell
 cd frontend
 npm install
 npm run typecheck
-npm run dev
+npm run build
 ```
 
-Open:
+### Local services
 
-```text
-http://localhost:5173
+Terminal 1:
+
+```powershell
+python -m uvicorn backend.app.main:app --port 8000
 ```
 
-The default frontend expects the API at `http://localhost:8000`.
-
-## 5. Production frontend check
+Terminal 2:
 
 ```powershell
 cd frontend
-npm run build
-npm run preview
+npm run dev
 ```
+
+Open `http://localhost:5173`.
+
+## 3. Public release gate
+
+Before calling the MVP frozen, confirm the latest runs for the same current `main` HEAD:
+
+- `tests` — PASS
+- `final-mvp` — PASS
+- `deploy-oceantwin-pages` — PASS, including live Chromium judge-flow acceptance
+
+Then manually open:
+
+`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/#/explore`
+
+and verify Geographic View → Water Column 3D, globe zoom, INCOIS time controls, one in-situ profile and the Argo comparison.
+
+## 4. Time semantics
+
+Two truthful time behaviors coexist:
+
+- **GLORYS comparison baseline:** one genuine model timestamp, `2024-01-02T00:00:00Z`; it remains a static snapshot.
+- **INCOIS operational source:** multiple genuine timestamps; the primary Explorer exposes real time selection/playback.
+
+Never duplicate the GLORYS field under fake dates.
+
+## 5. Operational-scope wording
+
+OceanTwin demonstrates an operational-style architecture through verified build-time acquisition, source adapters, static caching, OPeNDAP/WMS checks and a reproducible public deployment.
+
+It does **not** claim a continuously running 24/7 national service. A production deployment would schedule adapter acquisition, validation and cache refresh jobs, retain the same canonical contracts, and expose the resulting validated windows through the existing web/API surfaces.
 
 ## 6. Emergency Streamlit fallback
 
-In another terminal from the repository root:
+If React/Cesium becomes unusable during judging:
 
 ```powershell
 python -m streamlit run app.py
 ```
 
-Open:
-
-```text
-http://localhost:8501
-```
-
-The fallback remains scientifically independent of the React UI and does not require FastAPI.
-
-## Demo recovery rule
-
-If the React/Cesium application fails during judging:
-
-1. Do not troubleshoot in front of the judge for an extended period.
-2. Open the already-started Streamlit fallback.
-3. Press **Reset to verified demo**.
-4. Continue with the verified temperature/Argo comparison.
-5. Explain that the fallback reads the same bundled scientific evidence.
-
-## Current time limitation
-
-The model file currently contains one genuine model time:
-`2024-01-02T00:00:00Z`.
-
-The UI intentionally disables playback until additional verified time steps are added.
-Do not change this by duplicating the same field under fake timestamps.
+Open `http://localhost:8501`, press **Reset to verified demo**, and continue with the verified GLORYS–Argo diagnostic story. Explain that the fallback reads the same bundled scientific evidence.

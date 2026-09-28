@@ -2,31 +2,16 @@
 
 PROJECT: OceanTwin 3D  
 BRANCH: main  
-STATUS: **COMPLETE — FINAL VERIFIED SIH26067 MVP BASELINE**  
-FINAL_VALIDATED_CODE_COMMIT: `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8`  
-VALIDATION_SNAPSHOT: pre-documentation-sync baseline; current GitHub Actions/Pages state is authoritative
+STATUS: **FINAL VERIFIED MVP REQUIREMENT BASELINE**
 
-This file previously tracked the active compliance upgrade slice. That execution program is complete and must no longer be used as an "ACTIVE" continuation checkpoint.
+## Authoritative records
 
-## Authoritative final records
-
-- `docs/SIH26067_COMPLETION_MATRIX.md` — requirement-by-requirement final status and evidence.
-- `docs/SIH26067_COMPLETION_STATE.md` — validated baseline, workflow gates, scientific boundaries and recovery rule.
-- `frontend/e2e/live.spec.ts` — public live judge-flow acceptance coverage.
-
-## Final validated gates
-
-Recorded validation snapshot:
-
-- tests #772 — PASS;
-- final-mvp #289 — PASS;
-- deploy-oceantwin-pages #75 — PASS;
-- public HTTPS verification — PASS;
-- live Chromium judge-flow acceptance — PASS.
+- `docs/SIH26067_COMPLETION_MATRIX.md` — requirement-by-requirement evidence.
+- `docs/SIH26067_COMPLETION_STATE.md` — current release-readiness and recovery rules.
+- `docs/FINAL_AUDIT.md` — concise final scientific/product audit.
+- `frontend/e2e/live.spec.ts` and `frontend/e2e/journey.spec.ts` — deployed judge-flow acceptance.
 
 ## Completed compliance program
-
-The previously active slices are complete:
 
 1. dynamic colorbar + genuine scalar isosurfaces;
 2. generic observation plugin architecture;
@@ -37,7 +22,11 @@ The previously active slices are complete:
 7. genuine Glider/CTD/BGC observation breadth;
 8. first-class INCOIS surface chlorophyll;
 9. full-water-column horizontal currents across 31 genuine model depths;
-10. public deployment and live-browser verification.
+10. sponsor-first presentation path and public deployment verification.
+
+## Release gate
+
+Do not preserve a stale commit/run-number snapshot here. The final release state is the current `main` HEAD **only when** the latest `tests`, `final-mvp` and `deploy-oceantwin-pages` runs for that same HEAD are all successful.
 
 ## Scientific guardrails
 
@@ -47,10 +36,6 @@ The previously active slices are complete:
 - Keep GLORYS–Argo wording diagnostic rather than independent validation.
 - Do not describe anomaly screening as ML event detection.
 - Do not claim INCOIS WCS; OceanTwin provides its own WCS compatibility service.
-- Do not claim a 24/7 national operational digital twin.
+- Do not claim a continuously running national digital twin.
 
-## Recovery rule
-
-Repository evidence overrides older chat memory and historical checkpoint files. For any future work, inspect current `main`, latest workflow runs and the public deployment before making a change.
-
-NEXT_EXACT_ACTION: **None for the compliance program. Preserve this baseline unless a new explicit feature, visual-polish or deployment request is made.**
+NEXT_EXACT_ACTION: **Freeze only after current-main CI/deployment is fully green and presentation-machine QA is complete.**
