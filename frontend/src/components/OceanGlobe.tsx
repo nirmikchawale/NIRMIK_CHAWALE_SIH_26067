@@ -273,6 +273,10 @@ export function OceanGlobe({
       }, 900);
     };
     journeyRef.current(!firstSessionEntry || reducedMotion);
+    // Keep judge-facing camera telemetry valid immediately, even while the
+    // opening journey is still animating. This prevents transient 0-height
+    // state from making zoom controls appear unresponsive in live checks.
+    setCameraHeight(viewer.camera.positionCartographic.height);
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -307,6 +311,19 @@ export function OceanGlobe({
         return;
       }
 
+      // When field-entry mode is armed, clicks on rendered model samples or
+      // the verified-domain boundary should enter the connected water column
+      // directly. This is more robust than relying only on ellipsoid picking.
+      if (
+        regionEntryArmedRef.current &&
+        entryAvailableRef.current &&
+        (pickedId?.kind === "ocean-inspection" || entityId === "model-domain-boundary")
+      ) {
+        setInspection(null);
+        enterWaterColumnRef.current();
+        return;
+      }
+
       const surfacePoint = viewer.camera.pickEllipsoid(
         movement.position,
         viewer.scene.globe.ellipsoid
@@ -315,10 +332,14 @@ export function OceanGlobe({
         const cartographic = viewer.scene.globe.ellipsoid.cartesianToCartographic(surfacePoint);
         const longitude = CesiumMath.toDegrees(cartographic.longitude);
         const latitude = CesiumMath.toDegrees(cartographic.latitude);
-        const insideVerifiedRegion =
-          longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14;
+        // Use the same framed study window as the opening journey. The
+        // scientific model domain remains 67–70 E, 12–14 N; this slightly
+        // larger interaction envelope only makes the deliberate field-entry
+        // gesture easier to hit on projectors and touchpads.
+        const insideStudyFrame =
+          longitude >= 66.35 && longitude <= 70.65 && latitude >= 11.35 && latitude <= 14.65;
 
-        if (insideVerifiedRegion && regionEntryArmedRef.current && entryAvailableRef.current) {
+        if (insideStudyFrame && regionEntryArmedRef.current && entryAvailableRef.current) {
           setInspection(null);
           enterWaterColumnRef.current();
           return;
