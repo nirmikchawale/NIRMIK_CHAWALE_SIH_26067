@@ -2403,6 +2403,9 @@
   box-shadow: 0 16px 42px rgba(0,0,0,.28);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  /* The HUD is visually persistent, but only its real controls should capture input.
+     This keeps underlying Cesium/Water-Column controls usable wherever the HUD overlaps. */
+  pointer-events: none;
 }
 .colorbar-hud-heading {
   display: flex;
@@ -2433,6 +2436,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  pointer-events: auto;
 }
 .colorbar-hud-actions button,
 .colorbar-hud-actions select {
@@ -2459,6 +2463,7 @@
   --range-start: 0%;
   --range-end: 100%;
   position: relative;
+  pointer-events: none;
   height: 48px;
   border: 1px solid color-mix(in srgb,var(--wb-line) 86%,transparent);
   border-radius: 7px;
