@@ -13,6 +13,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  // The current canvas-first UI deliberately hides duplicate map tools while
+  // the Explorer drawer is open. Close the drawer before testing basemap tools.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "closed");
   const imageryGlobeShell = page.locator(".globe-shell").first();
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "auto");
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-failsafe", "online-hd+offline-natural-earth");
@@ -31,6 +35,8 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
     .toMatch(/^(online|offline|grid)$/);
 
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "open");
 
   const documentRoot = page.locator("html");
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
@@ -290,6 +296,10 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(modeDock.getByRole("button", { name: /Geographic View/ })).toBeVisible();
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
+  // Camera HUD and smooth zoom are progressively disclosed when the Explorer
+  // control drawer is closed.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "closed");
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeGreaterThan(0);
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
   await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
@@ -308,6 +318,9 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(globeShell).toHaveAttribute("data-camera-preset", "basin");
   await globeCameraHud.getByRole("button", { name: "Face Ocean Globe camera due north" }).click();
   await expect(globeShell).toHaveAttribute("data-camera-preset", "north");
+
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "open");
 
   await expect(page.locator(".play-button")).toHaveCount(0);
   await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
@@ -518,6 +531,10 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
 
   const imageryGlobeShell = page.locator(".globe-shell").first();
+  // Progressive disclosure: basemap/camera tools are intentionally hidden
+  // while the Explorer drawer is open.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
   await page.getByRole("button", { name: "Offline", exact: true }).click();
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
   await page.getByRole("button", { name: "High-res auto" }).click();
