@@ -646,6 +646,27 @@ export default function App() {
     }
   }, []);
 
+  const handleAnalysisDepthSync = useCallback((observationDepthM: number) => {
+    if (!exploreCatalog || exploreCatalog.capabilities.surface_only === true) return;
+    const depths = exploreCatalog.coordinates.depth;
+    if (depths.length === 0) return;
+
+    let nearestIndex = 0;
+    let nearestDistance = Math.abs(depths[0] - observationDepthM);
+    for (let index = 1; index < depths.length; index += 1) {
+      const distance = Math.abs(depths[index] - observationDepthM);
+      if (distance < nearestDistance) {
+        nearestIndex = index;
+        nearestDistance = distance;
+      }
+    }
+
+    setPlaying(false);
+    setVisualizationMode("globe");
+    setViewMode("slice");
+    setDepthIndex(nearestIndex);
+  }, [exploreCatalog]);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
@@ -1064,6 +1085,7 @@ export default function App() {
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
                 detail={sourceMode === "glorys" ? profileDetail : null}
+                onDepthSync={handleAnalysisDepthSync}
               />
 
               {selectedImportedProfile ? (
