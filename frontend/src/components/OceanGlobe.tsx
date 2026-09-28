@@ -71,6 +71,7 @@ interface Props {
   presentationActive: boolean;
   profileCalloutOpen: boolean;
   comparisonHighlightDepthM: number | null;
+  keyboardCameraResetNonce: number;
   onSelectProfile: (profileId: string) => void;
   onInspectProfile: (profileId: string) => void;
   onCloseProfileCallout: () => void;
@@ -121,6 +122,7 @@ export function OceanGlobe({
   presentationActive,
   profileCalloutOpen,
   comparisonHighlightDepthM,
+  keyboardCameraResetNonce,
   onSelectProfile,
   onInspectProfile,
   onCloseProfileCallout,
@@ -1122,6 +1124,11 @@ export function OceanGlobe({
     });
   };
 
+  useEffect(() => {
+    if (keyboardCameraResetNonce <= 0) return;
+    applyCameraPreset("basin");
+  }, [keyboardCameraResetNonce]);
+
   const fitStudyRegion = () => applyCameraPreset("basin");
 
   const showEarthView = () => {
@@ -1180,6 +1187,7 @@ export function OceanGlobe({
       data-imported-profile-count={importedProfiles.length}
       data-selected-imported-profile={selectedImportedProfileId}
       data-comparison-highlight-depth={comparisonHighlightDepthM == null ? "none" : comparisonHighlightDepthM.toFixed(2)}
+      data-keyboard-camera-reset={keyboardCameraResetNonce}
     >
       <div ref={containerRef} className="cesium-host" />
       {selectedProfile && profileCalloutOpen && (
