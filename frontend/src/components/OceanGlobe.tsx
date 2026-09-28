@@ -70,6 +70,7 @@ interface Props {
   colorMinimum: number;
   colorMaximum: number;
   presentationActive: boolean;
+  resetCameraSignal: number;
   onSelectProfile: (profileId: string) => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
@@ -117,6 +118,7 @@ export function OceanGlobe({
   colorMinimum,
   colorMaximum,
   presentationActive,
+  resetCameraSignal,
   onSelectProfile,
   onSelectImportedProfile,
   onEnterWaterColumn,
@@ -1070,11 +1072,16 @@ export function OceanGlobe({
     }
 
     viewer.camera.flyTo({
-      destination: Rectangle.fromDegrees(66.35, 11.35, 70.65, 14.65),
-      duration: cameraDuration(0.58),
+      destination: Rectangle.fromDegrees(65, -5, 90, 20),
+      duration: cameraDuration(0.72),
       complete
     });
   };
+
+  useEffect(() => {
+    if (resetCameraSignal <= 0) return;
+    applyCameraPreset("basin");
+  }, [resetCameraSignal]);
 
   const fitStudyRegion = () => applyCameraPreset("basin");
 
@@ -1365,7 +1372,7 @@ export function OceanGlobe({
         </div>
         <div className="camera-preset-row">
           <button type="button" className="camera-preset-button" onClick={fitStudyRegion}>
-            <span>FIT</span><strong>Study region</strong>
+            <span>FIT</span><strong>Indian Ocean basin</strong>
           </button>
           <button type="button" className="camera-preset-button" onClick={showEarthView}>
             <span>EARTH</span><strong>Global view</strong>
