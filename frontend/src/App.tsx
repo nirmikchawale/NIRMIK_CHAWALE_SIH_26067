@@ -797,12 +797,37 @@ export default function App() {
             setWorkspaceMode("explorer");
             setProfilePanelOpen(false);
             setMobileSheet("none");
-            if (step === 0 || step === 1) {
+
+            if (step === 0) {
               navigate("explore");
+              handleSourceModeChange("glorys");
               handleVariableChange("thetao");
-              setVisualizationMode(step === 0 ? "globe" : "water-column");
-            } else if (step === 2) navigate("compare");
-            else { navigate("about"); setProvenanceOpen(true); }
+              setVisualizationMode("globe");
+            } else if (step === 1) {
+              navigate("explore");
+              handleSourceModeChange("glorys");
+              handleVariableChange("thetao");
+              setVisualizationMode("water-column");
+            } else if (step === 2) {
+              navigate("explore");
+              handleSourceModeChange("incois");
+              handleVariableChange("thetao");
+              setVisualizationMode("globe");
+            } else if (step === 3) {
+              navigate("explore");
+              handleSourceModeChange("glorys");
+              setVisualizationMode("globe");
+              const inSituProfile = importedProfiles[0];
+              if (inSituProfile) {
+                setSelectedImportedProfileId(inSituProfile.id);
+                setProfilePanelOpen(true);
+              }
+            } else if (step === 4) {
+              navigate("compare");
+            } else {
+              navigate("about");
+              setProvenanceOpen(true);
+            }
           }} />}
           {page === "explore" ? (
             <>
