@@ -776,5 +776,17 @@ test("live OceanTwin T-Z profile hover cross-highlights exact observation depth 
   await page.mouse.move(2, 2);
   await expect(globe).toHaveAttribute("data-comparison-highlight-depth", "none");
 
+  await page.getByRole("button", { name: "Compare" }).click();
+  await expect(page).toHaveURL(/#\/compare$/);
+  const comparisonChart = page.getByRole("application", { name: "Interactive Argo observed and Copernicus model temperature profiles by depth" });
+  await expect(comparisonChart).toBeVisible();
+  expect(await page.locator(".comparison-observation-diamond").count()).toBeGreaterThan(0);
+
+  const comparisonDepth = page.getByLabel("Matched comparison depth");
+  const initialComparisonIndex = await comparisonDepth.inputValue();
+  await comparisonChart.focus();
+  await comparisonChart.press("ArrowDown");
+  await expect(comparisonDepth).not.toHaveValue(initialComparisonIndex);
+
   expect(pageErrors).toEqual([]);
 });
