@@ -155,6 +155,20 @@ export function IncoisOperationalPanel() {
         </div>
       </div>
 
+      <div className="incois-operational-contrast" aria-label="Why INCOIS operational breadth complements the GLORYS baseline">
+        <article>
+          <span>REPRODUCIBLE BASELINE</span>
+          <strong>GLORYS12V1</strong>
+          <p>One immutable verified model timestamp anchors depth-resolved comparison with Argo. OceanTwin keeps it static instead of manufacturing a trend.</p>
+        </article>
+        <div className="incois-contrast-arrow" aria-hidden="true">→</div>
+        <article className="active">
+          <span>GENUINE TEMPORAL BREADTH</span>
+          <strong>INCOIS multi-time</strong>
+          <p>Real provider timestamps and real depth coordinates extend the same workspace into temporal exploration without changing source values.</p>
+        </article>
+      </div>
+
       <div className="incois-operational-proof-grid" aria-label="INCOIS integrity proof">
         <article>
           <span>GENUINE TIME</span>
