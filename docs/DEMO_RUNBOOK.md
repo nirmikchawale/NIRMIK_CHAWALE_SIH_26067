@@ -1,72 +1,104 @@
-# SIH Live Demo Runbook — Sponsor-First Final Flow
+# SIH26067 — Final Live Demo Runbook
 
-## Pre-demo acceptance checklist
+## Pre-demo release check
 
-Use the actual presentation laptop/projector where possible.
+Use the current `main` commit only after:
 
-1. Confirm current `main` and latest `tests`, `final-mvp` and `deploy-oceantwin-pages` are green for the same HEAD.
-2. Open the public Explore URL once on the judging network.
-3. Verify Geographic View → Water Column 3D works.
-4. Verify globe zoom in/out and camera presets.
-5. Verify INCOIS multi-time source and timestamp/play controls.
-6. Select one real Glider/CTD/BGC marker and open its profile inspector.
-7. Open Argo model-vs-observation comparison.
-8. Check light and dark contrast on the actual display.
-9. Check 1366×768 or the projector's native resolution at normal browser zoom.
-10. Keep `START_OCEANTWIN.cmd` and the Streamlit fallback ready locally.
-11. Test one first-load/slow-network scenario; the static scientific evidence path must remain usable.
-12. Do not alter data, fabricate timestamps or improvise unsupported claims during judging.
+- `tests` — PASS
+- `final-mvp` — PASS
+- `deploy-oceantwin-pages` — PASS including live Chromium judge-flow acceptance
+- `docs/VISUAL_DEMO_CHECKLIST.md` — completed on the actual presentation laptop/projector
+
+Primary URL:
+
+`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/#/explore`
+
+Keep `START_OCEANTWIN.cmd` and the Streamlit fallback ready locally.
 
 ## 90-second sponsor-first flow
 
-- **0–12 s — Problem + numerical field:** “OceanTwin integrates numerical ocean-model fields and in-situ observations in one browser-native 3D explorer.” Show the verified Indian Ocean GLORYS field.
-- **12–28 s — Depth + 3D:** change depth, enter Water Column 3D, briefly show the actual-depth structure and one rendering control/isosurface.
-- **28–42 s — Genuine time:** switch to INCOIS multi-time and move the real timestamp or press playback. Explicitly distinguish this from the truthful single-time GLORYS comparison baseline.
-- **42–57 s — In-situ observation:** return to geographic view and inspect a real Glider, CTD or BGC profile. Point to position, time, depth, variable, QC/source and profile shape.
-- **57–76 s — Model ↔ observation:** open the Argo comparison. Explain nearest valid model-cell collocation, vertical interpolation, Model − Observation bias, MAE/RMSE and the diagnostic-not-independent-validation limitation.
-- **76–90 s — Trust + scale:** show provenance/source evidence and state that the MVP proves the architecture with bounded verified windows; production scale uses scheduled acquisition/validation/cache refresh around the same adapters.
+**0–15 s — Numerical ocean model**
 
-## 2–3 minute extension
+Open Geographic View on GLORYS temperature.
 
-Add:
-- salinity and full-water-column horizontal currents;
-- customizable palette/min/max and valid log/linear scaling;
-- Data Lab temporary observation layer ingestion;
-- NetCDF browser ingestion;
-- OPeNDAP/WMS/WCS interoperability;
-- anomaly/telemetry **after** the required 3D + in-situ + comparison story.
+Say: “OceanTwin brings numerical ocean-model fields and in-situ observations into one browser-native 3D workspace. This field is genuine GLORYS model data over our verified Indian Ocean window.”
 
-## Judge-safe wording
+**15–30 s — Depth and 3D**
 
-Use:
-- “verified SIH MVP”
-- “genuine provider observations”
-- “diagnostic model–observation comparison”
-- “horizontal `uo/vo` currents at genuine depths”
-- “surface-only satellite chlorophyll”
-- “build-time verified source acquisition and cached public evidence”
+Change depth and enter Water Column 3D.
 
-Avoid:
-- “24/7 national operational digital twin”
-- “independent model validation”
-- “vertical current” unless a genuine `w` component is available
-- “ML anomaly detection”
-- any wording that implies synthetic/fabricated BGC measurements
+Say: “These are genuine model depth coordinates. Vertical exaggeration changes only display geometry. We can inspect temperature, salinity and horizontal currents through depth, with configurable rendering and genuine scalar isosurfaces.”
 
-## Recovery
+**30–43 s — Genuine time**
 
-### Public page interaction issue
-Use the explicit visualization-mode buttons rather than relying on a gesture, then continue. If the page remains unreliable, switch to the local React build.
+Switch to INCOIS multi-time.
 
-### React/Cesium failure
-Use the already prepared Streamlit fallback and continue with the verified GLORYS–Argo diagnostic.
+Say: “The GLORYS comparison baseline has one genuine timestamp, so we do not fake animation. For temporal exploration we use a separately verified INCOIS product with real timestamps.”
 
-### Network failure
-Use the local build/static cached evidence. Explain that scientific evidence is deliberately cached for deterministic judging.
+**43–58 s — In-situ observation**
 
-### Projector/readability issue
-Use presentation workspace or browser fullscreen. Keep browser zoom at a stable normal value unless the display requires a one-time adjustment before judging.
+Open one Glider, CTD or BGC marker/profile.
 
-## Final human visual QA
+Say: “This is a real in-situ profile using the same canonical observation contract: geographic position, UTC time, depth, variable, units, QC/source provenance and profile values.”
 
-This cannot be fully automated because projector brightness, OS scaling, GPU/WebGL behavior and venue networking are machine-specific. The team must physically verify the actual presentation machine before the judging session.
+**58–78 s — Model ↔ observation**
+
+Open the Argo comparison.
+
+Say: “For Argo we go beyond overlay. We collocate the observation with the nearest valid model cell, vertically match model values without extrapolation, and expose Model minus Observation bias, MAE and RMSE. We call this diagnostic comparison, not independent validation.”
+
+**78–90 s — Trust and scale**
+
+Open Sources/QC or Science & System.
+
+Say: “Every source and limitation is traceable. This is a bounded, verified SIH MVP. In production the same adapters would run through scheduled acquisition, validated caches and monitoring for continuous operations.”
+
+## What to show only after the required story
+
+- telemetry;
+- anomaly screening;
+- Data Lab ingestion;
+- WMS/WCS/OPeNDAP details;
+- additional camera/workspace modes.
+
+These are strengths, but they must not obscure the sponsor’s central model + 3D + time + in-situ integration story.
+
+## Judge questions to be ready for
+
+### “Are your in-situ observations actually integrated?”
+
+Yes. Argo, Glider, CTD and BGC observations enter the same browser Explorer through a canonical geospatial profile contract. Argo additionally has full model-collocation and error diagnostics.
+
+### “Why not animate GLORYS?”
+
+The bundled GLORYS comparison evidence has one genuine timestamp. OceanTwin refuses to duplicate it under fake dates. Genuine playback is demonstrated using the verified INCOIS multi-time source.
+
+### “Is this operational?”
+
+It is an operational-style, reproducible SIH MVP rather than a 24/7 national service. Production scaling means scheduled provider acquisition, validation/QC, cache/version management, monitoring and the same source-adapter/API contracts.
+
+### “Are the currents 3D?”
+
+They are genuine horizontal `uo/vo` vectors placed at their scientific depths across the water column. No unsupported vertical-current component is fabricated.
+
+### “Is BGC synthetic?”
+
+No fabricated BGC measurements are used in the verified observation pack. The UI/source registry uses “BGC-Argo biogeochemical profiles” wording to avoid confusing the Argo technical term “synthetic profile” with synthetic/fake data.
+
+## Recovery order
+
+1. Explicit mode buttons instead of gesture/canvas entry.
+2. Local React/FastAPI build using `START_OCEANTWIN.cmd`.
+3. Streamlit scientific fallback → **Reset to verified demo**.
+
+The fallback is a resilience path, not the primary presentation.
+
+## Final rule
+
+Do not overclaim:
+- no fake timestamps;
+- no fabricated vertical current;
+- no fabricated chlorophyll depth;
+- no independent/global validation claim;
+- no ML-event-detection claim for anomaly screening;
+- no 24/7 national digital-twin claim.
