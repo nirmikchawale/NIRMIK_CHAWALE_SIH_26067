@@ -2913,3 +2913,80 @@
       translate(-50%,calc(-100% - 22px));
   }
 }
+
+
+/* SIH guide P2 — synchronized interactive model-vs-observation T–Z chart. */
+.analysis-profile-chart-interactive svg {
+  cursor: crosshair;
+  touch-action: none;
+}
+.analysis-model-smooth {
+  fill: none;
+  stroke: var(--wb-accent);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.analysis-observation-diamond {
+  fill: #f0b65d;
+  stroke: #fff3d5;
+  stroke-width: .8;
+}
+:root[data-theme="light"] .analysis-observation-diamond {
+  fill: #a86207;
+  stroke: #5f3500;
+}
+.analysis-depth-crosshair {
+  stroke: color-mix(in srgb,var(--wb-accent) 72%,#ffffff);
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.analysis-hover-model {
+  fill: var(--wb-accent);
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 5px color-mix(in srgb,var(--wb-accent) 75%,transparent));
+}
+.analysis-hover-observation {
+  fill: #f0b65d;
+  stroke: #ffffff;
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 5px rgba(240,182,93,.62));
+}
+.analysis-chart-legend i.diamond {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+}
+.analysis-chart-hover-readout {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr 1fr;
+  gap: 6px 10px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 8px 9px;
+  border: 1px solid color-mix(in srgb,var(--wb-accent) 34%,var(--wb-line));
+  border-radius: 6px;
+  background: color-mix(in srgb,var(--wb-accent) 7%,var(--wb-bg));
+  font-variant-numeric: tabular-nums;
+}
+.analysis-chart-hover-readout strong {
+  color: var(--wb-accent);
+  font-size: 11px;
+}
+.analysis-chart-hover-readout span {
+  color: var(--wb-text);
+  font-size: 9px;
+}
+.analysis-chart-hover-readout small {
+  grid-column: 1 / -1;
+  color: var(--wb-muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+@media (max-width:760px) {
+  .analysis-chart-hover-readout {
+    grid-template-columns: 1fr 1fr;
+  }
+  .analysis-chart-hover-readout small { grid-column: 1 / -1; }
+}
