@@ -54,6 +54,22 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
   }
 });
 
+
+test("fresh refresh replays the Earth India ocean orientation", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required");
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  const globe = page.locator(".globe-shell[data-journey-phase]");
+  await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 30_000 });
+
+  await page.reload({ waitUntil: "domcontentloaded" });
+  // The orientation journey lasts several seconds, so a fresh reload must
+  // re-enter one of its active phases instead of opening directly at region.
+  await expect(globe).toHaveAttribute("data-journey-phase", /^(earth|india|flying)$/, { timeout: 5_000 });
+  await expect(page.locator(".globe-intro-status")).toBeVisible();
+  await expect(page.locator(".globe-intro-status")).toContainText(/EARTH|INDIA|VERIFIED OCEAN FIELD/);
+  await expect(globe).toHaveAttribute("data-journey-phase", "region", { timeout: 30_000 });
+});
+
 test("mobile pinch, wheel and reduced-motion orientation work", async ({ page, context }) => {
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required");
   await page.setViewportSize({ width: 390, height: 844 });
