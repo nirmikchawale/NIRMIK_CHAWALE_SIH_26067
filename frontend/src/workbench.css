@@ -1487,8 +1487,8 @@
   .ocean-workbench .ocean-journey {
     display: flex;
     top: 66px;
-    right: 10px;
-    left: auto;
+    right: auto;
+    left: 10px;
     width: auto;
     max-width: none;
     transform: none;
