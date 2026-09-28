@@ -115,6 +115,7 @@ export default function App() {
   const [colorMaximum, setColorMaximum] = useState(1);
   const [isoSurfaceEnabled, setIsoSurfaceEnabled] = useState(false);
   const [isoValue, setIsoValue] = useState(0.5);
+  const [cameraResetSignal, setCameraResetSignal] = useState(0);
 
   const [field, setField] = useState<FieldResponse | null>(null);
   const [volume, setVolume] = useState<VolumeResponse | null>(null);
@@ -632,6 +633,104 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    if (page !== "explore" || !exploreCatalog) return;
+
+    const handleScientificShortcuts = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.matches("input, select, textarea, button") ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (event.code === "Space") {
+        if (!exploreCatalog.capabilities.time_animation) return;
+        event.preventDefault();
+        setPlaying((current) => !current);
+        return;
+      }
+
+      if (key === "arrowup" || key === "arrowdown") {
+        if (exploreCatalog.capabilities.surface_only || exploreCatalog.coordinates.depth.length === 0) return;
+        event.preventDefault();
+        setVisualizationMode("globe");
+        setViewMode("slice");
+        setDepthIndex((current) =>
+          Math.max(
+            0,
+            Math.min(
+              exploreCatalog.coordinates.depth.length - 1,
+              current + (key === "arrowup" ? -1 : 1)
+            )
+          )
+        );
+        return;
+      }
+
+      if (key === "arrowleft" || key === "arrowright") {
+        if (!exploreCatalog.capabilities.time_animation || exploreCatalog.coordinates.time.length < 2) return;
+        event.preventDefault();
+        setTimeIndex((current) => {
+          const count = exploreCatalog.coordinates.time.length;
+          return (current + (key === "arrowleft" ? -1 : 1) + count) % count;
+        });
+        return;
+      }
+
+      if (key === "f") {
+        event.preventDefault();
+        setFocusMode((current) => !current);
+        setMobileSheet("none");
+        setEvidenceOpen(false);
+        return;
+      }
+
+      if (key === "r") {
+        event.preventDefault();
+        setVisualizationMode("globe");
+        setCameraResetSignal((current) => current + 1);
+        return;
+      }
+
+      if (key === "1" || key === "2" || key === "3") {
+        event.preventDefault();
+        const targetVariable = key === "1" ? "thetao" : key === "2" ? "so" : "currents";
+        const mustUseGlorys = targetVariable === "currents" || sourceMode === "chlorophyll";
+        const targetCatalog = mustUseGlorys ? catalog : exploreCatalog;
+        const variableCard = targetCatalog?.variables.find((item) => item.id === targetVariable);
+        if (!targetCatalog || !variableCard) return;
+
+        if (mustUseGlorys && sourceMode !== "glorys") {
+          setSourceMode("glorys");
+          setPlaying(false);
+          setTimeIndex(0);
+          setDepthIndex(Math.min(18, Math.max(0, targetCatalog.coordinates.depth.length - 1)));
+          setVisualizationMode("globe");
+          setProfilePanelOpen(false);
+        }
+
+        setVariable(targetVariable);
+        setColorMinimum(variableCard.minimum);
+        setColorMaximum(variableCard.maximum);
+        setColorScale("linear");
+        if (variableCard.kind === "scalar") {
+          setIsoValue((variableCard.minimum + variableCard.maximum) / 2);
+        } else {
+          setViewMode("slice");
+          setIsoSurfaceEnabled(false);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleScientificShortcuts);
+    return () => window.removeEventListener("keydown", handleScientificShortcuts);
+  }, [page, exploreCatalog, sourceMode, catalog]);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
@@ -997,6 +1096,7 @@ export default function App() {
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
+                    resetCameraSignal={cameraResetSignal}
                     onSelectProfile={handleProfileSelection}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
