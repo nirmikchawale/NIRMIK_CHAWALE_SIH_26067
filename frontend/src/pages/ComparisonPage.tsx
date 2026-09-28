@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent, type PointerEvent } from "react";
 
 import type {
   ComparisonLevel,
@@ -109,6 +109,46 @@ function linePoints(
     .join(" ");
 }
 
+interface ComparisonPlotPoint {
+  x: number;
+  y: number;
+  index: number;
+}
+
+function profilePlotPoints(
+  levels: ComparisonLevel[],
+  accessor: (level: ComparisonLevel) => number,
+  width: number,
+  height: number,
+  xMin: number,
+  xMax: number,
+  maxDepth: number
+): ComparisonPlotPoint[] {
+  return levels.map((level, index) => ({
+    x: 22 + ((accessor(level) - xMin) / Math.max(xMax - xMin, 1e-9)) * (width - 44),
+    y: 18 + (level.observation_depth_m / Math.max(maxDepth, 1e-9)) * (height - 36),
+    index
+  }));
+}
+
+function smoothProfilePath(points: ComparisonPlotPoint[]) {
+  if (points.length === 0) return "";
+  if (points.length === 1) return `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  let path = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+  for (let index = 0; index < points.length - 1; index += 1) {
+    const p0 = points[index - 1] ?? points[index];
+    const p1 = points[index];
+    const p2 = points[index + 1];
+    const p3 = points[index + 2] ?? p2;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    path += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+  }
+  return path;
+}
+
 function quantile(values: number[], q: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -189,7 +229,15 @@ function ComparisonCollocationMiniMap({ summary }: { summary: ProfileSummary }) 
   );
 }
 
-function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
+function ComparisonProfileChart({
+  detail,
+  selectedLevelIndex,
+  onSelectLevelIndex
+}: {
+  detail: ProfileDetail;
+  selectedLevelIndex: number;
+  onSelectLevelIndex: (index: number) => void;
+}) {
   const width = 560;
   const height = 360;
   const temperatures = detail.levels.flatMap((level) => [
@@ -199,8 +247,7 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
   const xMin = Math.min(...temperatures);
   const xMax = Math.max(...temperatures);
   const maxDepth = Math.max(...detail.levels.map((level) => level.observation_depth_m));
-
-  const observed = linePoints(
+  const observed = profilePlotPoints(
     detail.levels,
     (level) => level.observed_temperature,
     width,
@@ -209,7 +256,7 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
     xMax,
     maxDepth
   );
-  const model = linePoints(
+  const model = profilePlotPoints(
     detail.levels,
     (level) => level.model_temperature_interpolated,
     width,
@@ -218,6 +265,33 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
     xMax,
     maxDepth
   );
+  const index = Math.max(0, Math.min(detail.levels.length - 1, selectedLevelIndex));
+  const selectedObserved = observed[index];
+  const selectedModel = model[index];
+  const selectedLevel = detail.levels[index];
+
+  const selectNearest = (event: PointerEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const chartY = ((event.clientY - rect.top) / Math.max(rect.height, 1)) * height;
+    const depth = Math.max(
+      0,
+      Math.min(maxDepth, ((chartY - 18) / Math.max(height - 36, 1)) * maxDepth)
+    );
+    const nearest = detail.levels.reduce((bestIndex, level, levelIndex) => {
+      const best = detail.levels[bestIndex];
+      return Math.abs(level.observation_depth_m - depth) < Math.abs(best.observation_depth_m - depth)
+        ? levelIndex
+        : bestIndex;
+    }, 0);
+    onSelectLevelIndex(nearest);
+  };
+
+  const handleKey = (event: KeyboardEvent<SVGSVGElement>) => {
+    if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+    event.preventDefault();
+    const delta = event.key === "ArrowDown" ? 1 : -1;
+    onSelectLevelIndex(Math.max(0, Math.min(detail.levels.length - 1, index + delta)));
+  };
 
   return (
     <section className="comparison-chart-card comparison-profile-card">
@@ -229,21 +303,52 @@ function ComparisonProfileChart({ detail }: { detail: ProfileDetail }) {
         <strong>{xMin.toFixed(2)}–{xMax.toFixed(2)} °C</strong>
       </div>
       <svg
-        className="comparison-profile-chart"
+        className="comparison-profile-chart comparison-profile-chart-interactive"
         viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-label="Argo observed and Copernicus model temperature profiles by depth"
+        role="application"
+        tabIndex={0}
+        aria-label="Interactive Argo observed and Copernicus model temperature profiles by depth"
+        onPointerMove={selectNearest}
+        onKeyDown={handleKey}
       >
         <line x1="22" x2={width - 22} y1="18" y2="18" className="grid-line" />
         <line x1="22" x2={width - 22} y1={height / 2} y2={height / 2} className="grid-line" />
         <line x1="22" x2={width - 22} y1={height - 18} y2={height - 18} className="grid-line" />
-        <polyline points={model} className="profile-line model-line comparison-line" />
-        <polyline points={observed} className="profile-line observation-line comparison-line" />
+        <path d={smoothProfilePath(model)} className="comparison-model-smooth-line" />
+        {observed.map((point) => (
+          <rect
+            key={point.index}
+            className="comparison-observation-diamond"
+            x={point.x - 4}
+            y={point.y - 4}
+            width="8"
+            height="8"
+            transform={`rotate(45 ${point.x.toFixed(1)} ${point.y.toFixed(1)})`}
+            onPointerEnter={() => onSelectLevelIndex(point.index)}
+          />
+        ))}
+        {selectedObserved && selectedModel && selectedLevel && (
+          <g className="comparison-profile-crosshair">
+            <line x1="22" x2={width - 22} y1={selectedObserved.y} y2={selectedObserved.y} />
+            <circle cx={selectedModel.x} cy={selectedModel.y} r="5.5" className="comparison-selected-model" />
+            <rect
+              x={selectedObserved.x - 5}
+              y={selectedObserved.y - 5}
+              width="10"
+              height="10"
+              transform={`rotate(45 ${selectedObserved.x.toFixed(1)} ${selectedObserved.y.toFixed(1)})`}
+              className="comparison-selected-observation"
+            />
+            <text x={width - 26} y={Math.max(16, selectedObserved.y - 7)} textAnchor="end" className="comparison-depth-label">
+              {selectedLevel.observation_depth_m.toFixed(1)} m
+            </text>
+          </g>
+        )}
       </svg>
       <div className="comparison-chart-legend">
-        <span><i className="legend-dot model-dot" /> Copernicus interpolated model</span>
-        <span><i className="legend-dot observation-dot" /> Argo observation</span>
-        <span>Depth increases downward · max {maxDepth.toFixed(0)} m</span>
+        <span><i className="legend-dot model-dot" /> Copernicus smooth interpolation trace</span>
+        <span><i className="legend-dot observation-dot" /> Argo observed diamonds</span>
+        <span>Hover or ↑ / ↓ · depth increases downward · max {maxDepth.toFixed(0)} m</span>
       </div>
     </section>
   );
@@ -460,7 +565,7 @@ export function ComparisonPage({
           )}
 
           <div className="comparison-chart-grid">
-            <ComparisonProfileChart detail={detail} />
+            <ComparisonProfileChart detail={detail} selectedLevelIndex={selectedLevelIndex} onSelectLevelIndex={setSelectedLevelIndex} />
             <ComparisonBiasChart detail={detail} />
           </div>
 
