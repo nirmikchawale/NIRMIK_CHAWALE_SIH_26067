@@ -3029,3 +3029,46 @@
   stroke-width: 3px;
   stroke-linejoin: round;
 }
+
+
+/* SIH guide 5.1 — explicit WCAG AA/AAA-oriented dark-theme contrast tokens. */
+.ocean-workbench :is(
+  .microcopy,
+  .source-status-note,
+  .analysis-limit-note,
+  .analysis-chart-hover-hint,
+  .timeline-footer > small,
+  .argo-callout-footer > span,
+  .evidence-footnote p,
+  .presentation-guide p
+) {
+  color: var(--wb-micro);
+}
+.ocean-workbench .badge.success,
+.ocean-workbench .qc-pill {
+  border-color: var(--wb-success-text);
+  color: var(--wb-success-text);
+  background: var(--wb-success-bg);
+}
+.ocean-workbench :is(button, select, input, summary):focus-visible {
+  outline: 2px solid color-mix(in srgb, #38bdf8 72%, #ffffff);
+  outline-offset: 2px;
+}
+.ocean-workbench .keyboard-shortcut-summary {
+  max-width: none;
+  color: var(--wb-micro);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .015em;
+}
+.ocean-workbench .science-footer {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  align-items: center;
+}
+.ocean-workbench .science-footer span:first-child { max-width: none; }
+.ocean-workbench .science-footer span:last-child { text-align: right; }
+
+@media (max-width: 1180px) {
+  .ocean-workbench .keyboard-shortcut-summary { display: none; }
+  .ocean-workbench .science-footer { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+}
