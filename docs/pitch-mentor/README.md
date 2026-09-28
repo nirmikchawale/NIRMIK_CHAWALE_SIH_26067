@@ -28,6 +28,9 @@ This directory converts a winner-heavy Smart India Hackathon presentation corpus
 8. **07_MASTER_PROMPT_FAILSAFE_ROLLBACK.md**  
    Hierarchical execution protocol, validation gates, fail-safe modes and rollback policy.
 
+9. **08_CORPUS_EXPANSION_LEDGER.md**  
+   Second-pass 150+ high-signal screening expansion, winner/finalist evidence blocks, archive overlap and rejection examples.
+
 ## Core story the final six slides must preserve
 
 **WHO / WHAT**  
