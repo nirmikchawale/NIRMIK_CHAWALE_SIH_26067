@@ -71,6 +71,7 @@ interface Props {
   colorMaximum: number;
   presentationActive: boolean;
   resetCameraSignal: number;
+  tourStep: number | null;
   onSelectProfile: (profileId: string) => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
@@ -119,6 +120,7 @@ export function OceanGlobe({
   colorMaximum,
   presentationActive,
   resetCameraSignal,
+  tourStep,
   onSelectProfile,
   onSelectImportedProfile,
   onEnterWaterColumn,
@@ -1105,6 +1107,7 @@ export function OceanGlobe({
     if (!selectedProfile) return;
     const viewer = cancelCameraAnimation();
     if (!viewer) return;
+    setCameraPreset("nadir");
     viewer.camera.flyTo({
       destination: Cartesian3.fromDegrees(
         selectedProfile.observation_longitude,
@@ -1120,6 +1123,17 @@ export function OceanGlobe({
       complete: () => setCameraHeight(viewer.camera.positionCartographic.height)
     });
   };
+
+  useEffect(() => {
+    if (tourStep == null) return;
+    if (tourStep === 0 || tourStep === 2) {
+      applyCameraPreset("basin");
+      return;
+    }
+    if (tourStep === 3 && selectedProfile) {
+      focusSelectedObservation();
+    }
+  }, [tourStep, selectedProfileId]);
 
   return (
     <main
