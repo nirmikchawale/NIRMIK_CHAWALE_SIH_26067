@@ -111,6 +111,7 @@ export default function App() {
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
   const [playing, setPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [keyboardCameraResetNonce, setKeyboardCameraResetNonce] = useState(0);
   const [colorPalette, setColorPalette] = useState<ColorPalette>("thermal");
   const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
   const [colorMinimum, setColorMinimum] = useState(0);
@@ -649,6 +650,104 @@ export default function App() {
     }
   }, []);
 
+  useEffect(() => {
+    const isInteractiveTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      return Boolean(target.closest("input, select, textarea, button, [contenteditable='true']"));
+    };
+
+    const switchPrimaryVariable = (targetVariable: "thetao" | "so" | "currents") => {
+      if (!catalog) return;
+      const card = catalog.variables.find((item) => item.id === targetVariable);
+      if (!card) return;
+
+      setSourceMode("glorys");
+      setPlaying(false);
+      setTimeIndex(0);
+      setDepthIndex((current) => Math.min(current, Math.max(0, catalog.coordinates.depth.length - 1)));
+      setVariable(targetVariable);
+      setProfileCalloutOpen(false);
+      setComparisonHighlightDepthM(null);
+
+      if (targetVariable === "currents") {
+        setViewMode("slice");
+        setIsoSurfaceEnabled(false);
+      }
+      if (card.kind === "scalar") {
+        setColorMinimum(card.minimum);
+        setColorMaximum(card.maximum);
+        setIsoValue((card.minimum + card.maximum) / 2);
+      } else {
+        setColorMinimum(card.minimum);
+        setColorMaximum(card.maximum);
+      }
+      setColorScale("linear");
+    };
+
+    const handlePresenterShortcuts = (event: KeyboardEvent) => {
+      if (page !== "explore" || event.ctrlKey || event.metaKey || event.altKey || isInteractiveTarget(event.target)) {
+        return;
+      }
+
+      if (event.code === "Space") {
+        if (!activeExploreCatalog.capabilities.time_animation) return;
+        event.preventDefault();
+        setPlaying((current) => !current);
+        return;
+      }
+
+      if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        if (activeExploreCatalog.capabilities.surface_only || activeExploreCatalog.coordinates.depth.length <= 1) return;
+        event.preventDefault();
+        const delta = event.key === "ArrowDown" ? 1 : -1;
+        setDepthIndex((current) =>
+          Math.max(0, Math.min(activeExploreCatalog.coordinates.depth.length - 1, current + delta))
+        );
+        return;
+      }
+
+      if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+        if (!activeExploreCatalog.capabilities.time_animation || activeExploreCatalog.coordinates.time.length <= 1) return;
+        event.preventDefault();
+        setPlaying(false);
+        const length = activeExploreCatalog.coordinates.time.length;
+        const delta = event.key === "ArrowRight" ? 1 : -1;
+        setTimeIndex((current) => (current + delta + length) % length);
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      if (key === "f") {
+        event.preventDefault();
+        setFocusMode((current) => !current);
+        return;
+      }
+      if (key === "r") {
+        event.preventDefault();
+        setVisualizationMode("globe");
+        setKeyboardCameraResetNonce((current) => current + 1);
+        return;
+      }
+      if (key === "1") {
+        event.preventDefault();
+        switchPrimaryVariable("thetao");
+        return;
+      }
+      if (key === "2") {
+        event.preventDefault();
+        switchPrimaryVariable("so");
+        return;
+      }
+      if (key === "3") {
+        event.preventDefault();
+        switchPrimaryVariable("currents");
+      }
+    };
+
+    window.addEventListener("keydown", handlePresenterShortcuts);
+    return () => window.removeEventListener("keydown", handlePresenterShortcuts);
+  }, [page, activeExploreCatalog, catalog]);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
@@ -1015,6 +1114,7 @@ export default function App() {
                     presentationActive={workspaceMode === "presentation"}
                     profileCalloutOpen={profileCalloutOpen}
                     comparisonHighlightDepthM={workspaceMode === "analysis" && visualizationMode === "globe" ? comparisonHighlightDepthM : null}
+                    keyboardCameraResetNonce={keyboardCameraResetNonce}
                     onSelectProfile={handleProfilePinSelection}
                     onInspectProfile={handleProfileSelection}
                     onCloseProfileCallout={() => setProfileCalloutOpen(false)}
@@ -1185,6 +1285,9 @@ export default function App() {
         <span>
           Reanalysis · Cached verified · No runtime scientific-data download
           {degradedWarnings.length > 0 ? ` · Degraded: ${degradedWarnings.join(" · ")}` : ""}
+        </span>
+        <span className="keyboard-shortcut-summary" aria-label="Explore keyboard shortcuts">
+          Space play · ↑↓ depth · ←→ time · F focus · R basin · 1/2/3 variables
         </span>
         <span>{catalog.scientific_disclaimer}</span>
       </footer>
