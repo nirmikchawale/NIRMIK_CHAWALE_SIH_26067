@@ -319,8 +319,6 @@ export function OceanGlobe({
           longitude >= 67 && longitude <= 70 && latitude >= 12 && latitude <= 14;
 
         if (insideVerifiedRegion && regionEntryArmedRef.current && entryAvailableRef.current) {
-          regionEntryArmedRef.current = false;
-          setRegionEntryArmed(false);
           setInspection(null);
           enterWaterColumnRef.current();
           return;

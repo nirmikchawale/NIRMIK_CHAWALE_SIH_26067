@@ -20,6 +20,15 @@ test("orientation replay, skip, field entry and return remain usable", async ({ 
   await expect(page.locator(".water-column-shell")).toBeVisible();
   await page.getByRole("button", { name: "Geographic View", exact: true }).click();
   await expect(page.getByRole("button", { name: "Inspect points on map", exact: true })).toHaveAttribute("aria-pressed", "false");
+  // The globe stays mounted across mode changes: field-click entry must rework on every visit.
+  for (let visit = 0; visit < 2; visit += 1) {
+    const mapCanvas = page.locator(".globe-shell canvas");
+    const bounds = await mapCanvas.boundingBox();
+    if (!bounds) throw new Error("Geographic canvas missing");
+    await mapCanvas.click({ position: { x: bounds.width * 0.60, y: bounds.height * 0.48 } });
+    await expect(page.getByRole("button", { name: "Water Column 3D", exact: true })).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", { name: "Geographic View", exact: true }).click();
+  }
 });
 
 test("mobile pinch, wheel and reduced-motion orientation work", async ({ page, context }) => {

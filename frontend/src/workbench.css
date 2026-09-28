@@ -856,3 +856,21 @@
  .ocean-workbench .visualization-stage .imported-observation-chips { top:164px; }
  .ocean-workbench .field-entry-actions { top:220px; }
 }
+
+/* Adapted from the Magic Patterns overview: real coverage, no prototype data. */
+.field-story .field-question { font-size:14px; font-weight:650; margin:0 0 16px; }
+.field-coverage { padding:20px 0; border-bottom:1px solid var(--wb-line); }
+.field-coverage > strong { display:block; font-size:16px; margin:8px 0; }
+.depth-level-ticks { display:flex; gap:2px; height:26px; align-items:flex-end; margin:14px 0 6px; }
+.depth-level-ticks i { flex:1; min-width:0; height:10px; background:var(--wb-line); }
+.depth-level-ticks i.selected { height:26px; background:var(--wb-accent); }
+.depth-coverage-labels { display:flex; justify-content:space-between; font-size:12px; color:var(--wb-muted); font-variant-numeric:tabular-nums; }
+.evidence-inspector-bar { position:sticky; top:0; background:var(--wb-panel); z-index:2; }
+@media(min-width:761px) {
+ .ocean-workbench .field-entry-actions { top:auto; bottom:78px; left:50%; right:auto; transform:translateX(-50%); width:240px; }
+}
+@media(max-width:760px) {
+ .ocean-workbench .visualization-stage .imported-observation-chips { right:auto; width:175px; }
+ .ocean-workbench .imported-observation-chips[data-expanded="true"] { width:calc(100% - 20px); }
+ .ocean-workbench .evidence-status-pill { max-width:175px; }
+}
