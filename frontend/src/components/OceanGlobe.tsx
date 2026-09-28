@@ -22,6 +22,7 @@ import {
   PerInstanceColorAppearance,
   Rectangle,
   RectangleGeometry,
+  SceneTransforms,
   ScreenSpaceEventHandler,
   ScreenSpaceEventType,
   VerticalOrigin,
@@ -68,7 +69,10 @@ interface Props {
   colorMinimum: number;
   colorMaximum: number;
   presentationActive: boolean;
+  profileCalloutOpen: boolean;
   onSelectProfile: (profileId: string) => void;
+  onInspectProfile: (profileId: string) => void;
+  onCloseProfileCallout: () => void;
   onSelectImportedProfile: (profileId: string) => void;
   onEnterWaterColumn: () => void;
   canEnterWaterColumn: boolean;
@@ -114,12 +118,16 @@ export function OceanGlobe({
   colorMinimum,
   colorMaximum,
   presentationActive,
+  profileCalloutOpen,
   onSelectProfile,
+  onInspectProfile,
+  onCloseProfileCallout,
   onSelectImportedProfile,
   onEnterWaterColumn,
   canEnterWaterColumn
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const calloutRef = useRef<HTMLDivElement | null>(null);
   const viewerRef = useRef<Viewer | null>(null);
   const enterWaterColumnRef = useRef(onEnterWaterColumn);
   const regionEntryArmedRef = useRef(true);
@@ -882,6 +890,55 @@ export function OceanGlobe({
   }, [field, volume, currents, verticalExaggeration, colorPalette, colorScale, colorMinimum, colorMaximum]);
 
   const selectedProfile = profiles.find((profile) => profile.profile_id === selectedProfileId) ?? null;
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const element = calloutRef.current;
+    if (!viewer || viewer.isDestroyed() || !element || !selectedProfile || !profileCalloutOpen) return;
+
+    const anchor = Cartesian3.fromDegrees(
+      selectedProfile.observation_longitude,
+      selectedProfile.observation_latitude,
+      7_500
+    );
+    const scratch = new Cartesian2();
+
+    const syncCallout = () => {
+      if (viewer.isDestroyed()) return;
+      const screen = SceneTransforms.worldToWindowCoordinates(viewer.scene, anchor, scratch);
+      if (!screen || !Number.isFinite(screen.x) || !Number.isFinite(screen.y)) {
+        element.dataset.anchorVisible = "false";
+        return;
+      }
+
+      const canvasWidth = viewer.scene.canvas.clientWidth;
+      const canvasHeight = viewer.scene.canvas.clientHeight;
+      const halfWidth = Math.max(150, element.offsetWidth / 2);
+      const height = Math.max(120, element.offsetHeight);
+      const x = Math.min(Math.max(screen.x, halfWidth + 10), Math.max(halfWidth + 10, canvasWidth - halfWidth - 10));
+      const y = Math.min(Math.max(screen.y, height + 30), Math.max(height + 30, canvasHeight - 18));
+
+      element.style.left = `${x}px`;
+      element.style.top = `${y}px`;
+      element.dataset.anchorVisible =
+        screen.x >= -30 && screen.x <= canvasWidth + 30 && screen.y >= -30 && screen.y <= canvasHeight + 30
+          ? "true"
+          : "false";
+    };
+
+    viewer.scene.postRender.addEventListener(syncCallout);
+    syncCallout();
+    viewer.scene.requestRender();
+    return () => {
+      if (!viewer.isDestroyed()) viewer.scene.postRender.removeEventListener(syncCallout);
+    };
+  }, [
+    selectedProfile?.profile_id,
+    selectedProfile?.observation_longitude,
+    selectedProfile?.observation_latitude,
+    profileCalloutOpen
+  ]);
+
   const scalar = field ?? volume;
   const legendMin = scalar ? colorMinimum : currents?.minimum;
   const legendMax = scalar ? colorMaximum : currents?.maximum;
@@ -1085,6 +1142,60 @@ export function OceanGlobe({
       data-selected-imported-profile={selectedImportedProfileId}
     >
       <div ref={containerRef} className="cesium-host" />
+      {selectedProfile && profileCalloutOpen && (
+        <div
+          ref={calloutRef}
+          className="argo-billboard-callout"
+          data-anchor-visible="false"
+          data-profile-id={selectedProfile.profile_id}
+          aria-label={`Anchored Argo profile callout for ${selectedProfile.platform_id}`}
+        >
+          <div className="argo-callout-heading">
+            <div>
+              <span>ARGO FLOAT #{selectedProfile.platform_id}</span>
+              <strong>
+                Cycle {selectedProfile.cycle} · {selectedProfile.direction === "A" ? "Ascending" : selectedProfile.direction === "D" ? "Descending" : selectedProfile.direction}
+              </strong>
+            </div>
+            <button type="button" aria-label="Close anchored Argo callout" onClick={onCloseProfileCallout}>×</button>
+          </div>
+          <div className="argo-callout-location">
+            <span>{Math.abs(selectedProfile.observation_latitude).toFixed(3)}°{selectedProfile.observation_latitude >= 0 ? "N" : "S"}</span>
+            <span>{Math.abs(selectedProfile.observation_longitude).toFixed(3)}°{selectedProfile.observation_longitude >= 0 ? "E" : "W"}</span>
+            <span>{selectedProfile.observation_time_utc.replace("T", " ").replace("Z", " UTC")}</span>
+          </div>
+          <div className="argo-callout-metrics">
+            <div>
+              <span>MAE</span>
+              <strong>{selectedProfile.mae_celsius.toFixed(3)} °C</strong>
+            </div>
+            <div>
+              <span>RMSE</span>
+              <strong>{selectedProfile.rmse_celsius.toFixed(3)} °C</strong>
+            </div>
+            {typeof selectedProfile.mean_bias_celsius === "number" && (
+              <div>
+                <span>Mean signed bias</span>
+                <strong>
+                  {selectedProfile.mean_bias_celsius >= 0 ? "+" : ""}
+                  {selectedProfile.mean_bias_celsius.toFixed(3)} °C
+                </strong>
+              </div>
+            )}
+            <div>
+              <span>Matched levels</span>
+              <strong>{selectedProfile.matched_level_count}</strong>
+            </div>
+          </div>
+          <div className="argo-callout-footer">
+            <span>Diagnostic model–observation evidence · nearest model cell {selectedProfile.spatial_distance_km.toFixed(2)} km</span>
+            <button type="button" onClick={() => onInspectProfile(selectedProfile.profile_id)}>
+              Inspect Profile ↗
+            </button>
+          </div>
+          <i className="argo-callout-anchor" aria-hidden="true" />
+        </div>
+      )}
       {rendererError && (
         <div className="renderer-fallback-card" role="alert">
           <strong>3D renderer degraded</strong>
