@@ -2,7 +2,9 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  timeout: 90_000,
+  // Software-rendered Cesium scenes compete for the small CI runner GPU/CPU budget.
+  workers: 1,
+  timeout: 180_000,
   expect: {
     timeout: 20_000
   },

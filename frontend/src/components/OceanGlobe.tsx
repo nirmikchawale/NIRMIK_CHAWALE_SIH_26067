@@ -233,6 +233,7 @@ export function OceanGlobe({
       if (introTimer != null) window.clearTimeout(introTimer);
       introTimer = null;
       viewer.camera.cancelFlight();
+      setCameraHeight(viewer.camera.positionCartographic.height);
       setIntroPhase("region");
     };
     stopJourneyRef.current = stopJourney;
@@ -273,6 +274,10 @@ export function OceanGlobe({
       }, 900);
     };
     journeyRef.current(!firstSessionEntry || reducedMotion);
+    setCameraHeight(viewer.camera.positionCartographic.height);
+    const removeCameraHeightListener = viewer.camera.moveEnd.addEventListener(() => {
+      setCameraHeight(viewer.camera.positionCartographic.height);
+    });
 
     const boundary = viewer.entities.add({
       id: "model-domain-boundary",
@@ -336,6 +341,7 @@ export function OceanGlobe({
       journeyRef.current = () => {};
       stopJourneyRef.current = () => {};
       removeRenderErrorListener();
+      removeCameraHeightListener();
       window.removeEventListener("resize", syncRenderQuality);
       if (zoomAnimationRef.current != null) {
         window.cancelAnimationFrame(zoomAnimationRef.current);

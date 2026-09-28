@@ -10,3 +10,5 @@ Magic Patterns: https://www.magicpatterns.com/c/wxzzmj3qrpf1froxrz6ao8 . User ex
 Stitch: DESIGN.md created with installed Stitch design skill; native generation needs signed-in access. Flowstep researched; native design unavailable pending access.
 Rollback: pre-redesign main d5c33b9; prior delivered UI 74d1f78a9d029148b34112c56c230598f40a6941 (PR54). Preserve GitHub feature updates when reverting design: revert PR93's merge relative to its first parent rather than resetting main. Do not force-push.
 Generated frontend/public and tsbuildinfo remain untracked. They contain runtime evidence and build output, not source changes.
+
+PR93 deployed at 558c156. Public data checks and four browser flows passed, but camera initialization and concurrent software-rendered test timing failed. Follow-up branch fix/ocean-journey-readiness initializes/synchronizes camera height, waits for settled orientation in zoom acceptance, serializes WebGL tests and runs all six before deployment. Rollback remains PR93 merge plus any follow-up fix, preserving other commits.
