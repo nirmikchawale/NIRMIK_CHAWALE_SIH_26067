@@ -1048,6 +1048,20 @@ export default function App() {
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
                 detail={sourceMode === "glorys" ? profileDetail : null}
+                onHoverDepth={(hoverDepthM) => {
+                  const depths = activeExploreCatalog.coordinates.depth;
+                  if (depths.length === 0) return;
+                  const nearestIndex = depths.reduce(
+                    (bestIndex, candidateDepth, candidateIndex) =>
+                      Math.abs(candidateDepth - hoverDepthM) < Math.abs(depths[bestIndex] - hoverDepthM)
+                        ? candidateIndex
+                        : bestIndex,
+                    0
+                  );
+                  setDepthIndex(nearestIndex);
+                  setVisualizationMode("globe");
+                  setViewMode("slice");
+                }}
               />
 
               {selectedImportedProfile ? (
