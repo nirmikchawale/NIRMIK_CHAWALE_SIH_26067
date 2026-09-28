@@ -5,6 +5,7 @@ import { AppNavigation } from "./components/AppNavigation";
 import { AnalysisSplitPanel } from "./components/AnalysisSplitPanel";
 import { EvidenceRail } from "./components/EvidenceRail";
 import { PresentationGuide } from "./components/PresentationGuide";
+import { ScientificColorbarHud } from "./components/ScientificColorbarHud";
 import { ControlPanel } from "./components/ControlPanel";
 import { ComparisonPage } from "./pages/ComparisonPage";
 import { AnomalyPage } from "./pages/AnomalyPage";
@@ -87,6 +88,7 @@ export default function App() {
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
   const [profilePanelOpen, setProfilePanelOpen] = useState(false);
+  const [profileCalloutOpen, setProfileCalloutOpen] = useState(false);
   const [sessionImportedProfiles, setSessionImportedProfiles] = useState<ImportedObservationProfile[]>(() =>
     groupImportedObservationProfiles(readImportedObservationRecords())
   );
@@ -107,6 +109,7 @@ export default function App() {
   const [timeIndex, setTimeIndex] = useState(0);
   const [verticalExaggeration, setVerticalExaggeration] = useState(60);
   const [playing, setPlaying] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [colorPalette, setColorPalette] = useState<ColorPalette>("thermal");
   const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
   const [colorMinimum, setColorMinimum] = useState(0);
@@ -400,9 +403,9 @@ export default function App() {
     if (!playing) return;
     const timer = window.setInterval(() => {
       setTimeIndex((current) => (current + 1) % exploreCatalog.coordinates.time.length);
-    }, 1300);
+    }, 1300 / playbackSpeed);
     return () => window.clearInterval(timer);
-  }, [exploreCatalog, playing]);
+  }, [exploreCatalog, playing, playbackSpeed]);
 
   useEffect(() => {
     if (!selectedProfileId) return;
@@ -514,10 +517,22 @@ export default function App() {
   const handleProfileSelection = useCallback((profileId: string) => {
     setSelectedImportedProfileId("");
     setSelectedProfileId(profileId);
+    setProfileCalloutOpen(true);
     setProfilePanelOpen(true);
     setEvidenceOpen(false);
     if (window.matchMedia("(max-width: 760px)").matches) {
       setMobileSheet("observation");
+    }
+  }, []);
+
+  const handleProfilePinSelection = useCallback((profileId: string) => {
+    setSelectedImportedProfileId("");
+    setSelectedProfileId(profileId);
+    setProfileCalloutOpen(true);
+    setProfilePanelOpen(false);
+    setEvidenceOpen(false);
+    if (window.matchMedia("(max-width: 760px)").matches) {
+      setMobileSheet("none");
     }
   }, []);
 
@@ -582,6 +597,7 @@ export default function App() {
     setPlaying(false);
     setTimeIndex(0);
     setProfilePanelOpen(false);
+    setProfileCalloutOpen(false);
     setSelectedProfileId((current) => current);
 
     if (nextSource === "chlorophyll") {
@@ -630,9 +646,54 @@ export default function App() {
     }
   }, []);
 
+  const handleAnalysisDepthSync = useCallback((observationDepthM: number) => {
+    if (!exploreCatalog || exploreCatalog.capabilities.surface_only === true) return;
+    const depths = exploreCatalog.coordinates.depth;
+    if (depths.length === 0) return;
+
+    let nearestIndex = 0;
+    let nearestDistance = Math.abs(depths[0] - observationDepthM);
+    for (let index = 1; index < depths.length; index += 1) {
+      const distance = Math.abs(depths[index] - observationDepthM);
+      if (distance < nearestDistance) {
+        nearestIndex = index;
+        nearestDistance = distance;
+      }
+    }
+
+    setPlaying(false);
+    setVisualizationMode("globe");
+    setViewMode("slice");
+    setDepthIndex(nearestIndex);
+  }, [exploreCatalog]);
+
   const selectedVariable = useMemo(
     () => exploreCatalog?.variables.find((item) => item.id === variable),
     [exploreCatalog, variable]
+  );
+  const colorbarValues = useMemo(() => {
+    if (variable === "currents") {
+      if (visualizationMode === "water-column" && currentsVolume) {
+        return currentsVolume.vectors.map((vector) => vector[5]).filter(Number.isFinite);
+      }
+      return currents?.vectors.map((vector) => vector[4]).filter(Number.isFinite) ?? [];
+    }
+    if ((visualizationMode === "water-column" || viewMode === "volume") && volume) {
+      return volume.points.map((point) => point[3]).filter(Number.isFinite);
+    }
+    if (field) {
+      return field.values.flatMap((row) =>
+        row.filter((value): value is number => typeof value === "number" && Number.isFinite(value))
+      );
+    }
+    return [];
+  }, [variable, visualizationMode, viewMode, field, volume, currents, currentsVolume]);
+  const timelineObservations = useMemo(
+    () => profiles.map((profile) => ({
+      timestamp: profile.observation_time_utc,
+      label: `Argo ${profile.platform_id} · cycle ${profile.cycle} ${profile.direction}`
+    })),
+    [profiles]
   );
   const selectedProfile = useMemo(
     () => profiles.find((item) => item.profile_id === selectedProfileId) ?? null,
@@ -797,12 +858,37 @@ export default function App() {
             setWorkspaceMode("explorer");
             setProfilePanelOpen(false);
             setMobileSheet("none");
-            if (step === 0 || step === 1) {
+
+            if (step === 0) {
               navigate("explore");
+              handleSourceModeChange("glorys");
               handleVariableChange("thetao");
-              setVisualizationMode(step === 0 ? "globe" : "water-column");
-            } else if (step === 2) navigate("compare");
-            else { navigate("about"); setProvenanceOpen(true); }
+              setVisualizationMode("globe");
+            } else if (step === 1) {
+              navigate("explore");
+              handleSourceModeChange("glorys");
+              handleVariableChange("thetao");
+              setVisualizationMode("water-column");
+            } else if (step === 2) {
+              navigate("explore");
+              handleSourceModeChange("incois");
+              handleVariableChange("thetao");
+              setVisualizationMode("globe");
+            } else if (step === 3) {
+              navigate("explore");
+              handleSourceModeChange("glorys");
+              setVisualizationMode("globe");
+              const inSituProfile = importedProfiles[0];
+              if (inSituProfile) {
+                setSelectedImportedProfileId(inSituProfile.id);
+                setProfilePanelOpen(true);
+              }
+            } else if (step === 4) {
+              navigate("compare");
+            } else {
+              navigate("about");
+              setProvenanceOpen(true);
+            }
           }} />}
           {page === "explore" ? (
             <>
@@ -881,10 +967,8 @@ export default function App() {
                 verticalExaggeration={verticalExaggeration}
                 selectedProfileId={selectedProfileId}
                 playing={playing}
-                colorPalette={colorPalette}
-                colorScale={colorScale}
-                colorMinimum={colorMinimum}
-                colorMaximum={colorMaximum}
+                playbackSpeed={playbackSpeed}
+                timelineObservations={timelineObservations}
                 isoSurfaceEnabled={isoSurfaceEnabled}
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
@@ -898,10 +982,7 @@ export default function App() {
                 onVerticalExaggerationChange={setVerticalExaggeration}
                 onProfileChange={handleProfileSelection}
                 onPlayingChange={setPlaying}
-                onColorPaletteChange={setColorPalette}
-                onColorScaleChange={setColorScale}
-                onColorMinimumChange={setColorMinimum}
-                onColorMaximumChange={setColorMaximum}
+                onPlaybackSpeedChange={setPlaybackSpeed}
                 onIsoSurfaceEnabledChange={setIsoSurfaceEnabled}
                 onIsoValueChange={setIsoValue}
               />
@@ -950,7 +1031,10 @@ export default function App() {
                     colorMinimum={colorMinimum}
                     colorMaximum={colorMaximum}
                     presentationActive={workspaceMode === "presentation"}
-                    onSelectProfile={handleProfileSelection}
+                    profileCalloutOpen={profileCalloutOpen}
+                    onSelectProfile={handleProfilePinSelection}
+                    onInspectProfile={handleProfileSelection}
+                    onCloseProfileCallout={() => setProfileCalloutOpen(false)}
                     onSelectImportedProfile={handleImportedProfileSelection}
                     onEnterWaterColumn={handleEnterWaterColumn}
                     canEnterWaterColumn={sourceMode !== "chlorophyll" && (sourceMode === "glorys" || variable !== "currents")}
@@ -977,12 +1061,31 @@ export default function App() {
                 </div>
               </div>
 
+              {selectedVariable && (
+                <ScientificColorbarHud
+                  label={selectedVariable.label}
+                  units={selectedVariable.units}
+                  palette={colorPalette}
+                  scale={colorScale}
+                  minimum={colorMinimum}
+                  maximum={colorMaximum}
+                  domainMinimum={selectedVariable.minimum}
+                  domainMaximum={selectedVariable.maximum}
+                  values={colorbarValues}
+                  onPaletteChange={setColorPalette}
+                  onScaleChange={setColorScale}
+                  onMinimumChange={setColorMinimum}
+                  onMaximumChange={setColorMaximum}
+                />
+              )}
+
               <AnalysisSplitPanel
                 catalog={activeExploreCatalog}
                 variable={selectedVariable}
                 depthM={activeExploreCatalog.coordinates.depth[depthIndex] ?? 0}
                 time={activeExploreCatalog.coordinates.time[timeIndex] ?? "Unavailable"}
                 detail={sourceMode === "glorys" ? profileDetail : null}
+                onDepthSync={handleAnalysisDepthSync}
               />
 
               {selectedImportedProfile ? (

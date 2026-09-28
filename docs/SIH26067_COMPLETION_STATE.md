@@ -1,66 +1,65 @@
 # SIH26067 Completion State
 
 PROJECT: OceanTwin 3D  
-BRANCH: main  
-BASE_BRANCH: main  
-STATUS: **COMPLETE — FINAL SIH26067 REQUIREMENT AUDIT GREEN**
-
-FINAL_VALIDATED_CODE_COMMIT: `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8`  
-ROLLBACK_POINT: `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8`  
+BRANCH: `main`  
 PUBLIC_URL: https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/#/explore
 
-## Final validation
+## Authoritative release rule
 
-- tests run **#771** — PASS
-- final-mvp run **#288** — PASS
-  - React/Cesium — PASS
-  - static-hosted-failsafe — PASS
-  - science-api-and-fallback — PASS
-- deploy-oceantwin-pages run **#74** — PASS
-  - build — PASS
-  - deploy — PASS
-  - live HTTPS/static evidence verification — PASS
-  - live Chromium judge-flow acceptance — PASS
-- real INCOIS OPeNDAP DAP2 DDS/DAS checks — PASS
-- genuine INCOIS chlorophyll acquisition/integrity checks — PASS
+This file intentionally does **not** hard-code a “final commit SHA” or workflow run number.
 
-## Completed requirement slices
+The authoritative final state is always:
 
-1. Browser-native Cesium geographic view + connected Water Column 3D.
-2. Temperature and salinity scalar fields with genuine model depths.
-3. Selected-depth horizontal currents + full-water-column `uo/vo` vectors across 31 genuine depths.
-4. Genuine scalar isosurface extraction.
-5. Dynamic colorbar: palette, min/max, linear/log where scientifically valid.
-6. Genuine INCOIS multi-time playback in the primary Explore workflow.
-7. Genuine Argo, Glider, CTD and BGC observation pathways with a canonical plugin profile inspector.
-8. Browser-native CF-aware NetCDF4 ingestion plus CSV/TSV/ASCII/JSON ingestion into temporary Explorer layers.
-9. Discoverable model/sensor source registry and adapter contracts.
-10. Genuine INCOIS-native physical data pathway.
-11. Genuine INCOIS IRS P4 OCM chlorophyll as a first-class surface Explore source.
-12. Real INCOIS OPeNDAP DAP2 endpoint validation.
-13. OceanTwin WMS 1.3.0 and WCS 2.0.1 compatibility services.
-14. CF-style coordinate, units and depth-positive validation.
-15. Public/offline static evidence path + Streamlit fallback.
-16. Updated judge-facing Science & System page and final completion matrix.
+1. the current `main` HEAD;
+2. the GitHub Actions runs attached to that same HEAD;
+3. the currently deployed GitHub Pages artifact produced from that HEAD.
 
-## Scientific boundaries to preserve
+The repository may be frozen for judging only when the current HEAD has:
 
-- Do **not** duplicate the single genuine GLORYS timestamp to simulate time.
-- Do **not** invent a vertical current component; current volume is horizontal `uo/vo` at genuine depths.
-- Do **not** give INCOIS chlorophyll a fabricated depth axis; it is a satellite surface product.
-- Do **not** describe GLORYS–Argo diagnostics as independent/global model validation.
-- Do **not** describe anomaly screening as ML, event detection, or proof of sensor/model failure.
-- Do **not** claim INCOIS WCS. INCOIS pathways verified here are OPeNDAP/WMS; OceanTwin provides its own WCS compatibility service.
-- Do **not** claim a 24/7 national operational digital twin. This is a verified, extensible SIH MVP with bounded evidence windows and operational-style source adapters.
+- `tests` — PASS;
+- `final-mvp` — PASS;
+- `deploy-oceantwin-pages` — PASS, including live HTTPS/static-evidence verification and live Chromium judge-flow acceptance.
 
-## Recovery rule
+If any of those gates is red, the repository is **not yet release-green**, even if an older commit was fully validated.
 
-Repository evidence beats chat memory or older checkpoint documents.
+## Implemented SIH26067 capability
 
-At the start of any future development session:
-1. inspect current `main` HEAD;
-2. inspect latest tests/final-mvp/Pages runs;
-3. use `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8` as the final SIH26067 code rollback point unless a later explicitly approved baseline has passed the same gates;
-4. preserve all scientific guardrails above.
+- Browser-native React + TypeScript + CesiumJS application.
+- Genuine GLORYS temperature, salinity and horizontal currents.
+- Selected-depth and full-water-column horizontal `uo/vo` current visualization.
+- Genuine scalar isosurface extraction.
+- Dynamic palette, min/max and valid linear/log color scaling.
+- Genuine INCOIS multi-time playback.
+- Genuine INCOIS surface chlorophyll with surface-only semantics.
+- Argo, Glider, CTD and BGC observation pathways through one canonical profile contract.
+- Argo model↔observation collocation, interpolation, signed bias and MAE/RMSE diagnostics.
+- Browser CF-aware NetCDF4 plus CSV/TSV/ASCII/JSON ingestion into temporary Explorer layers.
+- Source/adapter registry, verified INCOIS OPeNDAP/WMS pathways, and OceanTwin WMS/WCS compatibility services.
+- Static public science evidence, local React/FastAPI recovery and Streamlit scientific fallback.
 
-NEXT_EXACT_ACTION: **None for the requirement-audit task. Preserve this baseline unless a new explicit feature, visual-polish, or deployment request is made.**
+See `docs/SIH26067_COMPLETION_MATRIX.md` for the requirement-by-requirement matrix.
+
+## Scientific boundaries
+
+- Never duplicate the single genuine GLORYS timestamp to simulate time.
+- Never invent a vertical current component.
+- Never give satellite chlorophyll a fabricated depth axis.
+- Keep GLORYS–Argo wording diagnostic rather than independent/global validation.
+- Do not describe anomaly screening as ML event detection.
+- Do not claim INCOIS WCS; OceanTwin provides its own WCS compatibility service.
+- Do not claim a 24/7 national operational digital twin.
+
+## Recovery and rollback
+
+Repository evidence overrides old chat memory and old checkpoint files.
+
+Before any future change:
+
+1. inspect current `main`;
+2. inspect the three current release-gate workflow families;
+3. preserve scientific guardrails;
+4. use Git tags / merged PR history for rollback rather than force-pushing or resetting `main`.
+
+## Freeze condition
+
+**Freeze only after the current HEAD is fully green and `docs/VISUAL_DEMO_CHECKLIST.md` has been completed on the actual presentation machine.**

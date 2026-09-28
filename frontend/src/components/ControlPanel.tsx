@@ -1,5 +1,6 @@
-import type { Catalog, ColorPalette, ColorScaleMode, ProfileSummary, ViewMode, VisualizationMode } from "../types";
+import type { Catalog, ProfileSummary, ViewMode, VisualizationMode } from "../types";
 import { displayUnits } from "../units";
+import { TimelineScrubber } from "./TimelineScrubber";
 
 const DEPTH_TRACK_MAX = 1000;
 const EPipelagic_END_M = 200;
@@ -63,10 +64,8 @@ interface Props {
   verticalExaggeration: number;
   selectedProfileId: string;
   playing: boolean;
-  colorPalette: ColorPalette;
-  colorScale: ColorScaleMode;
-  colorMinimum: number;
-  colorMaximum: number;
+  playbackSpeed: number;
+  timelineObservations: Array<{ timestamp: string; label: string }>;
   isoSurfaceEnabled: boolean;
   isoValue: number;
   mobileOpen: boolean;
@@ -80,10 +79,7 @@ interface Props {
   onVerticalExaggerationChange: (value: number) => void;
   onProfileChange: (value: string) => void;
   onPlayingChange: (value: boolean) => void;
-  onColorPaletteChange: (value: ColorPalette) => void;
-  onColorScaleChange: (value: ColorScaleMode) => void;
-  onColorMinimumChange: (value: number) => void;
-  onColorMaximumChange: (value: number) => void;
+  onPlaybackSpeedChange: (value: number) => void;
   onIsoSurfaceEnabledChange: (value: boolean) => void;
   onIsoValueChange: (value: number) => void;
 }
@@ -103,10 +99,8 @@ export function ControlPanel({
   verticalExaggeration,
   selectedProfileId,
   playing,
-  colorPalette,
-  colorScale,
-  colorMinimum,
-  colorMaximum,
+  playbackSpeed,
+  timelineObservations,
   isoSurfaceEnabled,
   isoValue,
   mobileOpen,
@@ -120,10 +114,7 @@ export function ControlPanel({
   onVerticalExaggerationChange,
   onProfileChange,
   onPlayingChange,
-  onColorPaletteChange,
-  onColorScaleChange,
-  onColorMinimumChange,
-  onColorMaximumChange,
+  onPlaybackSpeedChange,
   onIsoSurfaceEnabledChange,
   onIsoValueChange
 }: Props) {
@@ -135,6 +126,7 @@ export function ControlPanel({
   const scalar = variable !== "currents";
   const surfaceOnly = catalog.capabilities.surface_only === true;
   const currentDepthZone = depthZone(depth);
+  const selectedVariable = catalog.variables.find((item) => item.id === variable);
 
   const selectDepthFromTrack = (trackPosition: number) => {
     const physicalDepth = trackPositionToDepth(trackPosition, deepestVerifiedDepth);
@@ -173,6 +165,23 @@ export function ControlPanel({
           Close
         </button>
       </div>
+
+      <section className="explorer-story-intro" aria-label="Explainable 3D digital twin overview">
+        <div className="section-kicker">EXPLAINABLE 3D DIGITAL-TWIN WORKSPACE</div>
+        <h2>From ocean data to an explainable 3D digital-twin workspace.</h2>
+        <p>
+          Move from a verified numerical field to depth, time and real in-situ evidence without
+          losing the scientific trail. Every control below changes either the selected source or
+          the way genuine values are rendered—never the underlying measurements.
+        </p>
+        <div className="explorer-story-flow" aria-label="OceanTwin scientific workflow">
+          <article><span>01</span><strong>Choose evidence</strong><small>Model, INCOIS time or ocean colour</small></article>
+          <article><span>02</span><strong>Explore 3D</strong><small>Geography, depth and water-column structure</small></article>
+          <article><span>03</span><strong>Connect observations</strong><small>Argo and multi-sensor in-situ profiles</small></article>
+        </div>
+        <div className="explorer-scroll-cue">Scroll the intelligence panel ↓</div>
+      </section>
+
       <section className="explore-source-section">
         <div className="section-kicker">Scientific source</div>
         <div className="segmented explore-source-selector" aria-label="Explore scientific source">
@@ -203,42 +212,92 @@ export function ControlPanel({
             INCOIS chlorophyll
           </button>
         </div>
-        <p className="microcopy">
-          {sourceMode === "incois"
-            ? "Build-verified INCOIS analysis · genuine timestamps and depths · source values unchanged."
-            : sourceMode === "chlorophyll"
-              ? "Build-verified INCOIS satellite ocean colour · genuine surface chlorophyll timestamps · no depth axis is inferred."
-              : "Immutable GLORYS12V1 baseline · one verified model timestamp · Argo diagnostic comparison enabled."}
-        </p>
+        <div className="source-explainer-card" data-source-mode={sourceMode}>
+          <span>
+            {sourceMode === "glorys" ? "MODEL BASELINE" : sourceMode === "incois" ? "GENUINE MULTI-TIME" : "SURFACE OCEAN COLOUR"}
+          </span>
+          <strong>
+            {sourceMode === "glorys"
+              ? "GLORYS12V1 · reproducible model baseline"
+              : sourceMode === "incois"
+                ? "INCOIS · real timestamps for temporal exploration"
+                : "INCOIS chlorophyll · surface-only context"}
+          </strong>
+          <p>
+            {sourceMode === "incois"
+              ? "Build-verified INCOIS analysis with genuine timestamps and genuine depth coordinates. Source values remain unchanged; this is the temporal-breadth pathway."
+              : sourceMode === "chlorophyll"
+                ? "Verified satellite chlorophyll extends the workspace into ocean-colour context. It is explicitly surface-only, so OceanTwin never fabricates a depth axis."
+                : "Immutable GLORYS12V1 evidence provides temperature, salinity and horizontal currents through 31 verified depths. The bundled comparison baseline has one genuine timestamp and supports the Argo diagnostic workflow."}
+          </p>
+          <div className="source-proof-row">
+            <span>{sourceMode === "glorys" ? "31 verified depths" : sourceMode === "incois" ? "genuine time steps" : "surface only"}</span>
+            <span>{sourceMode === "glorys" ? "Argo comparison" : sourceMode === "incois" ? "no synthetic time" : "no fabricated depth"}</span>
+          </div>
+        </div>
       </section>
 
       <section>
         <div className="section-kicker">Explore</div>
-        <div className="variable-switcher" aria-label="Ocean variable">
-          {catalog.variables.map((item) => (
-            <button
-              key={item.id}
-              className={variable === item.id ? "active" : ""}
-              aria-pressed={variable === item.id}
-              onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
-            >
-              <span>{item.label}</span>
-              <small>{displayUnits(item.units)}</small>
-            </button>
-          ))}
+        <div className="variable-switcher variable-switcher-rich" aria-label="Ocean variable">
+          {catalog.variables.map((item) => {
+            const icon = item.id === "thetao" ? "T°" : item.id === "so" ? "S" : item.id === "currents" ? "↗" : "Chl";
+            return (
+              <button
+                key={item.id}
+                className={variable === item.id ? "active" : ""}
+                aria-pressed={variable === item.id}
+                onClick={() => onVariableChange(item.id as "thetao" | "so" | "currents" | "chlorophyll")}
+              >
+                <span className="variable-pill-icon" aria-hidden="true">{icon}</span>
+                <span className="variable-pill-copy">
+                  <strong>{item.label}</strong>
+                  <small>{item.minimum.toFixed(2)} – {item.maximum.toFixed(2)} {displayUnits(item.units)}</small>
+                </span>
+              </button>
+            );
+          })}
         </div>
-        {catalog.variables.find((item) => item.id === variable) && (
-          <p className="active-range">
-            Verified range{" "}
-            <strong>
-              {catalog.variables.find((item) => item.id === variable)?.minimum.toFixed(3)}
-              {" – "}
-              {catalog.variables.find((item) => item.id === variable)?.maximum.toFixed(3)}
-              {" "}
-              {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}
-            </strong>
-          </p>
+        {selectedVariable && (
+          <>
+            <p className="active-range">
+              Verified range{" "}
+              <strong>
+                {selectedVariable.minimum.toFixed(3)}
+                {" – "}
+                {selectedVariable.maximum.toFixed(3)}
+                {" "}
+                {displayUnits(selectedVariable.units)}
+              </strong>
+            </p>
+            <div className="variable-insight-card">
+              <span>WHAT YOU ARE READING</span>
+              <strong>{selectedVariable.label}</strong>
+              <p>
+                {variable === "thetao"
+                  ? "Trace warm and cool structures across the verified region and follow how the scalar field changes with depth."
+                  : variable === "so"
+                    ? "Inspect salinity structure and water-mass gradients across the same verified model geometry."
+                    : variable === "currents"
+                      ? "Read genuine horizontal u/v flow vectors at their scientific depths. No vertical-current component is inferred."
+                      : "Inspect genuine satellite chlorophyll at the ocean surface; Water Column 3D is intentionally unavailable for this source."}
+              </p>
+            </div>
+          </>
         )}
+
+        <div className="explorer-mode-story" aria-label="Connected 3D visualization modes">
+          <article className={visualizationMode === "globe" ? "active" : ""}>
+            <span>GEOGRAPHIC VIEW</span>
+            <strong>Where is the ocean structure?</strong>
+            <small>Depth-aware overlays, real coordinates and clickable observation markers.</small>
+          </article>
+          <article className={visualizationMode === "water-column" ? "active" : ""}>
+            <span>WATER COLUMN 3D</span>
+            <strong>What happens beneath the surface?</strong>
+            <small>Vertical structure, scientific depth levels and genuine scalar geometry.</small>
+          </article>
+        </div>
 
         <details className="advanced-control-group">
           <summary>
@@ -246,7 +305,7 @@ export function ControlPanel({
             <small>3D mode · rendering · vertical display</small>
           </summary>
           <div className="advanced-control-body">
-            <div className="section-kicker visualization-kicker">Active 3D mode</div>
+            <div className="section-kicker visualization-kicker">Rendering controls · active 3D mode</div>
             <div className="active-3d-mode-card">
               <strong>{visualizationMode === "globe" ? "Geographic View" : "Water Column 3D"}</strong>
               <span>
@@ -308,93 +367,43 @@ export function ControlPanel({
               </label>
             )}
 
-            <div className="scientific-color-editor" aria-label="Scientific colorbar editor">
-                <div className="section-kicker visualization-kicker">Colorbar</div>
+            <div className="persistent-colorbar-note">
+              <span className="section-kicker visualization-kicker">Display colour</span>
+              <strong>Persistent viewport colorbar</strong>
+              <p className="microcopy">
+                Palette, scale and min/max thresholds are available directly on the floating colorbar HUD over the 3D viewport.
+              </p>
+              {scalar && !surfaceOnly && <label className="iso-toggle">
+                <span className="label-row">
+                  <span>Isosurface</span>
+                  <input
+                    type="checkbox"
+                    checked={isoSurfaceEnabled}
+                    onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
+                  />
+                </span>
+              </label>}
+              {scalar && !surfaceOnly && isoSurfaceEnabled && (
                 <label>
-                  Palette
-                  <select
-                    value={colorPalette}
-                    onChange={(event) => onColorPaletteChange(event.target.value as ColorPalette)}
-                  >
-                    <option value="thermal">Thermal</option>
-                    <option value="viridis">Viridis</option>
-                    <option value="icefire">Ice–Fire</option>
-                  </select>
-                </label>
-                <div className="color-range-grid">
-                  <label>
-                    Minimum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMinimum) ? colorMinimum : ""}
-                      onChange={(event) => onColorMinimumChange(Number(event.target.value))}
-                    />
-                  </label>
-                  <label>
-                    Maximum
-                    <input
-                      type="number"
-                      step="any"
-                      value={Number.isFinite(colorMaximum) ? colorMaximum : ""}
-                      onChange={(event) => onColorMaximumChange(Number(event.target.value))}
-                    />
-                  </label>
-                </div>
-                <div className="segmented color-scale-selector" aria-label="Color scale">
-                  <button
-                    className={colorScale === "linear" ? "active" : ""}
-                    onClick={() => onColorScaleChange("linear")}
-                  >
-                    Linear
-                  </button>
-                  <button
-                    className={colorScale === "log" ? "active" : ""}
-                    disabled={colorMinimum <= 0 || colorMaximum <= 0}
-                    title={colorMinimum <= 0 || colorMaximum <= 0 ? "Log scale requires a positive range" : "Logarithmic color mapping"}
-                    onClick={() => onColorScaleChange("log")}
-                  >
-                    Log
-                  </button>
-                </div>
-                {scalar && !surfaceOnly && <label className="iso-toggle">
                   <span className="label-row">
-                    <span>Isosurface</span>
-                    <input
-                      type="checkbox"
-                      checked={isoSurfaceEnabled}
-                      onChange={(event) => onIsoSurfaceEnabledChange(event.target.checked)}
-                    />
+                    <span>Iso value</span>
+                    <strong>{isoValue.toFixed(3)} {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}</strong>
                   </span>
-                </label>}
-                {scalar && !surfaceOnly && isoSurfaceEnabled && (
-                  <label>
-                    <span className="label-row">
-                      <span>Iso value</span>
-                      <strong>{isoValue.toFixed(3)} {displayUnits(catalog.variables.find((item) => item.id === variable)?.units)}</strong>
-                    </span>
-                    <input
-                      type="range"
-                      min={catalog.variables.find((item) => item.id === variable)?.minimum ?? 0}
-                      max={catalog.variables.find((item) => item.id === variable)?.maximum ?? 1}
-                      step={Math.max(
-                        ((catalog.variables.find((item) => item.id === variable)?.maximum ?? 1) -
-                          (catalog.variables.find((item) => item.id === variable)?.minimum ?? 0)) / 200,
-                        0.0001
-                      )}
-                      value={isoValue}
-                      onChange={(event) => onIsoValueChange(Number(event.target.value))}
-                    />
-                  </label>
-                )}
-                <p className="microcopy">
-                  Palette, range and scale affect rendering only. {surfaceOnly
-                    ? "Surface chlorophyll remains a 2D satellite field; no water-column geometry is inferred."
-                    : scalar
-                      ? "Isosurface geometry is extracted from the genuine scalar water-column values."
-                      : "Current colour represents genuine horizontal speed magnitude."}
-                </p>
-              </div>
+                  <input
+                    type="range"
+                    min={catalog.variables.find((item) => item.id === variable)?.minimum ?? 0}
+                    max={catalog.variables.find((item) => item.id === variable)?.maximum ?? 1}
+                    step={Math.max(
+                      ((catalog.variables.find((item) => item.id === variable)?.maximum ?? 1) -
+                        (catalog.variables.find((item) => item.id === variable)?.minimum ?? 0)) / 200,
+                      0.0001
+                    )}
+                    value={isoValue}
+                    onChange={(event) => onIsoValueChange(Number(event.target.value))}
+                  />
+                </label>
+              )}
+            </div>
 
             {surfaceOnly ? (
               <p className="microcopy">
@@ -414,7 +423,7 @@ export function ControlPanel({
         </details>
       </section>
 
-      <section>
+      <section className="water-column-story">
         <div className="section-kicker">Water column</div>
         {surfaceOnly ? (
           <div className="surface-only-control" aria-label="Surface-only scientific field">
@@ -427,9 +436,10 @@ export function ControlPanel({
             data-depth-zone={currentDepthZone.toLowerCase()}
             data-track-allocation="40-35-25"
           >
-            <div className="label-row">
-              <span>Depth · {currentDepthZone}</span>
+            <div className="selected-depth-hero">
+              <span>SELECTED DEPTH · {currentDepthZone.toUpperCase()}</span>
               <strong>{depth.toFixed(2)} m</strong>
+              <small>Depth is positive downward · display exaggeration never changes source metres</small>
             </div>
 
             <div className="depth-zone-track" aria-label="Oceanographic depth zones">
@@ -495,48 +505,36 @@ export function ControlPanel({
         )}
       </section>
 
-      <section>
+      <section className="time-story">
         <div className="section-kicker">Time</div>
         {catalog.capabilities.time_animation ? (
-          <>
-            <div className="time-row">
-              <button
-                className="play-button"
-                aria-label={playing ? "Pause genuine Explore time playback" : "Play genuine Explore time playback"}
-                aria-pressed={playing}
-                onClick={() => onPlayingChange(!playing)}
-                title="Play verified time steps"
-              >
-                {playing ? "■" : "▶"}
-              </button>
-              <div>
-                <strong>{time.replace("T00:00:00Z", "")}</strong>
-                <span>
-                  {catalog.capabilities.time_steps} verified timesteps
-                </span>
-              </div>
-            </div>
-            <input
-              type="range"
-              aria-label="Explore genuine timestamp"
-              min={0}
-              max={Math.max(0, catalog.coordinates.time.length - 1)}
-              value={timeIndex}
-              onChange={(event) => onTimeChange(Number(event.target.value))}
-            />
-          </>
+          <TimelineScrubber
+            times={catalog.coordinates.time}
+            currentIndex={timeIndex}
+            playing={playing}
+            playbackSpeed={playbackSpeed}
+            observations={timelineObservations}
+            onIndexChange={onTimeChange}
+            onPlayingChange={onPlayingChange}
+            onPlaybackSpeedChange={onPlaybackSpeedChange}
+          />
         ) : (
           <div className="time-row static-time-row" aria-label="Verified model timestamp">
             <div>
               <strong>{time.replace("T00:00:00Z", "")}</strong>
-              <span>Verified model timestamp · static snapshot</span>
+              <span>One genuine model timestamp · static GLORYS baseline · never duplicated to simulate time</span>
             </div>
           </div>
         )}
       </section>
 
-      <section>
+      <section className="observation-story">
         <div className="section-kicker">Observations</div>
+        <p className="section-story-copy">
+          In-situ profiles connect the numerical field to measured ocean conditions. Argo provides
+          the deepest model-comparison workflow; Glider, CTD and BGC profiles share the same
+          geospatial observation contract in the Explorer.
+        </p>
         <label>
           Argo profile
           <select
@@ -570,6 +568,10 @@ export function ControlPanel({
           <span className="badge success">CACHED VERIFIED</span>
         </div>
         <small>{catalog.dataset.region}</small>
+        <p className="source-status-note">
+          This bounded verified window keeps the live demonstration reproducible while preserving
+          the same adapter and provenance architecture used for broader operational deployment.
+        </p>
       </section>
     </aside>
   );

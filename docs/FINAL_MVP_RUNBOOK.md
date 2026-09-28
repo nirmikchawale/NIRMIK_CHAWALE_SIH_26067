@@ -1,6 +1,33 @@
 # OceanTwin 3D — Final MVP Local Runbook
 
-## 1. Python environment
+## Release gate
+
+Before judging, use one current `main` HEAD and require all three workflow families to pass:
+
+- `tests`
+- `final-mvp`
+- `deploy-oceantwin-pages`, including live Chromium judge-flow verification
+
+Public judge URL:
+
+`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/#/explore`
+
+Do not freeze the repository while any of these gates is red.
+
+## One-click local recovery
+
+After one-time dependency setup, use:
+
+- `START_OCEANTWIN.cmd` — starts FastAPI on port 8000 and React/Cesium on port 5173.
+- `STOP_OCEANTWIN.cmd` — stops both services.
+
+Local judge URL:
+
+`http://localhost:5173`
+
+The preserved Streamlit application remains the final scientific fallback at `http://localhost:8501`.
+
+## Manual validation
 
 From the repository root:
 
@@ -10,88 +37,70 @@ py -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python -m pip install -r backend\requirements.txt
-```
-
-## 2. Validate the frozen scientific reference
-
-```powershell
 python -m pytest -q tests
-```
-
-Expected result: the existing Streamlit regression suite passes unchanged.
-
-## 3. Validate the FastAPI layer
-
-```powershell
 python -m pytest -q backend\tests
-python -m uvicorn backend.app.main:app --reload --port 8000
 ```
 
-Check:
-
-- `http://localhost:8000/api/health`
-- `http://localhost:8000/api/catalog`
-- `http://localhost:8000/docs`
-
-Leave this terminal running.
-
-## 4. Start the React + Cesium final MVP
-
-Open a second terminal:
+Then:
 
 ```powershell
 cd frontend
 npm install
 npm run typecheck
-npm run dev
-```
-
-Open:
-
-```text
-http://localhost:5173
-```
-
-The default frontend expects the API at `http://localhost:8000`.
-
-## 5. Production frontend check
-
-```powershell
-cd frontend
 npm run build
-npm run preview
 ```
 
-## 6. Emergency Streamlit fallback
+## Sponsor-first live demo order
 
-In another terminal from the repository root:
+1. **Numerical model field** — GLORYS temperature/salinity in Geographic View.
+2. **Depth + Water Column 3D** — change depth and show actual positive-down coordinates; demonstrate one required control such as opacity, dynamic color range or isosurface.
+3. **Genuine time** — switch to INCOIS multi-time physical data and change/play real timestamps.
+4. **In-situ observations** — inspect a real Glider, CTD or BGC profile with location, UTC time, depth, variable, source/QC and profile shape.
+5. **Model ↔ observation** — open the Argo comparison; explain collocation, vertical matching, Model − Observation bias and MAE/RMSE.
+6. **Trust + scale** — show provenance/source evidence and explain the bounded verified MVP scope.
 
-```powershell
-python -m streamlit run app.py
-```
+Only after this sequence should anomaly screening or telemetry be shown.
 
-Open:
+## Scientific boundaries
+
+- GLORYS comparison evidence contains one genuine bundled timestamp; it is never duplicated to fake animation.
+- Genuine time playback is provided through the separately verified INCOIS multi-time source.
+- Currents are horizontal `uo/vo`; no vertical `w` is invented.
+- INCOIS chlorophyll is satellite surface-only; no depth axis is fabricated.
+- GLORYS–Argo comparison is diagnostic, not independent/global validation.
+- Anomaly screening is descriptive statistics, not ML event detection or proof of failure.
+- OceanTwin is a verified SIH MVP, not a claim of continuous 24/7 national operations.
+
+## Operational-scaling answer
+
+If asked how the bounded MVP becomes operational, explain:
 
 ```text
-http://localhost:8501
+official provider services
+        ↓
+scheduled acquisition jobs
+        ↓
+validation / QC / CF normalization
+        ↓
+versioned cache + provenance
+        ↓
+OceanTwin adapters / API
+        ↓
+browser 3D + observation workflows
 ```
 
-The fallback remains scientifically independent of the React UI and does not require FastAPI.
+The current build-time acquisition proves the adapter and validation path reproducibly. A production deployment would schedule those acquisition/cache jobs and add monitoring/retry policies rather than asking every browser to depend directly on provider uptime.
 
-## Demo recovery rule
+## Demo recovery
 
-If the React/Cesium application fails during judging:
+If a visible interaction is unreliable:
 
-1. Do not troubleshoot in front of the judge for an extended period.
-2. Open the already-started Streamlit fallback.
-3. Press **Reset to verified demo**.
-4. Continue with the verified temperature/Argo comparison.
-5. Explain that the fallback reads the same bundled scientific evidence.
+1. use explicit Geographic View / Water Column 3D buttons rather than gestures;
+2. switch to the prepared local React/FastAPI application;
+3. if WebGL/browser rendering is unusable, use the Streamlit scientific fallback and **Reset to verified demo**.
 
-## Current time limitation
+Do not debug at length in front of judges.
 
-The model file currently contains one genuine model time:
-`2024-01-02T00:00:00Z`.
+## Presentation-machine QA
 
-The UI intentionally disables playback until additional verified time steps are added.
-Do not change this by duplicating the same field under fake timestamps.
+Run `docs/VISUAL_DEMO_CHECKLIST.md` on the exact laptop/projector before the session. Verify 100% browser zoom, light/dark readability, first-load network behavior, WebGL, mouse/trackpad controls, repeated Geographic → Water Column entry, local recovery and the Streamlit fallback.

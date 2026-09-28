@@ -1,8 +1,18 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const liveUrl = process.env.OCEANTWIN_LIVE_URL;
 
+async function revealCanvasTools(page: Page) {
+  const shell = page.locator(".ocean-workbench").first();
+  await expect(shell).toHaveAttribute("data-control-dock", /^(open|closed)$/);
+  if ((await shell.getAttribute("data-control-dock")) === "open") {
+    await page.getByRole("button", { name: "Hide explorer controls" }).click();
+    await expect(shell).toHaveAttribute("data-control-dock", "closed");
+  }
+}
+
 test("live OceanTwin judge flow renders and core interactions work", async ({ page }) => {
+  test.setTimeout(240_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -13,6 +23,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  // The current canvas-first UI deliberately hides duplicate map tools while
+  // the Explorer drawer is open. Close the drawer before testing basemap tools.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "closed");
   const imageryGlobeShell = page.locator(".globe-shell").first();
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "auto");
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-failsafe", "online-hd+offline-natural-earth");
@@ -31,6 +45,8 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect.poll(async () => (await imageryGlobeShell.getAttribute("data-imagery-status")) ?? "")
     .toMatch(/^(online|offline|grid)$/);
 
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "open");
 
   const documentRoot = page.locator("html");
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
@@ -156,7 +172,9 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   const importedGlobeShell = page.locator(".globe-shell:not(.water-column-shell)");
   await expect.poll(async () => Number(await importedGlobeShell.getAttribute("data-imported-profile-count"))).toBeGreaterThanOrEqual(4);
   await expect(page.locator(".judge-summary")).toContainText("sensor plugin profiles");
+  await revealCanvasTools(page);
   const importedSelector = page.locator(".imported-observation-chips");
+  await expect(importedSelector).toBeVisible();
   await expect(importedSelector).toContainText("GLIDER");
   await expect(importedSelector).toContainText("CTD");
   await expect(importedSelector).toContainText("BGC");
@@ -184,6 +202,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" })).toBeEnabled();
   await dataLabPage.getByRole("button", { name: "Load validated profiles into 3D Explorer" }).click();
   await expect(page).toHaveURL(/#\/explore$/);
+  await revealCanvasTools(page);
   await expect(page.locator(".imported-observation-chips")).toContainText("test-ctd-profile-001");
   await page.locator(".imported-observation-chips").getByRole("button", { name: /CTD.*test-ctd-profile-001/i }).click();
   await expect(page.locator(".imported-profile-panel")).toContainText("CTD");
@@ -254,6 +273,10 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 });
 
 test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
+  // This test deliberately exercises the longest judge path against the
+  // deployed GitHub Pages site. Keep all assertions, but allow live-network
+  // rendering and camera transitions more time than the default 90 seconds.
+  test.setTimeout(360_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -287,6 +310,10 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(modeDock.getByRole("button", { name: /Water Column 3D/ })).toBeVisible();
 
   await expect(globeShell).toHaveAttribute("data-journey-phase", "region");
+  // Camera HUD and smooth zoom are progressively disclosed when the Explorer
+  // control drawer is closed.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "closed");
   await expect.poll(async () => Number(await globeShell.getAttribute("data-camera-height"))).toBeGreaterThan(0);
   const initialGlobeHeight = Number(await globeShell.getAttribute("data-camera-height"));
   await page.getByRole("button", { name: "Zoom in Ocean Globe" }).click();
@@ -306,9 +333,13 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await globeCameraHud.getByRole("button", { name: "Face Ocean Globe camera due north" }).click();
   await expect(globeShell).toHaveAttribute("data-camera-preset", "north");
 
+  await page.getByRole("button", { name: "Show explorer controls" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-control-dock", "open");
+
   await expect(page.locator(".play-button")).toHaveCount(0);
   await expect(page.locator(".static-time-row")).toContainText("2024-01-02");
-  await expect(page.locator(".static-time-row")).toContainText("Verified model timestamp · static snapshot");
+  await expect(page.locator(".static-time-row")).toContainText("One genuine model timestamp");
+  await expect(page.locator(".static-time-row")).toContainText("never duplicated to simulate time");
 
   const sourceSelector = page.getByLabel("Explore scientific source");
   const incoisSource = sourceSelector.getByRole("button", { name: "INCOIS multi-time" });
@@ -381,6 +412,11 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await expect(page.locator(".water-column-axis-key")).toContainText("Depth m ↓");
   await expect(page.locator(".water-column-smooth-zoom")).toBeVisible();
 
+  const waterExplorerShell = page.locator(".app-shell");
+  if ((await waterExplorerShell.getAttribute("data-control-dock")) === "open") {
+    await page.getByRole("button", { name: "Hide explorer controls" }).click();
+    await expect(waterExplorerShell).toHaveAttribute("data-control-dock", "closed");
+  }
   const waterCameraHud = waterColumnShell.locator(".camera-orientation-hud");
   await expect(waterCameraHud).toBeVisible();
   await waterCameraHud.getByRole("button", { name: "Equatorial cross-section view" }).click();
@@ -394,9 +430,17 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   await page.getByRole("button", { name: "Zoom in Water-Column 3D" }).click();
   await expect.poll(async () => Number(await waterColumnShell.getAttribute("data-zoom"))).toBeGreaterThan(initialWaterZoom);
 
+  const waterWorkbench = page.locator(".ocean-workbench").first();
+  if ((await waterWorkbench.getAttribute("data-control-dock")) === "closed") {
+    await page.getByRole("button", { name: "Show explorer controls" }).click();
+    await expect(waterWorkbench).toHaveAttribute("data-control-dock", "open");
+  }
   const viewSettings = page.locator(".advanced-control-group");
+  const viewSettingsSummary = viewSettings.locator("summary");
+  await viewSettingsSummary.scrollIntoViewIfNeeded();
+  await expect(viewSettingsSummary).toBeVisible();
   if (!(await viewSettings.getAttribute("open"))) {
-    await viewSettings.locator("summary").click();
+    await viewSettingsSummary.click();
   }
   const opacitySlider = page.getByLabel("Point opacity");
   await expect(opacitySlider).toBeVisible();
@@ -515,6 +559,10 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   await expect(appShell).toHaveAttribute("data-evidence-inspector", "closed");
 
   const imageryGlobeShell = page.locator(".globe-shell").first();
+  // Progressive disclosure: basemap/camera tools are intentionally hidden
+  // while the Explorer drawer is open.
+  await page.getByRole("button", { name: "Hide explorer controls" }).click();
+  await expect(appShell).toHaveAttribute("data-control-dock", "closed");
   await page.getByRole("button", { name: "Offline", exact: true }).click();
   await expect(imageryGlobeShell).toHaveAttribute("data-imagery-preference", "offline");
   await page.getByRole("button", { name: "High-res auto" }).click();
@@ -564,6 +612,167 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
   await page.getByRole("button", { name: "Exit presentation workspace" }).click();
   await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
   await expect(page.locator(".app-header")).toBeVisible();
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin variable pills and interactive colorbar work", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const variableButtons = page.locator(".variable-switcher-rich button");
+  await expect(variableButtons).toHaveCount(3);
+  await expect(variableButtons.first()).toContainText(/Temperature/i);
+  await expect(variableButtons.first()).toContainText(/°C/);
+
+  const colorbar = page.getByRole("region", { name: "Interactive scientific colorbar" });
+  await expect(colorbar).toBeVisible();
+  await expect(colorbar.locator(".colorbar-histogram rect")).toHaveCount(24);
+
+  const globe = page.locator(".globe-shell").first();
+  const minSlider = page.getByRole("slider", { name: "Color minimum threshold" });
+  const maxSlider = page.getByRole("slider", { name: "Color maximum threshold" });
+  await expect(minSlider).toBeVisible();
+  await expect(maxSlider).toBeVisible();
+
+  const initialMinimum = await minSlider.inputValue();
+  await minSlider.focus();
+  await minSlider.press("ArrowRight");
+  await expect(minSlider).not.toHaveValue(initialMinimum);
+
+  await page.getByRole("combobox", { name: "Color palette" }).selectOption("viridis");
+  await expect(globe).toHaveAttribute("data-color-palette", "viridis");
+
+  const scaleButton = page.getByRole("button", { name: "Toggle linear logarithmic color scale" });
+  if (await scaleButton.isEnabled()) {
+    await scaleButton.click();
+    await expect(globe).toHaveAttribute("data-color-scale", "log");
+  }
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const sourceSelector = page.getByLabel("Explore scientific source");
+  await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
+  await expect(page.locator(".app-shell")).toHaveAttribute("data-explore-source", "incois");
+
+  const scrubber = page.getByLabel("Genuine ocean timeline scrubber");
+  await expect(scrubber).toBeVisible();
+  await expect(scrubber).toHaveAttribute("data-playback-speed", "1");
+  await expect(page.getByRole("group", { name: "Timeline playback controls" })).toBeVisible();
+  await expect(page.getByRole("group", { name: "Timeline playback speed" })).toBeVisible();
+  await expect(page.getByLabel("Verified Argo surfacing date markers")).toBeVisible();
+
+  const slider = page.getByLabel("Explore genuine timestamp");
+  const initial = Number(await slider.inputValue());
+  await page.getByRole("button", { name: "Next genuine time step" }).click();
+  await expect.poll(async () => Number(await slider.inputValue())).not.toBe(initial);
+  await page.getByRole("button", { name: "Previous genuine time step" }).click();
+  await expect(slider).toHaveValue(String(initial));
+
+  await page.getByRole("button", { name: "Playback speed 2 times" }).click();
+  await expect(scrubber).toHaveAttribute("data-playback-speed", "2");
+  await expect(page.getByRole("button", { name: "Playback speed 2 times" })).toHaveAttribute("aria-pressed", "true");
+
+  const play = page.getByRole("button", { name: "Play genuine Explore time playback" });
+  await play.click();
+  await expect(page.getByRole("button", { name: "Pause genuine Explore time playback" })).toBeVisible();
+  await page.getByRole("button", { name: "Pause genuine Explore time playback" }).click();
+
+  await expect(scrubber.locator(".timeline-footer")).toContainText(/verified Argo surfacing/i);
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin anchored Argo billboard exposes verified evidence", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const journey = page.locator(".globe-shell[data-journey-phase]");
+  if ((await journey.getAttribute("data-journey-phase")) !== "region") {
+    const skip = page.getByRole("button", { name: "Skip journey", exact: true });
+    if (await skip.isVisible()) await skip.click();
+    await expect(journey).toHaveAttribute("data-journey-phase", "region", { timeout: 15_000 });
+  }
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
+  await profileSelect.selectOption({ index: 1 });
+
+  const callout = page.getByLabel(/Anchored Argo profile callout for/);
+  await expect(callout).toBeVisible();
+  await expect(callout).toContainText("Matched levels");
+  await expect(callout).toContainText("MAE");
+  await expect(callout).toContainText("RMSE");
+  await expect(callout).toContainText("Diagnostic model–observation evidence");
+  await expect(callout.getByRole("button", { name: "Inspect Profile ↗" })).toBeVisible();
+
+  await callout.getByRole("button", { name: "Inspect Profile ↗" }).click();
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  await callout.getByRole("button", { name: "Close anchored Argo callout" }).click();
+  await expect(page.getByLabel(/Anchored Argo profile callout for/)).toHaveCount(0);
+
+  expect(pageErrors).toEqual([]);
+});
+
+test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane", async ({ page }) => {
+  if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
+
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+
+  await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+
+  const profileSelect = page.getByLabel("Argo profile");
+  await expect(profileSelect).toBeVisible();
+  await profileSelect.selectOption({ index: 1 });
+  await expect(page.locator(".profile-panel")).toBeVisible();
+
+  await page.getByRole("button", { name: "Analysis Split workspace" }).click();
+  const appShell = page.locator(".app-shell");
+  await expect(appShell).toHaveAttribute("data-workspace-mode", "analysis");
+
+  const split = page.getByLabel("Analysis Split workspace");
+  const chart = page.getByRole("application", {
+    name: "Interactive synchronized model and Argo temperature profile"
+  });
+  await expect(chart).toBeVisible();
+  await expect.poll(async () => page.locator(".analysis-observation-diamond").count()).toBeGreaterThan(10);
+  await expect(page.locator(".analysis-model-line")).toHaveCount(1);
+
+  const initialDepth = await split.getAttribute("data-synced-model-depth");
+  const bounds = await chart.boundingBox();
+  if (!bounds) throw new Error("Synchronized T-Z chart missing");
+
+  await page.mouse.move(
+    bounds.x + bounds.width * 0.55,
+    bounds.y + bounds.height * 0.90
+  );
+
+  await expect.poll(async () => split.getAttribute("data-synced-model-depth")).not.toBe(initialDepth);
+  await expect(page.locator(".depth-indicator")).toContainText("DEPTH PLANE");
+  await expect(page.locator(".analysis-sync-readout")).toContainText("model plane");
+  await expect(page.locator(".analysis-sync-readout")).toContainText("nearest genuine model depth");
 
   expect(pageErrors).toEqual([]);
 });

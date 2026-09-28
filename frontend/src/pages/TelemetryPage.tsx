@@ -520,12 +520,13 @@ export function TelemetryPage({ catalog, provenance }: Props) {
     >
       <section className="telemetry-hero">
         <div>
-          <div className="section-kicker">OCEAN ANALYTICS</div>
+          <div className="section-kicker">OCEAN ANALYTICS · EXPLAINABLE OPERATIONS</div>
           <h2>Depth & telemetry workspace</h2>
           <p>
-            Full-grid summaries from the cached Copernicus GLORYS12V1 evidence. Depth statistics,
-            selected-depth currents and genuine time telemetry are derived from the same canonical
-            backend used by the Explorer—without synthetic timestamps.
+            Read the ocean vertically, temporally and operationally. OceanTwin turns the verified
+            GLORYS water column into explainable depth statistics, then places genuine INCOIS
+            multi-time analysis beside it so a judge can see exactly which evidence is static,
+            which evidence changes through time, and why no synthetic timestamp is required.
           </p>
         </div>
         <div className="telemetry-source-card">
@@ -537,6 +538,24 @@ export function TelemetryPage({ catalog, provenance }: Props) {
           </small>
           <small>{catalog.dataset.freshness_class} · {catalog.dataset.runtime_mode}</small>
         </div>
+      </section>
+
+      <section className="telemetry-reading-guide" aria-label="How to read the telemetry workspace">
+        <article>
+          <span>01 · WATER COLUMN</span>
+          <strong>31 genuine model depth levels</strong>
+          <p>Follow full-grid temperature or salinity statistics from the near-surface layer to the deepest verified GLORYS level.</p>
+        </article>
+        <article>
+          <span>02 · OPERATIONAL TIME</span>
+          <strong>INCOIS provides genuine temporal breadth</strong>
+          <p>Use real INCOIS timestamps to demonstrate change through time without pretending the one-time GLORYS baseline is an animation.</p>
+        </article>
+        <article>
+          <span>03 · EXPLAINABILITY</span>
+          <strong>Every derived summary keeps its evidence trail</strong>
+          <p>Depth, units, spatial grid, source identity and method remain visible so the visualization can be defended scientifically.</p>
+        </article>
       </section>
 
       <IncoisOperationalPanel />

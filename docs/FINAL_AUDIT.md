@@ -1,88 +1,67 @@
 # OceanTwin 3D — Final SIH26067 Audit
 
-This document records the current final MVP audit. Earlier Streamlit-only audit language has been retired because the primary judge-facing product is now the React + TypeScript + CesiumJS web application; Streamlit remains the offline scientific reference and emergency fallback.
+## Audit basis
 
-## Final product architecture
+OceanTwin is judged against the current repository implementation, not an older Streamlit-only snapshot or an old fixed commit.
 
-- **Frontend:** React + TypeScript + CesiumJS multi-page application.
-- **Scientific API:** FastAPI contracts for catalog, fields, volumes, currents, observations, telemetry, anomaly screening, provenance and source capabilities.
-- **Static/public path:** GitHub Pages science exports and verified public artifacts.
-- **Fallback:** preserved Streamlit + Plotly scientific reference.
-- **Source architecture:** discoverable source registry and model/sensor adapter contracts.
-- **Ingestion:** browser-native CF-aware NetCDF4 plus CSV/TSV/ASCII/JSON validation.
+The primary product is a React + TypeScript + CesiumJS multi-page web application backed by FastAPI contracts and static-hosted scientific evidence. Streamlit remains the emergency scientific fallback.
 
-## Verified scientific capability
+## Current implemented evidence
 
-- Genuine GLORYS12V1 temperature and salinity water-column fields.
-- Genuine horizontal `uo/vo` currents at selected depth and across all 31 model depths.
-- No fabricated vertical-current component.
-- Genuine scalar isosurface extraction.
-- Genuine INCOIS multi-time Explore playback.
-- Genuine INCOIS IRS P4 OCM chlorophyll as a first-class surface-only source with mg/m³ units.
-- Argo, Glider, CTD and BGC observation pathways through the canonical plugin profile model.
-- Model–observation diagnostics with explicit non-independent-validation wording.
-- Descriptive anomaly screening with explicit statistical limitations.
-- OPeNDAP DAP2 endpoint verification, INCOIS WMS pathway metadata, and OceanTwin WMS/WCS compatibility services.
-- CF-style coordinate, units and positive-down depth validation.
+- genuine GLORYS12V1 temperature and salinity fields;
+- genuine horizontal `uo/vo` currents at selected depth and across all 31 bundled model depths;
+- genuine scalar isosurfaces;
+- configurable palette, range and valid linear/log scaling;
+- genuine INCOIS multi-time physical playback;
+- genuine INCOIS IRS P4 OCM chlorophyll, explicitly surface-only;
+- Argo, Glider, CTD and BGC observation pathways;
+- canonical geospatial profile inspector with source/QC metadata;
+- Argo model↔observation collocation, vertical matching, Model − Observation bias and MAE/RMSE;
+- browser-native CF-aware NetCDF4 plus delimited/JSON ingestion;
+- OPeNDAP verification and WMS/WCS interoperability surfaces;
+- provenance, telemetry, anomaly screening, evidence downloads and recovery paths.
 
-## Public interaction audit
+## Central PS interpretation
 
-The live acceptance suite verifies the deployed judge path, including:
+The project genuinely integrates numerical ocean-model outputs and in-situ observations in one browser-native 3D system.
 
-- geographic and Water Column 3D views;
-- high-resolution/offline imagery behavior;
-- light/dark theme persistence;
-- telemetry depth interactions;
-- anomaly screening interactions and evidence download;
-- Data Lab ingestion and temporary Explorer layers;
-- browser-native NetCDF ingestion;
-- model-vs-observation comparison;
-- Science & System page;
-- genuine INCOIS time playback;
-- 31-depth Water Column 3D controls;
-- depth, opacity, zoom and camera interactions;
-- Argo profile inspection;
-- provenance drawer;
-- CSV evidence download;
-- focus/recovery interactions;
-- absence of page errors.
+Argo currently has the deepest analytical integration because it includes model collocation and error diagnostics. Glider/CTD/BGC are integrated as real geolocated observation layers and depth-profile inspection pathways through the same canonical observation contract.
 
-## Final CI/deployment state
+## Release verification
 
-The following is the final validation snapshot recorded before the documentation-only synchronization. For the current commit, GitHub Actions and the Pages deployment are authoritative.
+Never quote an old run number as the final state.
 
-Validated snapshot:
+A release is green only when the current `main` HEAD has:
 
-- tests #772 — PASS;
-- final-mvp #289 — PASS:
-  - `react-cesium` — PASS;
-  - `static-hosted-failsafe` — PASS;
-  - `science-api-and-fallback` — PASS;
-- deploy-oceantwin-pages #75 — PASS:
-  - build — PASS;
-  - deploy — PASS;
-  - verify-public — PASS;
-  - live Chromium judge-flow acceptance — PASS.
+- `tests` PASS;
+- `final-mvp` PASS;
+- `deploy-oceantwin-pages` PASS including live Chromium judge-flow acceptance.
 
-Public application:
+The public Pages artifact and current workflow results are authoritative.
 
-`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/`
+## Sponsor-first demonstration
 
-## Scientific boundaries
+1. numerical model field;
+2. depth + Water Column 3D;
+3. genuine INCOIS time;
+4. real in-situ profile;
+5. Argo model↔observation comparison;
+6. sources/QC/provenance + bounded operational-scaling explanation.
 
-These are deliberate boundaries, not gaps to "fix" with synthetic evidence:
+Show telemetry/anomaly features after this required story.
 
-1. The bundled GLORYS comparison baseline has one genuine timestamp.
-2. Genuine time playback comes from the separately verified INCOIS source.
-3. Currents are horizontal `uo/vo`; no vertical `w` is invented.
-4. INCOIS chlorophyll is surface-only.
-5. GLORYS–Argo comparison is diagnostic, not independent/global validation.
-6. Anomaly screening is descriptive statistical screening, not ML event detection.
-7. External source availability can fail; acquisition/interoperability checks fail closed.
-8. OceanTwin is a verified SIH MVP, not a 24/7 national operational forecasting service.
+## Deliberate boundaries
 
-## Final status
+- GLORYS bundled comparison baseline has one genuine timestamp;
+- INCOIS provides the genuine multi-time demonstration;
+- currents are horizontal only;
+- satellite chlorophyll is surface-only;
+- GLORYS–Argo comparison is diagnostic rather than independent validation;
+- anomaly screening is descriptive statistical screening;
+- this is a bounded, extensible SIH MVP, not a 24/7 national operational service.
 
-**COMPLETE — VERIFIED SIH26067 MVP BASELINE**
+## Final judgement rule
 
-The authoritative requirement-by-requirement evidence remains in `docs/SIH26067_COMPLETION_MATRIX.md`, and the recovery/baseline record remains in `docs/SIH26067_COMPLETION_STATE.md`.
+Implementation completeness and release health are separate.
+
+The requirement implementation is complete at hackathon-MVP level. Final demo readiness depends on the current-head release gates and the actual-presentation-machine checklist.

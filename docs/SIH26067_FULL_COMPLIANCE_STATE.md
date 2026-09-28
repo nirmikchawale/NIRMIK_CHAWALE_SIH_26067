@@ -1,32 +1,22 @@
 # SIH26067 Full Compliance State
 
 PROJECT: OceanTwin 3D  
-BRANCH: main  
-STATUS: **COMPLETE — FINAL VERIFIED SIH26067 MVP BASELINE**  
-FINAL_VALIDATED_CODE_COMMIT: `ac896adf5a9599620a5b4901b62d82ef9ee9fbe8`  
-VALIDATION_SNAPSHOT: pre-documentation-sync baseline; current GitHub Actions/Pages state is authoritative
+BRANCH: `main`  
+STATUS: **IMPLEMENTATION COMPLETE; RELEASE STATUS IS DETERMINED BY CURRENT-HEAD CI**
 
-This file previously tracked the active compliance upgrade slice. That execution program is complete and must no longer be used as an "ACTIVE" continuation checkpoint.
+## Source of truth
 
-## Authoritative final records
+The requirement program is complete. Final release status is never inferred from an old SHA or old run number.
 
-- `docs/SIH26067_COMPLETION_MATRIX.md` — requirement-by-requirement final status and evidence.
-- `docs/SIH26067_COMPLETION_STATE.md` — validated baseline, workflow gates, scientific boundaries and recovery rule.
-- `frontend/e2e/live.spec.ts` — public live judge-flow acceptance coverage.
+Use, in order:
 
-## Final validated gates
-
-Recorded validation snapshot:
-
-- tests #772 — PASS;
-- final-mvp #289 — PASS;
-- deploy-oceantwin-pages #75 — PASS;
-- public HTTPS verification — PASS;
-- live Chromium judge-flow acceptance — PASS.
+1. current `main` HEAD;
+2. current `tests` result for that HEAD;
+3. current `final-mvp` result for that HEAD;
+4. current `deploy-oceantwin-pages` result for that HEAD, including live Chromium acceptance;
+5. public Pages artifact from that HEAD.
 
 ## Completed compliance program
-
-The previously active slices are complete:
 
 1. dynamic colorbar + genuine scalar isosurfaces;
 2. generic observation plugin architecture;
@@ -37,20 +27,26 @@ The previously active slices are complete:
 7. genuine Glider/CTD/BGC observation breadth;
 8. first-class INCOIS surface chlorophyll;
 9. full-water-column horizontal currents across 31 genuine model depths;
-10. public deployment and live-browser verification.
+10. public/static deployment and browser acceptance verification.
 
-## Scientific guardrails
+## Authoritative supporting records
 
-- Never duplicate timestamps to simulate time.
-- Never invent a vertical current component.
-- Never give satellite chlorophyll a fabricated depth axis.
-- Keep GLORYS–Argo wording diagnostic rather than independent validation.
-- Do not describe anomaly screening as ML event detection.
-- Do not claim INCOIS WCS; OceanTwin provides its own WCS compatibility service.
-- Do not claim a 24/7 national operational digital twin.
+- `docs/SIH26067_COMPLETION_MATRIX.md`
+- `docs/SIH26067_COMPLETION_STATE.md`
+- `docs/FINAL_AUDIT.md`
+- `frontend/e2e/live.spec.ts`
+- `frontend/e2e/journey.spec.ts`
 
-## Recovery rule
+## Guardrails
 
-Repository evidence overrides older chat memory and historical checkpoint files. For any future work, inspect current `main`, latest workflow runs and the public deployment before making a change.
+- no synthetic timestamps;
+- no fabricated vertical current;
+- no fabricated chlorophyll depth;
+- no independent/global-validation claim;
+- no ML-event-detection claim for anomaly screening;
+- no INCOIS-WCS claim;
+- no 24/7 national-digital-twin claim.
 
-NEXT_EXACT_ACTION: **None for the compliance program. Preserve this baseline unless a new explicit feature, visual-polish or deployment request is made.**
+## Release condition
+
+The implementation may be described as the final verified SIH MVP only when all current-HEAD release gates are green. Otherwise describe it as “implementation complete, release verification in progress.”

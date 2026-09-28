@@ -1,73 +1,104 @@
-# SIH Live Demo Runbook
+# SIH26067 — Final Live Demo Runbook
 
-## Pre-demo checklist
+## Pre-demo release check
 
-1. Plug in laptop power and close unnecessary apps.
-2. Confirm the project folder and `.venv` are available locally.
-3. Turn Wi-Fi off for the offline check.
-4. Run tests once before judging.
-5. Start Streamlit and open `http://localhost:8501`.
-6. Press **Reset to verified demo**.
-7. Confirm profile `20240102_indian_ocean_prof:23` is selected.
-8. Confirm 50 matched levels, 3.851 km, MAE 0.2254 °C and RMSE 0.3188 °C appear.
-9. Confirm the 3D view; if GPU/WebGL is unreliable, enable **Use 2D compatibility fallback**.
-10. Keep a second browser tab closed; avoid unnecessary refreshes during judging.
+Use the current `main` commit only after:
 
-## Startup
+- `tests` — PASS
+- `final-mvp` — PASS
+- `deploy-oceantwin-pages` — PASS including live Chromium judge-flow acceptance
+- `docs/VISUAL_DEMO_CHECKLIST.md` — completed on the actual presentation laptop/projector
 
-```powershell
-cd "<path-to-project>"
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m streamlit run app.py
-```
+Primary URL:
 
-Expected URL: `http://localhost:8501`
+`https://nirmikchawale.github.io/NIRMIK_CHAWALE_SIH_PERSONAL/#/explore`
 
-## 90-second flow
+Keep `START_OCEANTWIN.cmd` and the Streamlit fallback ready locally.
 
-- **0–15 s:** Title + offline status. “This is a local, reproducible temperature diagnostic using cached Copernicus and QC-screened Argo evidence.”
-- **15–35 s:** Metric row. Identify float 5907092 cycle 13, 50 matched levels, 3.851 km collocation, MAE/RMSE.
-- **35–55 s:** Explore tab. Show actual `thetao` 3D subset and collocation map; change depth once if smooth.
-- **55–75 s:** Compare tab. Point to Argo vs model profile, then Model − Observation bias and zero line.
-- **75–90 s:** Evidence tab. Show QC/method/provenance and state: “This is diagnostic, not independent validation.”
+## 90-second sponsor-first flow
 
-## 2-minute flow
+**0–15 s — Numerical ocean model**
 
-Use the 90-second sequence plus:
+Open Geographic View on GLORYS temperature.
 
-- explain the daily-mean vs instantaneous-profile timing;
-- show the second eligible profile selector briefly;
-- mention salinity/currents as source-data roadmap, not implemented comparisons.
+Say: “OceanTwin brings numerical ocean-model fields and in-situ observations into one browser-native 3D workspace. This field is genuine GLORYS model data over our verified Indian Ocean window.”
 
-## 3-minute flow
+**15–30 s — Depth and 3D**
 
-Use the 2-minute sequence plus:
+Change depth and enter Water Column 3D.
 
-- explain nearest-valid-cell and linear-depth interpolation;
-- open real evidence downloads;
-- explain why the app is offline for reproducibility and judging reliability.
+Say: “These are genuine model depth coordinates. Vertical exaggeration changes only display geometry. We can inspect temperature, salinity and horizontal currents through depth, with configurable rendering and genuine scalar isosurfaces.”
 
-## Fallbacks
+**30–43 s — Genuine time**
 
-### 3D slow or broken
-Enable **Use 2D compatibility fallback**. State: “The fallback uses the same real model array at the selected depth; only the rendering mode changes.”
+Switch to INCOIS multi-time.
 
-### Browser not fullscreen
-Press `F11` or browser fullscreen before judging; do not alter browser zoom unless necessary.
+Say: “The GLORYS comparison baseline has one genuine timestamp, so we do not fake animation. For temporal exploration we use a separately verified INCOIS product with real timestamps.”
 
-### File path failure
-Use the packaged `data/` directory. Do not point the app at unverified files during judging.
+**43–58 s — In-situ observation**
 
-### Port 8501 occupied
-Run:
+Open one Glider, CTD or BGC marker/profile.
 
-```powershell
-.\.venv\Scripts\python.exe -m streamlit run app.py --server.port 8502
-```
+Say: “This is a real in-situ profile using the same canonical observation contract: geographic position, UTC time, depth, variable, units, QC/source provenance and profile values.”
 
-### Reset
-Use **Reset to verified demo** in the sidebar before restarting the explanation.
+**58–78 s — Model ↔ observation**
 
-## Shutdown / backup
+Open the Argo comparison.
 
-Stop Streamlit with `Ctrl+C`. Keep one read-only ZIP backup of the final frozen folder on the laptop and one external drive/USB if available.
+Say: “For Argo we go beyond overlay. We collocate the observation with the nearest valid model cell, vertically match model values without extrapolation, and expose Model minus Observation bias, MAE and RMSE. We call this diagnostic comparison, not independent validation.”
+
+**78–90 s — Trust and scale**
+
+Open Sources/QC or Science & System.
+
+Say: “Every source and limitation is traceable. This is a bounded, verified SIH MVP. In production the same adapters would run through scheduled acquisition, validated caches and monitoring for continuous operations.”
+
+## What to show only after the required story
+
+- telemetry;
+- anomaly screening;
+- Data Lab ingestion;
+- WMS/WCS/OPeNDAP details;
+- additional camera/workspace modes.
+
+These are strengths, but they must not obscure the sponsor’s central model + 3D + time + in-situ integration story.
+
+## Judge questions to be ready for
+
+### “Are your in-situ observations actually integrated?”
+
+Yes. Argo, Glider, CTD and BGC observations enter the same browser Explorer through a canonical geospatial profile contract. Argo additionally has full model-collocation and error diagnostics.
+
+### “Why not animate GLORYS?”
+
+The bundled GLORYS comparison evidence has one genuine timestamp. OceanTwin refuses to duplicate it under fake dates. Genuine playback is demonstrated using the verified INCOIS multi-time source.
+
+### “Is this operational?”
+
+It is an operational-style, reproducible SIH MVP rather than a 24/7 national service. Production scaling means scheduled provider acquisition, validation/QC, cache/version management, monitoring and the same source-adapter/API contracts.
+
+### “Are the currents 3D?”
+
+They are genuine horizontal `uo/vo` vectors placed at their scientific depths across the water column. No unsupported vertical-current component is fabricated.
+
+### “Is BGC synthetic?”
+
+No fabricated BGC measurements are used in the verified observation pack. The UI/source registry uses “BGC-Argo biogeochemical profiles” wording to avoid confusing the Argo technical term “synthetic profile” with synthetic/fake data.
+
+## Recovery order
+
+1. Explicit mode buttons instead of gesture/canvas entry.
+2. Local React/FastAPI build using `START_OCEANTWIN.cmd`.
+3. Streamlit scientific fallback → **Reset to verified demo**.
+
+The fallback is a resilience path, not the primary presentation.
+
+## Final rule
+
+Do not overclaim:
+- no fake timestamps;
+- no fabricated vertical current;
+- no fabricated chlorophyll depth;
+- no independent/global validation claim;
+- no ML-event-detection claim for anomaly screening;
+- no 24/7 national digital-twin claim.
