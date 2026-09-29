@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
-import { api } from "../api";
+import { api, resolveServiceUrl } from "../api";
 import { parseBrowserNetcdf, type NetcdfBrowserInspection } from "../netcdfImport";
 import { writeImportedObservationRecords } from "../observationSession";
 import type {
@@ -511,12 +511,12 @@ function downloadSchema() {
     "longitude,latitude,depth_m,timestamp,variable,value,units,source,platform_id,sensor_type,qc_flag,dataset_id",
     "68.2500,13.2500,10.0,2020-07-01T00:00:00Z,temperature,28.2,degree_Celsius,example_source,platform_001,glider,1,dataset_name"
   ].join("\n");
-  downloadText("OceanTwin_data_lab_schema.csv", text, "text/csv;charset=utf-8");
+  downloadText("OceanCanvas_data_lab_schema.csv", text, "text/csv;charset=utf-8");
 }
 
 function downloadReport(result: ValidationResult) {
   const report = {
-    exported_by: "OceanTwin 3D · Data Lab",
+    exported_by: "Ocean Canvas · Data Lab",
     processed_locally: true,
     filename: result.filename,
     format: result.format,
@@ -534,7 +534,7 @@ function downloadReport(result: ValidationResult) {
     normalized_preview: result.records.slice(0, 25)
   };
   downloadText(
-    "OceanTwin_validation_report.json",
+    "OceanCanvas_validation_report.json",
     JSON.stringify(report, null, 2),
     "application/json;charset=utf-8"
   );
@@ -673,15 +673,22 @@ export function DataLabPage() {
           <div className="section-kicker">GUARDED USER DATA</div>
           <h2>Additional dataset lab</h2>
           <p>
-            Validate a small ocean-observation NetCDF, CSV or JSON before analysis. OceanTwin checks
+            Validate a small ocean-observation NetCDF, CSV or JSON before analysis. Ocean Canvas checks
             CF-style coordinates, depth convention, timezone-aware timestamps, values, units, provenance,
             duplicates and missingness. It never guesses missing scientific metadata.
           </p>
+          <button
+            type="button"
+            className="data-lab-jump"
+            onClick={() => document.getElementById("data-lab-validator")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+          >
+            Validate a file ↓
+          </button>
         </div>
         <aside className="data-lab-privacy-card">
           <span>LOCAL PROCESSING</span>
           <strong>Data stays in this browser session</strong>
-          <p>File bytes are parsed locally by this page and are not uploaded to an OceanTwin server.</p>
+          <p>File bytes are parsed locally by this page and are not uploaded to an Ocean Canvas server.</p>
         </aside>
       </section>
 
@@ -692,7 +699,7 @@ export function DataLabPage() {
             <h3 id="official-data-launchpad-title">Official data launchpad</h3>
             <p>
               Open a trusted ocean-data source, subset the measurements you need, then map them
-              into OceanTwin&apos;s guarded CSV/JSON contract for local validation.
+              into Ocean Canvas&apos;s guarded CSV/JSON contract for local validation.
             </p>
           </div>
           <button type="button" onClick={downloadSchema}>Download import schema</button>
@@ -729,7 +736,7 @@ export function DataLabPage() {
           <strong>Safe import path</strong>
           <span>1 · Open official source</span>
           <span>2 · Subset/export genuine measurements</span>
-          <span>3 · Reshape to OceanTwin schema</span>
+          <span>3 · Reshape to Ocean Canvas schema</span>
           <span>4 · Validate locally before analysis</span>
         </div>
       </section>
@@ -740,7 +747,7 @@ export function DataLabPage() {
             <div className="section-kicker">OPEN-STANDARDS INTEROPERABILITY</div>
             <h3 id="interoperability-title">Registered source & protocol adapters</h3>
             <p>
-              OceanTwin uses a discoverable adapter registry. Remote sources remain optional and fail closed;
+              Ocean Canvas uses a discoverable adapter registry. Remote sources remain optional and fail closed;
               the bundled verified evidence is never silently replaced when a network service is unavailable.
             </p>
           </div>
@@ -779,12 +786,25 @@ export function DataLabPage() {
                   </div>
                   <small>{connector.variables.join(" · ")}</small>
                   <div className="connector-links">
-                    <a href={connector.source_url} target="_blank" rel="noreferrer">Provider metadata ↗</a>
-                    {connector.opendap_url && <a href={connector.opendap_url} target="_blank" rel="noreferrer">OPeNDAP ↗</a>}
-                    {connector.wms_url && <a href={connector.wms_url} target="_blank" rel="noreferrer">WMS ↗</a>}
-                    {connector.wcs_url && <a href={connector.wcs_url} target="_blank" rel="noreferrer">WCS ↗</a>}
+                    {[
+                      { label: "Provider metadata", url: connector.source_url },
+                      { label: "OPeNDAP", url: connector.opendap_url },
+                      { label: "WMS", url: connector.wms_url },
+                      { label: "WCS", url: connector.wcs_url }
+                    ]
+                      .filter((link) => Boolean(link.url))
+                      .map((link) => {
+                        const href = resolveServiceUrl(link.url);
+                        return href ? (
+                          <a key={link.label} href={href} target="_blank" rel="noreferrer">{link.label} ↗</a>
+                        ) : (
+                          <span key={link.label} className="connector-link-unavailable" title="Served by the Ocean Canvas FastAPI backend; not available on the static public build.">
+                            {link.label} · API deployment only
+                          </span>
+                        );
+                      })}
                   </div>
-                  {(connector.time_count || connector.depth_count) && (
+                  {Boolean(connector.time_count || connector.depth_count) && (
                     <div className="connector-dimensions">
                       {connector.time_count && <span>{connector.time_count} times</span>}
                       {connector.depth_count && <span>{connector.depth_count} depths</span>}
@@ -806,7 +826,7 @@ export function DataLabPage() {
           </>
         )}
       </section>
-      <section className="data-lab-grid">
+      <section className="data-lab-grid" id="data-lab-validator">
         <article className="data-lab-upload-card">
           <div className="data-lab-card-heading">
             <div>
@@ -834,7 +854,7 @@ export function DataLabPage() {
             </div>
             <p>
               NetCDF files are inspected in-browser for CF-style longitude, latitude, depth, time and profile-shaped variables. For canonical text imports, <code>depth_m</code> is metres positive downward. <code>timestamp</code> must include
-              Z or an explicit UTC offset. Units are preserved as supplied; OceanTwin does not
+              Z or an explicit UTC offset. Units are preserved as supplied; Ocean Canvas does not
               convert unknown unit strings.
             </p>
           </div>
@@ -863,7 +883,7 @@ export function DataLabPage() {
                 </ul>
               )}
               <p>
-                File bytes stay in this browser. OceanTwin does not infer missing coordinates, timestamps,
+                File bytes stay in this browser. Ocean Canvas does not infer missing coordinates, timestamps,
                 units or vertical conventions; files without sufficient CF-style evidence remain inspection-only.
               </p>
             </div>
