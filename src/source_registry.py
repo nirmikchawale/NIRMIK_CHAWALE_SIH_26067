@@ -120,7 +120,7 @@ CONNECTORS: list[dict[str, Any]] = [
         "id": "oceantwin-wcs",
         "adapter": "ogc_wcs_service",
         "kind": "interoperability_service",
-        "provider": "OceanTwin",
+        "provider": "Ocean Canvas",
         "title": "Ocean Canvas scalar-field Web Coverage Service",
         "role": "WCS 2.0.1 compatibility profile serving depth/time-selected temperature and salinity coverage as NetCDF.",
         "variables": ["thetao", "so"],
