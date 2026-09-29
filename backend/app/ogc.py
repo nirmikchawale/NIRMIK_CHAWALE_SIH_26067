@@ -1,4 +1,4 @@
-"""Bounded OGC interoperability services for OceanTwin's verified scalar model cube.
+"""Bounded OGC interoperability services for Ocean Canvas's verified scalar model cube.
 
 This module implements the core operations needed by SIH26067 without pretending to be
 an externally certified OGC server. The WMS path follows WMS 1.3.0 GetCapabilities/GetMap
@@ -87,7 +87,7 @@ def _wms_capabilities(dataset: dict[str, Any]) -> str:
       <Layer queryable="1">
         <Name>{name}</Name>
         <Title>{title}</Title>
-        <Abstract>Verified OceanTwin scalar depth slice; units {units}.</Abstract>
+        <Abstract>Verified Ocean Canvas scalar depth slice; units {units}.</Abstract>
         <CRS>CRS:84</CRS>
         <EX_GeographicBoundingBox>
           <westBoundLongitude>{min_lon}</westBoundLongitude>
@@ -117,8 +117,8 @@ def _wms_capabilities(dataset: dict[str, Any]) -> str:
  xmlns:xlink="http://www.w3.org/1999/xlink">
   <Service>
     <Name>WMS</Name>
-    <Title>OceanTwin 3D verified scalar WMS</Title>
-    <Abstract>Depth/time selected map rendering of verified OceanTwin model fields.</Abstract>
+    <Title>Ocean Canvas verified scalar WMS</Title>
+    <Abstract>Depth/time selected map rendering of verified Ocean Canvas model fields.</Abstract>
   </Service>
   <Capability>
     <Request>
@@ -126,7 +126,7 @@ def _wms_capabilities(dataset: dict[str, Any]) -> str:
       <GetMap><Format>image/png</Format></GetMap>
     </Request>
     <Layer>
-      <Title>OceanTwin verified model cube</Title>
+      <Title>Ocean Canvas verified model cube</Title>
       <CRS>CRS:84</CRS>
       {layers}
     </Layer>
@@ -147,7 +147,7 @@ def _wcs_capabilities(dataset: dict[str, Any]) -> str:
       <wcs:CoverageId>{name}</wcs:CoverageId>
       <wcs:CoverageSubtype>RectifiedGridCoverage</wcs:CoverageSubtype>
       <ows:Title>{title}</ows:Title>
-      <ows:Abstract>Verified OceanTwin coverage in {units}; selectable model time and depth.</ows:Abstract>
+      <ows:Abstract>Verified Ocean Canvas coverage in {units}; selectable model time and depth.</ows:Abstract>
     </wcs:CoverageSummary>
             """.format(
                 name=escape(variable),
@@ -160,7 +160,7 @@ def _wcs_capabilities(dataset: dict[str, Any]) -> str:
  xmlns:wcs="http://www.opengis.net/wcs/2.0"
  xmlns:ows="http://www.opengis.net/ows/2.0">
   <ows:ServiceIdentification>
-    <ows:Title>OceanTwin 3D verified coverage service</ows:Title>
+    <ows:Title>Ocean Canvas verified coverage service</ows:Title>
     <ows:ServiceType>WCS</ows:ServiceType>
     <ows:ServiceTypeVersion>2.0.1</ows:ServiceTypeVersion>
   </ows:ServiceIdentification>
@@ -241,9 +241,9 @@ def _netcdf_coverage(
     try:
         with Dataset(path, "w", format="NETCDF4") as output:
             output.Conventions = "CF-1.10"
-            output.title = "OceanTwin 3D WCS coverage"
+            output.title = "Ocean Canvas WCS coverage"
             output.source = "Verified bundled ocean-model evidence"
-            output.history = "Generated read-only by OceanTwin WCS compatibility profile"
+            output.history = "Generated read-only by Ocean Canvas WCS compatibility profile"
 
             output.createDimension("time", 1)
             output.createDimension("depth", 1)
@@ -319,17 +319,17 @@ def build_ogc_router(dataset_provider: ScalarDatasetProvider) -> APIRouter:
         if operation != "getmap":
             raise HTTPException(status_code=400, detail="Supported WMS requests: GetCapabilities, GetMap.")
         if version != "1.3.0":
-            raise HTTPException(status_code=400, detail="OceanTwin WMS supports version 1.3.0.")
+            raise HTTPException(status_code=400, detail="Ocean Canvas WMS supports version 1.3.0.")
         if crs.upper() != "CRS:84":
-            raise HTTPException(status_code=400, detail="OceanTwin WMS GetMap currently supports CRS:84.")
+            raise HTTPException(status_code=400, detail="Ocean Canvas WMS GetMap currently supports CRS:84.")
         if format.lower() != "image/png":
-            raise HTTPException(status_code=400, detail="OceanTwin WMS GetMap currently supports image/png.")
+            raise HTTPException(status_code=400, detail="Ocean Canvas WMS GetMap currently supports image/png.")
         variable = (layers or "").split(",")[0].strip()
         longitude, latitude, values = _subset_2d(dataset, variable, time_index, depth_index, bbox)
 
         # Model latitude is south-to-north; raster rows are rendered north-to-south.
         rgba = _thermal_rgba(values[::-1, :])
-        image = Image.fromarray(rgba, mode="RGBA").resize((width, height), resample=Image.Resampling.BILINEAR)
+        image = Image.fromarray(rgba).resize((width, height), resample=Image.Resampling.BILINEAR)
         buffer = io.BytesIO()
         image.save(buffer, format="PNG", optimize=True)
         return Response(
@@ -362,7 +362,7 @@ def build_ogc_router(dataset_provider: ScalarDatasetProvider) -> APIRouter:
         if operation == "getcapabilities":
             return Response(_wcs_capabilities(dataset), media_type="application/xml")
         if version != "2.0.1":
-            raise HTTPException(status_code=400, detail="OceanTwin WCS compatibility profile supports version 2.0.1.")
+            raise HTTPException(status_code=400, detail="Ocean Canvas WCS compatibility profile supports version 2.0.1.")
         variable = (coverage_id or "").strip()
         if operation == "describecoverage":
             return Response(_describe_coverage(dataset, variable), media_type="application/xml")
@@ -372,14 +372,14 @@ def build_ogc_router(dataset_provider: ScalarDatasetProvider) -> APIRouter:
                 detail="Supported WCS requests: GetCapabilities, DescribeCoverage, GetCoverage.",
             )
         if format.lower() not in {"application/x-netcdf", "application/netcdf"}:
-            raise HTTPException(status_code=400, detail="OceanTwin WCS GetCoverage serves application/x-netcdf.")
+            raise HTTPException(status_code=400, detail="Ocean Canvas WCS GetCoverage serves application/x-netcdf.")
         longitude, latitude, values = _subset_2d(dataset, variable, time_index, depth_index, bbox)
         payload = _netcdf_coverage(dataset, variable, time_index, depth_index, longitude, latitude, values)
         return Response(
             payload,
             media_type="application/x-netcdf",
             headers={
-                "Content-Disposition": 'attachment; filename="OceanTwin_{0}_t{1}_d{2}.nc"'.format(
+                "Content-Disposition": 'attachment; filename="OceanCanvas_{0}_t{1}_d{2}.nc"'.format(
                     variable, time_index, depth_index
                 ),
                 "X-OceanTwin-WCS-Profile": "2.0.1-compatibility",
