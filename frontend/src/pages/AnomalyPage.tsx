@@ -16,7 +16,7 @@ function magnitudeBand(robustZ: number): { label: string; key: string } {
 
 function downloadScreeningEvidence(payload: AnomalyResponse) {
   const exportPayload = {
-    exported_by: "OceanTwin 3D · Explainable Anomaly Screening",
+    exported_by: "Ocean Canvas · Explainable Anomaly Screening",
     exported_utc: new Date().toISOString(),
     interpretation_guardrail: payload.interpretation,
     method: payload.method,
@@ -36,7 +36,7 @@ function downloadScreeningEvidence(payload: AnomalyResponse) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `OceanTwin_anomaly_screen_${payload.variable}_d${payload.depth_index}.json`;
+  anchor.download = `OceanCanvas_anomaly_screen_${payload.variable}_d${payload.depth_index}.json`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
