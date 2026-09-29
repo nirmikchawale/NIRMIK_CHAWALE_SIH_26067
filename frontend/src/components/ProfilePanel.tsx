@@ -51,7 +51,7 @@ function downloadComparisonCsv(detail: ProfileDetail, provenance: ProvenanceResp
   ]);
   const csv = [header, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
   downloadTextFile(
-    `OceanTwin_Argo_${s.platform_id}_cycle_${s.cycle}_comparison.csv`,
+    `OceanCanvas_Argo_${s.platform_id}_cycle_${s.cycle}_comparison.csv`,
     csv,
     "text/csv;charset=utf-8"
   );
@@ -60,13 +60,13 @@ function downloadComparisonCsv(detail: ProfileDetail, provenance: ProvenanceResp
 function downloadEvidenceJson(detail: ProfileDetail, provenance: ProvenanceResponse) {
   const s = detail.summary;
   const payload = {
-    exported_by: "OceanTwin 3D · SIH26067",
+    exported_by: "Ocean Canvas · SIH26067",
     evidence_type: "diagnostic model-observation consistency",
     comparison: detail,
     provenance
   };
   downloadTextFile(
-    `OceanTwin_Argo_${s.platform_id}_cycle_${s.cycle}_evidence.json`,
+    `OceanCanvas_Argo_${s.platform_id}_cycle_${s.cycle}_evidence.json`,
     JSON.stringify(payload, null, 2),
     "application/json;charset=utf-8"
   );
