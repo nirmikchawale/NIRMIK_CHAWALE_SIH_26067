@@ -105,6 +105,9 @@ export function ScientificColorbarHud({
           ))}
         </svg>
         <div className="colorbar-range-mask" aria-hidden="true" />
+      </div>
+      <div className="range-controls">
+        <label>Minimum
         <input
           className="colorbar-handle colorbar-handle-min"
           type="range"
@@ -115,6 +118,8 @@ export function ScientificColorbarHud({
           value={lower}
           onChange={(event) => onMinimumChange(Math.min(Number(event.target.value), upper - step))}
         />
+        </label>
+        <label>Maximum
         <input
           className="colorbar-handle colorbar-handle-max"
           type="range"
@@ -125,6 +130,7 @@ export function ScientificColorbarHud({
           value={upper}
           onChange={(event) => onMaximumChange(Math.max(Number(event.target.value), lower + step))}
         />
+        </label>
       </div>
 
       <div className="colorbar-hud-values">

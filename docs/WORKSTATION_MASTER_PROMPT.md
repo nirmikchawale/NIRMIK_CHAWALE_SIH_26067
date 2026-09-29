@@ -1,0 +1,11 @@
+# OceanTwin front-page restructure — master prompt
+
+Build a scientific workstation whose first screen invites action. Use the supplied SAMUDRA screenshots only as composition references: a dominant ocean scene, compact navigation, accessible sources and purpose-specific panels. Do not copy branding, scientific claims, metrics, data or credentials shown in reference images.
+
+Prioritize GLORYS baseline, INCOIS multi-time and INCOIS chlorophyll in an always-discoverable source strip. Replace the passive introductory essay with working actions: explore the field, inspect its context, compare observations and access data. Keep variables, depth, time and observations reachable without scrolling past promotional content. Use deep ink, restrained sea-glass accents and warm high-contrast text; preserve scientific palettes.
+
+Rebuild layout ownership with real grid/flex space. Reserve distinct areas for source selection, view selection, exploration controls, the renderer, display range and contextual evidence. Open inspectors in a dedicated column or normal-flow mobile section, never over the scene or other controls. Keep renderer camera controls, journey actions, sensor choices and status in a separate toolbar. Make display range a dedicated section with independently operable minimum/maximum controls. Eliminate duplicate legends and overlapping fixed positions. Resize the renderer when surrounding layout changes.
+
+Preserve all existing scientific routes, data contracts, source limitations, comparisons, imports/exports, real timestamps, depth coordinates, timeline, colour mapping, isosurfaces, camera presets, keyboard/mouse/touch zoom, Earth–India–field journey and field entry. Every visible action must perform its stated function. Retain startup animation, reduced motion and recovery. Never fabricate observations or source coverage.
+
+Implement on latest main, preserve a pre-restructure recovery branch, build/typecheck and verify desktop/mobile layouts. Add meaningful geometry checks for non-intersection of major work areas and source accessibility, plus the complete scientific browser suite. Push, merge only verified work, deploy and test the public URL. Update the checkpoint with exact commits, test results and next actions so interrupted work resumes safely. Roll back selectively without resetting main or discarding later changes.
