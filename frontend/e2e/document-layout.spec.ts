@@ -42,7 +42,9 @@ for (const width of [1440, 390]) {
       expect(scrollable.overflowY).not.toBe("hidden");
       expect(scrollable.room).toBeGreaterThan(0);
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.mouse.move(width / 2, 400);
+      // Wheel over the neutral app chrome: charts/canvases may legitimately consume wheel
+      // gestures for their own interaction, which must not be mistaken for a page-scroll failure.
+      await page.locator(".app-header").hover();
       await page.mouse.wheel(0, 600);
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
       const footer = page.locator('.science-footer');
