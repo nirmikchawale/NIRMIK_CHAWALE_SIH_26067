@@ -37,7 +37,7 @@ jobs:
         run: |
           python - <<'PY'
           from api.index import app
-          assert app.title.startswith("OceanTwin 3D API")
+          assert app.title.startswith("Ocean Canvas API")
           print(app.title)
           PY
 
