@@ -15,12 +15,12 @@ import type {
   VolumeResponse
 } from "./types";
 
-const API_BASE = (
+export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL ??
   (import.meta.env.PROD ? "" : "http://localhost:8000")
 ).replace(/\/$/, "");
 
-const STATIC_SCIENCE = import.meta.env.VITE_STATIC_SCIENCE === "true";
+export const STATIC_SCIENCE = import.meta.env.VITE_STATIC_SCIENCE === "true";
 const STATIC_BASE = `${import.meta.env.BASE_URL}science-static`.replace(/\/$/, "");
 
 function safeProfileId(profileId: string): string {
@@ -113,3 +113,14 @@ export const api = {
       `/currents-volume/t${timeIndex}.json`
     )
 };
+
+/**
+ * Connector links that point at this project's own API (e.g. "/ogc/wms") only exist when the
+ * FastAPI backend is deployed. On the static GitHub Pages build they would 404, so callers
+ * receive null and render the link as unavailable instead of broken.
+ */
+export function resolveServiceUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  if (!url.startsWith("/")) return url;
+  return STATIC_SCIENCE ? null : `${API_BASE}${url}`;
+}

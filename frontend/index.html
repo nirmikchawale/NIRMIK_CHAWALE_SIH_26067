@@ -6,9 +6,10 @@
     <meta name="theme-color" content="#03101a" />
     <meta
       name="description"
-      content="OceanTwin 3D — SIH26067 interactive model-observation ocean explorer"
+      content="Ocean Canvas — SIH26067 interactive model-observation ocean explorer"
     />
-    <title>OceanTwin 3D · SIH26067</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d1c26'/%3E%3Cpath d='M5 13c3-3 6-3 9 0s6 3 9 0 4-2 4-2M5 19c3-3 6-3 9 0s6 3 9 0 4-2 4-2' fill='none' stroke='%23abd5df' stroke-width='2.2' stroke-linecap='round'/%3E%3C/svg%3E" />
+    <title>Ocean Canvas · SIH26067</title>
   </head>
   <body>
     <style>
@@ -42,8 +43,8 @@
       @media(max-width:680px) { .ocean-launch { padding:24px; } .launch-body { grid-template-columns:1fr; gap:0; margin:28px auto; } .launch-copy h1 { font-size:clamp(38px,10vw,58px); max-width:420px; margin:16px 0; } .launch-art { max-height:34vh; } .launch-edition { max-width:92px; text-align:right; font-size:9px; } .launch-footer { align-items:flex-start; gap:12px; } .launch-status { max-width:210px; padding-top:12px; } .launch-help summary { white-space:nowrap; } }
       @media(prefers-reduced-motion:reduce) { .ocean-launch,.ocean-launch * { animation:none!important; transition:none!important; } }
     </style>
-    <section id="ocean-launch" class="ocean-launch" aria-label="Opening OceanTwin" aria-busy="true">
-      <header class="launch-masthead"><p class="launch-wordmark">OceanTwin <span>3D</span></p><span class="launch-edition">Ocean intelligence<br>SIH26067</span></header>
+    <section id="ocean-launch" class="ocean-launch" aria-label="Opening Ocean Canvas" aria-busy="true">
+      <header class="launch-masthead"><p class="launch-wordmark">Ocean <span>Canvas</span></p><span class="launch-edition">Ocean intelligence<br>SIH26067</span></header>
       <div class="launch-body">
         <div class="launch-copy"><p class="launch-eyebrow">From the surface to the story below</p><h1>A deeper view<br>of <em>our ocean.</em></h1><p>Explore the layers. Follow the evidence.<br>Find the connections beneath the surface.</p></div>
         <svg class="launch-art" viewBox="0 0 640 490" aria-hidden="true" focusable="false">
@@ -57,7 +58,7 @@
         </svg>
       </div>
       <footer class="launch-footer"><div class="launch-status" role="status" aria-live="polite"><span class="launch-beacon" aria-hidden="true"></span><span id="launch-status-text">Preparing your ocean workspace</span></div><details class="launch-help"><summary>Loading help</summary><div><p>The workspace opens as soon as its evidence is ready. On a slow connection, the first visit can take a little longer.</p><button id="launch-motion" type="button" aria-pressed="false">Pause animation</button> <a href="">Reload</a></div></details></footer>
-      <noscript><p>OceanTwin needs JavaScript to open its interactive maps. Enable JavaScript and reload this page.</p></noscript>
+      <noscript><p>Ocean Canvas needs JavaScript to open its interactive maps. Enable JavaScript and reload this page.</p></noscript>
     </section>
     <script>
       document.getElementById('launch-motion').addEventListener('click', function () {

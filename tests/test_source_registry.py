@@ -33,7 +33,7 @@ def test_registry_has_unique_real_adapters_and_incois_open_standards():
     assert chlorophyll["wcs_url"] is None
 
     ocean_twin_wcs = next(item for item in connectors if item["id"] == "oceantwin-wcs")
-    assert ocean_twin_wcs["provider"] == "OceanTwin"
+    assert ocean_twin_wcs["provider"] == "Ocean Canvas"
     assert "OGC WCS 2.0.1 compatibility profile" in ocean_twin_wcs["standards"]
     assert ocean_twin_wcs["wcs_url"] == "/ogc/wcs"
 

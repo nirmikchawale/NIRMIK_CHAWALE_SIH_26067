@@ -10,6 +10,7 @@ import {
 
 import type { ColorPalette, ColorScaleMode, CurrentsVolumeResponse, VolumeResponse } from "../types";
 import { displayUnits } from "../units";
+import { paletteCssGradient, paletteHsl } from "../palettes";
 import { CameraOrientationHud, type CameraPreset } from "./CameraOrientationHud";
 
 interface Props {
@@ -70,18 +71,7 @@ function colourFor(
     ? (Math.log(value) - Math.log(safeMin)) / Math.max(Math.log(safeMax) - Math.log(safeMin), 1e-12)
     : (value - safeMin) / Math.max(safeMax - safeMin, 1e-12);
   const t = clamp(raw, 0, 1);
-  let hue = 220 - 173 * t;
-  let saturation = 82;
-  let lightness = 49 + 10 * t;
-  if (palette === "viridis") {
-    hue = 275 - 225 * t;
-    saturation = 72;
-    lightness = 36 + 20 * t;
-  } else if (palette === "icefire") {
-    hue = t < 0.5 ? 220 - 40 * (t / 0.5) : 185 - 170 * ((t - 0.5) / 0.5);
-    saturation = 82;
-    lightness = 47 + 10 * Math.abs(t - 0.5);
-  }
+  const [hue, saturation, lightness] = paletteHsl(t, palette);
   return "hsla(" + hue.toFixed(1) + ", " + saturation + "%, " + lightness.toFixed(1) + "%, " + alpha.toFixed(3) + ")";
 }
 
@@ -725,7 +715,7 @@ export function WaterColumn3D({
 
       <div className="globe-overlay water-column-legend">
         <span>{dataLabel}</span>
-        <div className="gradient-bar" data-palette={colorPalette} />
+        <div className="gradient-bar" data-palette={colorPalette} style={{ background: paletteCssGradient(colorPalette) }} />
         <div className="legend-values">
           <span>{colorMinimum.toFixed(3)}</span>
           <span>{dataUnits}</span>

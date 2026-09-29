@@ -11,7 +11,7 @@ async function revealCanvasTools(page: Page) {
   }
 }
 
-test("live OceanTwin judge flow renders and core interactions work", async ({ page }) => {
+test("live Ocean Canvas judge flow renders and core interactions work", async ({ page }) => {
   test.setTimeout(240_000);
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
@@ -22,7 +22,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
   // The current canvas-first UI deliberately hides duplicate map tools while
   // the Explorer drawer is open. Close the drawer before testing basemap tools.
   await page.getByRole("button", { name: "Hide explorer controls" }).click();
@@ -55,7 +55,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("oceantwin-theme"))).toBe("light");
 
   await page.reload({ waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
   await expect(documentRoot).toHaveAttribute("data-theme", "light");
 
   await page.getByRole("button", { name: "Telemetry" }).click();
@@ -140,7 +140,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(dataLabPage).toContainText("GLORYS12V1 global ocean physics reanalysis");
   await expect(dataLabPage).toContainText("Argo global profiling-float observations");
   await expect(dataLabPage).toContainText("Indian Ocean official data access portal");
-  await expect(dataLabPage).toContainText("Reshape to OceanTwin schema");
+  await expect(dataLabPage).toContainText("Reshape to Ocean Canvas schema");
   const officialLinks = dataLabPage.locator(".data-source-actions a");
   await expect(officialLinks).toHaveCount(3);
   await expect(officialLinks.nth(0)).toHaveAttribute("href", /data\.marine\.copernicus\.eu/);
@@ -274,7 +274,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
+test("live Ocean Canvas explorer and evidence flow works", async ({ page }) => {
   // This test deliberately exercises the longest judge path against the
   // deployed GitHub Pages site. Keep all assertions, but allow live-network
   // rendering and camera transitions more time than the default 90 seconds.
@@ -287,7 +287,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const documentRoot = page.locator("html");
   await expect(documentRoot).toHaveAttribute("data-theme", "dark");
@@ -511,7 +511,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   const csvDownloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Download CSV" }).click();
   const csvDownload = await csvDownloadPromise;
-  expect(csvDownload.suggestedFilename()).toMatch(/^OceanTwin_Argo_.*_comparison\.csv$/);
+  expect(csvDownload.suggestedFilename()).toMatch(/^OceanCanvas_Argo_.*_comparison\.csv$/);
 
   await page.getByRole("button", { name: "Focus 3D" }).click();
   await expect(page.locator(".app-shell")).toHaveClass(/focus-mode/);
@@ -526,7 +526,7 @@ test("live OceanTwin 3D explorer and evidence flow works", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
+test("live Ocean Canvas canvas-first HUD controls work", async ({ page }) => {
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -535,7 +535,7 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const appShell = page.locator(".app-shell");
   await expect(page.locator(".feature-rail-right")).toHaveCount(0);
@@ -579,7 +579,7 @@ test("live OceanTwin canvas-first HUD controls work", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
+test("live Ocean Canvas workspace modes switch cleanly", async ({ page }) => {
   if (!liveUrl) {
     throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
   }
@@ -588,7 +588,7 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const appShell = page.locator(".app-shell");
   await expect(appShell).toHaveAttribute("data-workspace-mode", "explorer");
@@ -618,14 +618,14 @@ test("live OceanTwin workspace modes switch cleanly", async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin variable pills and interactive colorbar work", async ({ page }) => {
+test("live Ocean Canvas variable pills and interactive colorbar work", async ({ page }) => {
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
 
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const variableButtons = page.locator(".variable-switcher-rich button");
   await expect(variableButtons).toHaveCount(3);
@@ -659,14 +659,14 @@ test("live OceanTwin variable pills and interactive colorbar work", async ({ pag
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }) => {
+test("live Ocean Canvas dedicated genuine timeline scrubber works", async ({ page }) => {
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
 
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const sourceSelector = page.getByLabel("Explore scientific source");
   await sourceSelector.getByRole("button", { name: "INCOIS multi-time" }).click();
@@ -699,14 +699,14 @@ test("live OceanTwin dedicated genuine timeline scrubber works", async ({ page }
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin anchored Argo billboard exposes verified evidence", async ({ page }) => {
+test("live Ocean Canvas anchored Argo billboard exposes verified evidence", async ({ page }) => {
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
 
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const journey = page.locator(".globe-shell[data-journey-phase]");
   if ((await journey.getAttribute("data-journey-phase")) !== "region") {
@@ -736,14 +736,14 @@ test("live OceanTwin anchored Argo billboard exposes verified evidence", async (
   expect(pageErrors).toEqual([]);
 });
 
-test("live OceanTwin synchronized T-Z profile drives the genuine 3D depth plane", async ({ page }) => {
+test("live Ocean Canvas synchronized T-Z profile drives the genuine 3D depth plane", async ({ page }) => {
   if (!liveUrl) throw new Error("OCEANTWIN_LIVE_URL is required for live browser verification.");
 
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: /OceanTwin/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
 
   const profileSelect = page.getByLabel("Argo profile");
   await expect(profileSelect).toBeVisible();

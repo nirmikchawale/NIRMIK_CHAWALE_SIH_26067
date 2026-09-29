@@ -39,6 +39,7 @@ import type {
   VolumeResponse
 } from "../types";
 import { displayUnits } from "../units";
+import { paletteCssGradient, paletteHsl } from "../palettes";
 import { CameraOrientationHud, type CameraPreset } from "./CameraOrientationHud";
 
 interface Inspection {
@@ -94,14 +95,8 @@ function scalarColor(
     : (value - safeMin) / Math.max(safeMax - safeMin, 1e-12);
   const t = Math.max(0, Math.min(1, raw));
 
-  if (palette === "viridis") {
-    return Color.fromHsl((275 - 225 * t) / 360, 0.72, 0.36 + 0.20 * t, 0.88);
-  }
-  if (palette === "icefire") {
-    const hue = t < 0.5 ? 220 - 40 * (t / 0.5) : 185 - 170 * ((t - 0.5) / 0.5);
-    return Color.fromHsl(hue / 360, 0.82, 0.47 + 0.10 * Math.abs(t - 0.5), 0.88);
-  }
-  return Color.fromHsl((220 - 173 * t) / 360, 0.82, 0.50 + 0.08 * t, 0.88);
+  const [hue, saturation, lightness] = paletteHsl(t, palette);
+  return Color.fromHsl(hue / 360, saturation / 100, lightness / 100, 1);
 }
 
 export function OceanGlobe({
@@ -220,8 +215,11 @@ export function OceanGlobe({
     viewer.scene.globe.maximumScreenSpaceError = 0.8;
     viewer.scene.fog.enabled = false;
     viewer.scene.globe.translucency.enabled = true;
-    viewer.scene.globe.translucency.frontFaceAlpha = 0.95;
+    // Open a translucent "window" only over the verified study field so sub-surface depth
+    // planes keep their true palette colours; the rest of the globe stays opaque.
+    viewer.scene.globe.translucency.frontFaceAlpha = 0.3;
     viewer.scene.globe.translucency.backFaceAlpha = 0.28;
+    viewer.scene.globe.translucency.rectangle = Rectangle.fromDegrees(66.85, 11.85, 70.15, 14.15);
     viewer.scene.screenSpaceCameraController.minimumZoomDistance = 100_000;
     viewer.scene.screenSpaceCameraController.maximumZoomDistance = 18_000_000;
     viewer.scene.screenSpaceCameraController.inertiaZoom = 0.65;
@@ -533,9 +531,12 @@ export function OceanGlobe({
           outlineColor: Color.fromCssColorString("#04111d"),
           outlineWidth: 4,
           style: LabelStyle.FILL_AND_OUTLINE,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.BOTTOM,
           horizontalOrigin: HorizontalOrigin.CENTER,
-          pixelOffset: new Cartesian2(0, -18),
+          pixelOffset: new Cartesian2(0, -22),
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         }
       });
@@ -576,6 +577,9 @@ export function OceanGlobe({
           outlineColor: Color.fromCssColorString("#04111d"),
           outlineWidth: 4,
           style: LabelStyle.FILL_AND_OUTLINE,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.BOTTOM,
           horizontalOrigin: HorizontalOrigin.CENTER,
           pixelOffset: new Cartesian2(0, -19),
@@ -607,9 +611,12 @@ export function OceanGlobe({
           outlineColor: Color.fromCssColorString("#04111d"),
           outlineWidth: 4,
           style: LabelStyle.FILL_AND_OUTLINE,
+          showBackground: true,
+          backgroundColor: Color.fromCssColorString("#04111d"),
+          backgroundPadding: new Cartesian2(7, 4),
           verticalOrigin: VerticalOrigin.TOP,
           horizontalOrigin: HorizontalOrigin.CENTER,
-          pixelOffset: new Cartesian2(0, 16),
+          pixelOffset: new Cartesian2(0, 22),
           disableDepthTestDistance: Number.POSITIVE_INFINITY
         }
       });
@@ -757,6 +764,8 @@ export function OceanGlobe({
         }
       }
       viewer.scene.primitives.add(collection);
+      // Keep field samples beneath Argo/sensor markers and their labels.
+      viewer.scene.primitives.lowerToBottom(collection);
       dynamicPrimitivesRef.current.push(collection);
     }
 
@@ -814,6 +823,7 @@ export function OceanGlobe({
           asynchronous: false
         });
         viewer.scene.primitives.add(layeredVolume);
+        viewer.scene.primitives.lowerToBottom(layeredVolume);
         dynamicPrimitivesRef.current.push(layeredVolume);
       }
     }
@@ -888,6 +898,8 @@ export function OceanGlobe({
       }
       viewer.scene.primitives.add(lines);
       viewer.scene.primitives.add(heads);
+      viewer.scene.primitives.lowerToBottom(heads);
+      viewer.scene.primitives.lowerToBottom(lines);
       dynamicPrimitivesRef.current.push(lines, heads);
     }
 
@@ -1281,7 +1293,7 @@ export function OceanGlobe({
         </strong>
         <small>
           {introPhase === "earth"
-            ? "OceanTwin starts at planetary scale so model fields, currents and in-situ observations stay anchored to real geography before we zoom into evidence."
+            ? "Ocean Canvas starts at planetary scale so model fields, currents and in-situ observations stay anchored to real geography before we zoom into evidence."
             : introPhase === "india"
               ? "We narrow to the northern Indian Ocean, where INCOIS multi-time analysis adds genuine temporal breadth to the verified model baseline."
               : "67–70°E · 12–14°N · verified GLORYS depth fields, real observation profiles and an explainable path beneath the surface."}
@@ -1401,7 +1413,7 @@ export function OceanGlobe({
       </div>
       <div className="globe-overlay legend-card">
         <span>{legendLabel}</span>
-        <div className="gradient-bar" data-palette={colorPalette} />
+        <div className="gradient-bar" data-palette={colorPalette} style={{ background: paletteCssGradient(colorPalette) }} />
         <div className="legend-values">
           <span>{legendMin?.toFixed(3) ?? "—"}</span>
           <span>{displayUnits(legendUnits)}</span>

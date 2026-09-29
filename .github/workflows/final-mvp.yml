@@ -37,7 +37,7 @@ jobs:
         run: |
           python - <<'PY'
           from api.index import app
-          assert app.title.startswith("OceanTwin 3D API")
+          assert app.title.startswith("Ocean Canvas API")
           print(app.title)
           PY
 
@@ -416,4 +416,5 @@ jobs:
             if curl --fail --silent http://127.0.0.1:4174/ > /dev/null; then break; fi
             sleep 1
           done
+          npx playwright test -c playwright.live.config.ts e2e/document-layout.spec.ts
           npm run e2e:live

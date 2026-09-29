@@ -1,7 +1,7 @@
 import { SourceWorkbench } from "./components/SourceWorkbench";
 import { RefreshControl } from "./components/RefreshControl";
 import { useOceanMotion } from "./useOceanMotion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { api, fetchIncoisChlorophyll, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
 import { useStartupScreen } from "./useStartupScreen";
@@ -116,6 +116,8 @@ export default function App() {
   const [playing, setPlaying] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [colorPalette, setColorPalette] = useState<ColorPalette>("thermal");
+  // Chlorophyll forces a viridis ramp; remember the physical-field palette so it is restored afterwards.
+  const physicalPaletteRef = useRef<ColorPalette>("thermal");
   const [colorScale, setColorScale] = useState<ColorScaleMode>("linear");
   const [colorMinimum, setColorMinimum] = useState(0);
   const [colorMaximum, setColorMaximum] = useState(1);
@@ -168,6 +170,37 @@ export default function App() {
     };
     window.addEventListener("keydown", handleDockShortcut);
     return () => window.removeEventListener("keydown", handleDockShortcut);
+  }, [page]);
+
+  useEffect(() => {
+    if (page === "explore") return;
+
+    const handleDocumentWheel = (event: globalThis.WheelEvent) => {
+      if (event.ctrlKey || event.metaKey || event.deltaY === 0) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+
+      // Preserve native wheel behavior for nested panels/tables that can scroll
+      // independently. Otherwise make the document viewport the explicit
+      // scroll owner for the non-Explorer pages.
+      let node: Element | null = target;
+      while (node && node !== document.body && node !== document.documentElement) {
+        const style = getComputedStyle(node);
+        const canScrollY =
+          /(auto|scroll)/.test(style.overflowY) &&
+          node.scrollHeight > node.clientHeight + 1;
+        if (canScrollY) return;
+        node = node.parentElement;
+      }
+
+      const scroller = document.scrollingElement;
+      if (!scroller || scroller.scrollHeight <= scroller.clientHeight + 1) return;
+      event.preventDefault();
+      scroller.scrollTop += event.deltaY;
+    };
+
+    window.addEventListener("wheel", handleDocumentWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleDocumentWheel);
   }, [page]);
 
   useEffect(() => {
@@ -379,7 +412,7 @@ export default function App() {
         setDepthIndex(Math.max(0, safeDepth));
 
         if (healthResult.status === "rejected") {
-          setDegradedWarnings((current) => [...current, "Health check unavailable"]);
+          setDegradedWarnings((current) => current.includes("Health check unavailable") ? current : [...current, "Health check unavailable"]);
         }
 
         if (profilesResult.status === "fulfilled") {
@@ -387,11 +420,11 @@ export default function App() {
           if (profilesResult.value.profiles.length > 0) {
             setSelectedProfileId(profilesResult.value.profiles[0].profile_id);
           } else {
-            setDegradedWarnings((current) => [...current, "No eligible Argo comparison profiles"]);
+            setDegradedWarnings((current) => current.includes("No eligible Argo comparison profiles") ? current : [...current, "No eligible Argo comparison profiles"]);
           }
         } else {
           setProfiles([]);
-          setDegradedWarnings((current) => [...current, "Argo comparison layer unavailable"]);
+          setDegradedWarnings((current) => current.includes("Argo comparison layer unavailable") ? current : [...current, "Argo comparison layer unavailable"]);
         }
       }
     );
@@ -575,14 +608,20 @@ export default function App() {
         setVisualizationMode("globe");
         setDepthIndex(0);
         setIsoSurfaceEnabled(false);
+        if (variable !== "chlorophyll") physicalPaletteRef.current = colorPalette;
         setColorPalette("viridis");
         setColorScale("linear");
+      } else if (variable === "chlorophyll") {
+        setColorPalette(physicalPaletteRef.current);
       }
     },
-    [exploreCatalog]
+    [exploreCatalog, variable, colorPalette]
   );
 
-  const handleSourceModeChange = useCallback((nextSource: ExploreSourceMode) => {
+  const handleSourceModeChange = useCallback((
+    nextSource: ExploreSourceMode,
+    preferredVariable?: "thetao" | "so" | "currents"
+  ) => {
     if (nextSource === "incois" && !operationalCatalog) return;
     if (nextSource === "chlorophyll" && !chlorophyllCatalog) return;
 
@@ -592,7 +631,7 @@ export default function App() {
         : nextSource === "chlorophyll"
           ? chlorophyllCatalog
           : catalog;
-    let targetVariable: "thetao" | "so" | "currents" | "chlorophyll" = variable;
+    let targetVariable: "thetao" | "so" | "currents" | "chlorophyll" = preferredVariable ?? variable;
     if (nextSource === "chlorophyll") targetVariable = "chlorophyll";
     else if (targetVariable === "chlorophyll" || (nextSource === "incois" && targetVariable === "currents")) {
       targetVariable = "thetao";
@@ -611,8 +650,10 @@ export default function App() {
       setVisualizationMode("globe");
       setDepthIndex(0);
       setIsoSurfaceEnabled(false);
+      if (variable !== "chlorophyll") physicalPaletteRef.current = colorPalette;
       setColorPalette("viridis");
     } else {
+      if (variable === "chlorophyll") setColorPalette(physicalPaletteRef.current);
       const nextDepth = nextSource === "incois"
         ? 0
         : Math.min(18, Math.max(0, (nextCatalog?.coordinates.depth.length ?? 1) - 1));
@@ -620,13 +661,18 @@ export default function App() {
     }
 
     const nextVariable = nextCatalog?.variables.find((item) => item.id === targetVariable);
-    if (nextVariable?.kind === "scalar") {
+    if (nextVariable) {
+      // Scalars and current speed both carry a verified range for the colour mapping.
       setColorMinimum(nextVariable.minimum);
       setColorMaximum(nextVariable.maximum);
-      setIsoValue((nextVariable.minimum + nextVariable.maximum) / 2);
+      if (nextVariable.kind === "scalar") setIsoValue((nextVariable.minimum + nextVariable.maximum) / 2);
       setColorScale("linear");
     }
-  }, [operationalCatalog, chlorophyllCatalog, catalog, variable]);
+    if (targetVariable === "currents") {
+      setViewMode("slice");
+      setIsoSurfaceEnabled(false);
+    }
+  }, [operationalCatalog, chlorophyllCatalog, catalog, variable, colorPalette]);
 
   const handleEnterWaterColumn = useCallback(() => {
     if (sourceMode === "chlorophyll" || (sourceMode === "incois" && variable === "currents")) return;
@@ -715,7 +761,7 @@ export default function App() {
     return (
       <div className="boot-screen" data-theme={theme}>
         <div className="brand-mark">OT</div>
-        <h1>OceanTwin 3D</h1>
+        <h1>Ocean Canvas</h1>
         {startupError ? (
           <div className="boot-error-card">
             <strong>Scientific API unavailable</strong>
@@ -748,7 +794,7 @@ export default function App() {
         <div className="brand">
           <div className="brand-mark small">OT</div>
           <div>
-            <h1>OceanTwin <span>3D</span></h1>
+            <h1>Ocean <span>Canvas</span></h1>
             <p>Explainable water-column explorer · SIH26067</p>
           </div>
         </div>
@@ -835,7 +881,11 @@ export default function App() {
               Show panels
             </button>
           )}
-          <span className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}>
+          <span
+            className={`system-pill ${degradedWarnings.length > 0 ? "degraded" : ""}`}
+            role="status"
+            title={degradedWarnings.length > 0 ? `Degraded: ${degradedWarnings.join(" · ")}` : "All bundled evidence sources loaded"}
+          >
             {degradedWarnings.length > 0 ? "▲ DEGRADED MODE" : "● VERIFIED SNAPSHOT"}
           </span>
           <button
@@ -868,22 +918,23 @@ export default function App() {
 
             if (step === 0) {
               navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
+              handleSourceModeChange("glorys", "thetao");
               setVisualizationMode("globe");
             } else if (step === 1) {
               navigate("explore");
-              handleSourceModeChange("glorys");
-              handleVariableChange("thetao");
+              handleSourceModeChange("glorys", "thetao");
               setVisualizationMode("water-column");
             } else if (step === 2) {
               navigate("explore");
-              handleSourceModeChange("incois");
-              handleVariableChange("thetao");
+              if (operationalCatalog) {
+                handleSourceModeChange("incois", "thetao");
+              } else {
+                handleSourceModeChange("glorys", "thetao");
+              }
               setVisualizationMode("globe");
             } else if (step === 3) {
               navigate("explore");
-              handleSourceModeChange("glorys");
+              handleSourceModeChange("glorys", "thetao");
               setVisualizationMode("globe");
               const inSituProfile = importedProfiles[0];
               if (inSituProfile) {
@@ -1197,7 +1248,7 @@ export default function App() {
         </div>
       </div>
 
-      {(scienceLoading || error) && (
+      {page === "explore" && (scienceLoading || error) && (
         <div
           className={`toast ${error ? "error" : ""}`}
           role={error ? "alert" : "status"}

@@ -15,7 +15,7 @@ const NAV_GROUPS: Array<{ label: string; pages: PageId[] }> = [
 
 export function AppNavigation({ page, focusMode, onNavigate }: Props) {
   return (
-    <nav className="feature-rail feature-rail-left" aria-label="OceanTwin pages" aria-hidden={focusMode}>
+    <nav className="feature-rail feature-rail-left" aria-label="Ocean Canvas pages" aria-hidden={focusMode}>
       <div className="rail-title">WORKSPACE</div>
       {NAV_GROUPS.map((group) => (
         <div className="rail-group" key={group.label}>

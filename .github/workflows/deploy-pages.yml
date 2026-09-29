@@ -118,7 +118,7 @@ jobs:
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy OceanTwin to GitHub Pages
+      - name: Deploy Ocean Canvas to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
 
@@ -143,7 +143,7 @@ jobs:
         working-directory: frontend
         run: npx playwright install --with-deps chromium
 
-      - name: Verify live OceanTwin HTTPS deployment
+      - name: Verify live Ocean Canvas HTTPS deployment
         shell: bash
         env:
           PAGE_URL: ${{ needs.deploy.outputs.page_url }}
@@ -165,7 +165,7 @@ jobs:
             exit 1
           fi
 
-          grep -q 'OceanTwin 3D' /tmp/oceantwin-index.html
+          grep -q 'Ocean Canvas' /tmp/oceantwin-index.html
 
           python - <<'PY'
           import json
@@ -245,7 +245,7 @@ jobs:
           assert observations["record_count"] > 30
           assert earth[:2] == b"\xff\xd8"
 
-          print("Live OceanTwin Pages deployment verified:", base)
+          print("Live Ocean Canvas Pages deployment verified:", base)
           PY
 
       - name: Run live Chromium judge-flow acceptance test

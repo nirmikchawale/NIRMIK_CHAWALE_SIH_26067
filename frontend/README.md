@@ -1,4 +1,4 @@
-# OceanTwin React + Cesium frontend
+# Ocean Canvas React + Cesium frontend
 
 Judge-facing final MVP interface for SIH26067.
 

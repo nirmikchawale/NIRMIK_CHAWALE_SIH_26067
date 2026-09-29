@@ -50,3 +50,11 @@ screenshots/*.jpeg
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/*.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
+# Generated at build time by CI (science export, INCOIS/observation snapshots, NetCDF fixture)
+frontend/public/science-static/
+frontend/public/operational/
+frontend/public/observations/
+frontend/public/samples/
