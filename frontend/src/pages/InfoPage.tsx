@@ -32,7 +32,7 @@ export function InfoPage({ catalog, provenance }: Props) {
           <div className="section-kicker">SIH26067 · SCIENCE & SYSTEM</div>
           <h2>From ocean data to an explainable 3D digital-twin workspace.</h2>
           <p>
-            OceanTwin combines a verified GLORYS–Argo comparison baseline with genuine INCOIS
+            Ocean Canvas combines a verified GLORYS–Argo comparison baseline with genuine INCOIS
             multi-time fields, INCOIS satellite chlorophyll, and sourced Glider/CTD/BGC observations
             in an interactive browser-native ocean workspace. The goal is not to decorate a globe:
             it is to make depth-dependent structure, horizontal currents, model–observation differences,
@@ -42,11 +42,11 @@ export function InfoPage({ catalog, provenance }: Props) {
         <aside className="info-mission-card">
           <span>CORE QUESTION</span>
           <strong>What is happening in this ocean water column, at what depth, and how well does the model agree with observations?</strong>
-          <small>Every judge-facing view is tied back to the same canonical evidence bundle.</small>
+          <small>Every view is tied back to the same canonical evidence bundle.</small>
         </aside>
       </section>
 
-      <section className="info-evidence-ladder" aria-label="OceanTwin evidence ladder">
+      <section className="info-evidence-ladder" aria-label="Ocean Canvas evidence ladder">
         <article>
           <span>01</span>
           <div><small>MODEL</small><strong>Numerical ocean state</strong><p>GLORYS temperature, salinity and horizontal currents across verified model depths.</p></div>
@@ -88,7 +88,7 @@ export function InfoPage({ catalog, provenance }: Props) {
             <small>OUR RESPONSE</small>
             <h3>One traceable evidence pipeline, several coordinated views.</h3>
             <p>
-              OceanTwin keeps the scientific values canonical, then exposes them through 3D,
+              Ocean Canvas keeps the scientific values canonical, then exposes them through 3D,
               telemetry, comparison and diagnostic-screening views. Presentation controls such as
               vertical exaggeration or imagery never alter the underlying measurements.
             </p>
@@ -150,7 +150,7 @@ export function InfoPage({ catalog, provenance }: Props) {
         <article>
           <span className="info-icon"><Icon name="pipeline" /></span>
           <strong>Open interoperability</strong>
-          <p>Discoverable adapters expose REST, verified INCOIS OPeNDAP DAP2, WMS pathways and OceanTwin WMS/WCS compatibility services with CF-style metadata.</p>
+          <p>Discoverable adapters expose REST, verified INCOIS OPeNDAP DAP2, WMS pathways and Ocean Canvas WMS/WCS compatibility services with CF-style metadata.</p>
           <em>REST · OPeNDAP · WMS · WCS · CF</em>
         </article>
       </section>
@@ -162,7 +162,7 @@ export function InfoPage({ catalog, provenance }: Props) {
         </div>
       </section>
 
-      <section className="info-pipeline" aria-label="OceanTwin system pipeline">
+      <section className="info-pipeline" aria-label="Ocean Canvas system pipeline">
         <article>
           <span>01</span>
           <strong>Verified sources</strong>
@@ -223,7 +223,7 @@ export function InfoPage({ catalog, provenance }: Props) {
           <span className="info-icon"><Icon name="shield" /></span>
           <div>
             <small>SCIENTIFIC INTEGRITY CONTRACT</small>
-            <h3>What OceanTwin deliberately refuses to fake</h3>
+            <h3>What Ocean Canvas deliberately refuses to fake</h3>
           </div>
         </div>
         <div className="info-integrity-grid">
