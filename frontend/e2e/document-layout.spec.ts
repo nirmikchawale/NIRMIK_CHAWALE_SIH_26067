@@ -32,6 +32,19 @@ for (const width of [1440, 390]) {
       expect(geometry.parentHeight).toBeGreaterThanOrEqual(geometry.height - 2);
       expect(geometry.clipped).toBe(false);
       expect(geometry.width).toBeLessThanOrEqual(geometry.viewport + 1);
+      // Programmatic scrollIntoView can scroll overflow:hidden boxes, so also prove that a
+      // real user can scroll the document (regression: #root was overflow:hidden above 760px).
+      const scrollable = await page.evaluate(() => {
+        const scroller = document.scrollingElement!;
+        const rootStyle = getComputedStyle(document.getElementById("root")!);
+        return { overflowY: rootStyle.overflowY, room: scroller.scrollHeight - scroller.clientHeight };
+      });
+      expect(scrollable.overflowY).not.toBe("hidden");
+      expect(scrollable.room).toBeGreaterThan(0);
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.mouse.move(width / 2, 400);
+      await page.mouse.wheel(0, 600);
+      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
       const footer = page.locator('.science-footer');
       await footer.scrollIntoViewIfNeeded();
       await expect(footer).toBeInViewport();
