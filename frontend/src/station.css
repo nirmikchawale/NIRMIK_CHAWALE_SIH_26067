@@ -8,6 +8,23 @@ body:has(.ocean-workbench) { overflow:auto!important; }
 .ocean-workbench .header-status { flex-wrap:wrap; justify-content:flex-end; }
 .ocean-workbench .workspace-frame { display:flex!important; flex-direction:column; overflow:visible!important; flex:1; }
 .ocean-workbench .workspace-frame > .workspace { overflow:visible!important; min-width:0; }
+/* Document pages must contribute height to the new normal-flow shell.
+   Legacy absolute positioning collapsed their parent into a shallow viewport. */
+.ocean-workbench:not([data-page="explore"]) .workspace-frame > .workspace {
+  display:block;
+  height:auto!important;
+  min-height:0;
+  flex:1 0 auto;
+}
+.ocean-workbench .workspace > :is(.telemetry-page,.comparison-page,.anomaly-page,.data-lab-page,.info-page) {
+  position:relative!important;
+  inset:auto!important;
+  width:100%;
+  height:auto!important;
+  min-height:calc(100dvh - 180px);
+  max-height:none!important;
+  overflow:visible!important;
+}
 .ocean-workbench .feature-rail { min-height:48px; flex:none; }
 .ocean-workbench .science-footer { position:static!important; height:auto!important; min-height:36px; display:flex; flex-wrap:wrap; gap:8px 24px; padding:12px 22px; font-size:11px; line-height:1.5; flex:none; }
 .station-workspace { display:grid; grid-template-columns:256px minmax(0,1fr); grid-template-areas:"source source" "controls dock" "controls scene" "controls range" "controls evidence"; grid-template-rows:auto auto minmax(460px,calc(100dvh - 345px)) auto auto; gap:12px; padding:16px 20px 20px; color:var(--station-text); align-items:start; }
