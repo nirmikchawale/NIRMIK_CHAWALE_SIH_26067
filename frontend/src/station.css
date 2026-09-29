@@ -5,7 +5,8 @@
 /* The workstation is a normal-flow document: let the viewport own vertical scrolling.
    Legacy html/body/#root rules pinned all three to 100% height with overflow:hidden,
    which clipped every page below the first screen on widths above 760px. */
-html:has(.ocean-workbench), body:has(.ocean-workbench) { height:auto!important; min-height:100%; overflow-x:hidden!important; overflow-y:visible!important; }
+html:has(.ocean-workbench) { height:auto!important; min-height:100%; overflow-x:hidden!important; overflow-y:auto!important; }
+body:has(.ocean-workbench) { height:auto!important; min-height:100%; overflow-x:hidden!important; overflow-y:visible!important; }
 #root:has(.ocean-workbench) { height:auto!important; min-height:100dvh; overflow:visible!important; }
 .ocean-workbench .app-header { min-height:68px; height:auto!important; flex-wrap:wrap; gap:12px; padding:12px 22px; flex:none; }
 .ocean-workbench .brand h1 { font-size:20px; }
