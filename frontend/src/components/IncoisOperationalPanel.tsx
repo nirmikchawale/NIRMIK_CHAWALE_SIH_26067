@@ -142,7 +142,7 @@ export function IncoisOperationalPanel() {
           <h3>Genuine multi-time Indian Ocean analysis</h3>
           <p>{snapshot.source.title}</p>
           <p className="incois-operational-lede">
-            This is the temporal-breadth layer of OceanTwin: verified INCOIS analysis snapshots
+            This is the temporal-breadth layer of Ocean Canvas: verified INCOIS analysis snapshots
             add real time and depth variation beyond the single-time GLORYS comparison baseline.
             Move the controls below to inspect what genuinely changes—without duplicated dates or
             altered provider values.
@@ -159,7 +159,7 @@ export function IncoisOperationalPanel() {
         <article>
           <span>REPRODUCIBLE BASELINE</span>
           <strong>GLORYS12V1</strong>
-          <p>One immutable verified model timestamp anchors depth-resolved comparison with Argo. OceanTwin keeps it static instead of manufacturing a trend.</p>
+          <p>One immutable verified model timestamp anchors depth-resolved comparison with Argo. Ocean Canvas keeps it static instead of manufacturing a trend.</p>
         </article>
         <div className="incois-contrast-arrow" aria-hidden="true">→</div>
         <article className="active">
@@ -183,7 +183,7 @@ export function IncoisOperationalPanel() {
         <article>
           <span>SYNTHETIC TIME</span>
           <strong>0</strong>
-          <small>OceanTwin never duplicates a field under fabricated dates</small>
+          <small>Ocean Canvas never duplicates a field under fabricated dates</small>
         </article>
         <article>
           <span>VALUE POLICY</span>
