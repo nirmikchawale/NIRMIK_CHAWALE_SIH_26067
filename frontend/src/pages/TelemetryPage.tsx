@@ -368,7 +368,7 @@ function TimeTelemetryCard({ telemetry }: { telemetry: TelemetryResponse }) {
           <div className="telemetry-time-lock">
             <strong>TIME SERIES LOCKED</strong>
             <span>
-              One verified model timestamp is bundled. OceanTwin shows that real point and does not
+              One verified model timestamp is bundled. Ocean Canvas shows that real point and does not
               synthesize a second timestamp or trend.
             </span>
           </div>
@@ -421,7 +421,7 @@ function CurrentTelemetryCard({ telemetry }: { telemetry: TelemetryResponse }) {
             <article><span>Mean speed</span><strong>{current.mean_speed.toFixed(4)} {current.units}</strong></article>
             <article><span>Maximum speed</span><strong>{current.maximum_speed.toFixed(4)} {current.units}</strong></article>
           </div>
-          <p>Horizontal components only. OceanTwin does not invent a vertical current component.</p>
+          <p>Horizontal components only. Ocean Canvas does not invent a vertical current component.</p>
         </>
       ) : (
         <div className="telemetry-inline-warning">Verified horizontal current components are unavailable.</div>
@@ -464,7 +464,7 @@ function downloadTelemetryCsv(telemetry: TelemetryResponse) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = url;
-  anchor.download = `OceanTwin_${telemetry.variable}_depth_telemetry_t${telemetry.time_index}.csv`;
+  anchor.download = `OceanCanvas_${telemetry.variable}_depth_telemetry_t${telemetry.time_index}.csv`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -523,9 +523,9 @@ export function TelemetryPage({ catalog, provenance }: Props) {
           <div className="section-kicker">OCEAN ANALYTICS · EXPLAINABLE OPERATIONS</div>
           <h2>Depth & telemetry workspace</h2>
           <p>
-            Read the ocean vertically, temporally and operationally. OceanTwin turns the verified
+            Read the ocean vertically, temporally and operationally. Ocean Canvas turns the verified
             GLORYS water column into explainable depth statistics, then places genuine INCOIS
-            multi-time analysis beside it so a judge can see exactly which evidence is static,
+            multi-time analysis beside it so anyone can see exactly which evidence is static,
             which evidence changes through time, and why no synthetic timestamp is required.
           </p>
         </div>
