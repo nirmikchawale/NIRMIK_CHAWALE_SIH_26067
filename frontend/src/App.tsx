@@ -60,6 +60,7 @@ type MobileSheet = "none" | "controls" | "observation";
 type WorkspaceMode = "explorer" | "analysis" | "presentation";
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
+const ARGO_COMPASS_LOGO_SRC = `${import.meta.env.BASE_URL}argo-compass-logo.svg`;
 
 function initialTheme(): ThemeMode {
   try {
@@ -89,6 +90,7 @@ export default function App() {
   const [controlDockOpen, setControlDockOpen] = useState(true);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [logoOpen, setLogoOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [page, setPage] = useState<PageId>(() => routeFromHash(window.location.hash));
   const [mobileSheet, setMobileSheet] = useState<MobileSheet>("none");
@@ -159,6 +161,16 @@ export default function App() {
       // Theme remains usable for the session even if persistence is blocked.
     }
   }, [theme]);
+
+  useEffect(() => {
+    if (!logoOpen) return;
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLogoOpen(false);
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [logoOpen]);
 
   useEffect(() => {
     const handleDockShortcut = (event: KeyboardEvent) => {
@@ -760,7 +772,7 @@ export default function App() {
   if (!catalog) {
     return (
       <div className="boot-screen" data-theme={theme}>
-        <div className="brand-mark">OT</div>
+        <img className="boot-brand-logo" src={ARGO_COMPASS_LOGO_SRC} alt="The Optimizers Argo Compass logo" />
         <h1>Ocean Canvas</h1>
         {startupError ? (
           <div className="boot-error-card">
@@ -792,8 +804,16 @@ export default function App() {
     >
       <header className="app-header">
         <div className="brand">
-          <div className="brand-mark small">OT</div>
-          <div>
+          <button
+            className="brand-logo-button"
+            type="button"
+            aria-label="Open The Optimizers Argo Compass logo"
+            title="View team logo"
+            onClick={() => setLogoOpen(true)}
+          >
+            <img src={ARGO_COMPASS_LOGO_SRC} alt="" aria-hidden="true" />
+          </button>
+          <div className="brand-copy">
             <h1>Ocean <span>Canvas</span></h1>
             <p>Explainable water-column explorer · SIH26067</p>
           </div>
@@ -901,6 +921,33 @@ export default function App() {
           </button>
         </div>
       </header>
+
+      {logoOpen && (
+        <div
+          className="brand-logo-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setLogoOpen(false);
+          }}
+        >
+          <section
+            className="brand-logo-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="The Optimizers Argo Compass logo"
+          >
+            <button
+              className="brand-logo-close"
+              type="button"
+              aria-label="Close team logo"
+              onClick={() => setLogoOpen(false)}
+            >
+              ×
+            </button>
+            <img src={ARGO_COMPASS_LOGO_SRC} alt="The Optimizers Argo Compass logo" />
+          </section>
+        </div>
+      )}
 
       <div className="workspace-frame">
         <AppNavigation

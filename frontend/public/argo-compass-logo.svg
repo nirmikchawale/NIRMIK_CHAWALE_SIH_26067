@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">The Optimizers — Argo Compass</title>
+  <desc id="desc">Circular navy and gold team emblem with compass scale, ocean wave, central Argo float and sonar rings.</desc>
+  <defs>
+    <radialGradient id="ocean" cx="50%" cy="42%" r="64%">
+      <stop offset="0" stop-color="#183d73"/>
+      <stop offset="0.72" stop-color="#102c59"/>
+      <stop offset="1" stop-color="#081b36"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7df83"/>
+      <stop offset="0.42" stop-color="#caa64a"/>
+      <stop offset="0.72" stop-color="#f4d676"/>
+      <stop offset="1" stop-color="#9d7628"/>
+    </linearGradient>
+    <linearGradient id="floatGold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9d7426"/>
+      <stop offset="0.28" stop-color="#f0cb62"/>
+      <stop offset="0.52" stop-color="#fff0a6"/>
+      <stop offset="0.72" stop-color="#e4b94e"/>
+      <stop offset="1" stop-color="#8f681e"/>
+    </linearGradient>
+    <path id="topArc" d="M 92 244 A 164 164 0 0 1 420 244"/>
+    <path id="bottomArc" d="M 102 300 A 154 154 0 0 0 410 300"/>
+    <g id="tick"><line x1="256" y1="76" x2="256" y2="89" stroke="#caa64a" stroke-width="2"/></g>
+    <g id="major"><line x1="256" y1="70" x2="256" y2="94" stroke="#e3c66e" stroke-width="4"/></g>
+  </defs>
+  <circle cx="256" cy="256" r="244" fill="#07182f" stroke="#091326" stroke-width="8"/>
+  <circle cx="256" cy="256" r="236" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <circle cx="256" cy="256" r="204" fill="url(#ocean)" stroke="#d0b05b" stroke-width="2"/>
+  <circle cx="256" cy="256" r="171" fill="none" stroke="#9d8542" stroke-width="1.6" opacity=".85"/>
+  <g opacity=".9">
+    <use href="#tick" transform="rotate(0 256 256)"/><use href="#tick" transform="rotate(7.5 256 256)"/><use href="#tick" transform="rotate(15 256 256)"/><use href="#tick" transform="rotate(22.5 256 256)"/><use href="#tick" transform="rotate(30 256 256)"/><use href="#tick" transform="rotate(37.5 256 256)"/><use href="#major" transform="rotate(45 256 256)"/><use href="#tick" transform="rotate(52.5 256 256)"/><use href="#tick" transform="rotate(60 256 256)"/><use href="#tick" transform="rotate(67.5 256 256)"/><use href="#tick" transform="rotate(75 256 256)"/><use href="#tick" transform="rotate(82.5 256 256)"/><use href="#major" transform="rotate(90 256 256)"/><use href="#tick" transform="rotate(97.5 256 256)"/><use href="#tick" transform="rotate(105 256 256)"/><use href="#tick" transform="rotate(112.5 256 256)"/><use href="#tick" transform="rotate(120 256 256)"/><use href="#tick" transform="rotate(127.5 256 256)"/><use href="#major" transform="rotate(135 256 256)"/><use href="#tick" transform="rotate(142.5 256 256)"/><use href="#tick" transform="rotate(150 256 256)"/><use href="#tick" transform="rotate(157.5 256 256)"/><use href="#tick" transform="rotate(165 256 256)"/><use href="#tick" transform="rotate(172.5 256 256)"/><use href="#major" transform="rotate(180 256 256)"/><use href="#tick" transform="rotate(187.5 256 256)"/><use href="#tick" transform="rotate(195 256 256)"/><use href="#tick" transform="rotate(202.5 256 256)"/><use href="#tick" transform="rotate(210 256 256)"/><use href="#tick" transform="rotate(217.5 256 256)"/><use href="#major" transform="rotate(225 256 256)"/><use href="#tick" transform="rotate(232.5 256 256)"/><use href="#tick" transform="rotate(240 256 256)"/><use href="#tick" transform="rotate(247.5 256 256)"/><use href="#tick" transform="rotate(255 256 256)"/><use href="#tick" transform="rotate(262.5 256 256)"/><use href="#major" transform="rotate(270 256 256)"/><use href="#tick" transform="rotate(277.5 256 256)"/><use href="#tick" transform="rotate(285 256 256)"/><use href="#tick" transform="rotate(292.5 256 256)"/><use href="#tick" transform="rotate(300 256 256)"/><use href="#tick" transform="rotate(307.5 256 256)"/><use href="#major" transform="rotate(315 256 256)"/><use href="#tick" transform="rotate(322.5 256 256)"/><use href="#tick" transform="rotate(330 256 256)"/><use href="#tick" transform="rotate(337.5 256 256)"/><use href="#tick" transform="rotate(345 256 256)"/><use href="#tick" transform="rotate(352.5 256 256)"/>
+  </g>
+  <g fill="#d7b956">
+    <circle cx="256" cy="101" r="5"/>
+    <circle cx="411" cy="256" r="5"/>
+    <circle cx="256" cy="411" r="5"/>
+    <circle cx="101" cy="256" r="5"/>
+    <path d="M256 83l7 10-7 10-7-10z"/><path d="M429 256l-10 7-10-7 10-7z"/><path d="M256 429l7-10-7-10-7 10z"/><path d="M83 256l10 7 10-7-10-7z"/>
+  </g>
+  <path d="M116 244c28-20 52-20 77 0s50 20 76 0 51-20 77 0 45 20 58 5" fill="none" stroke="#d4b65d" stroke-width="4.4" stroke-linecap="round"/>
+  <g fill="none" stroke="#c6a64f" stroke-linecap="round">
+    <path d="M211 306c22 20 68 20 90 0" stroke-width="4.2"/>
+    <path d="M192 321c34 31 94 31 128 0" stroke-width="3.7" opacity=".9"/>
+    <path d="M172 338c49 43 119 43 168 0" stroke-width="3" opacity=".66"/>
+  </g>
+  <g>
+    <rect x="242" y="166" width="28" height="132" rx="14" fill="url(#floatGold)"/>
+    <rect x="238" y="226" width="36" height="17" rx="8.5" fill="url(#gold)"/>
+    <ellipse cx="256" cy="235" rx="37" ry="8.5" fill="url(#gold)"/>
+  </g>
+  <g fill="#dfc468" font-family="Inter,Segoe UI,Arial,sans-serif" font-weight="700" letter-spacing="4">
+    <text font-size="26"><textPath href="#topArc" startOffset="50%" text-anchor="middle">THE OPTIMIZERS</textPath></text>
+    <text font-size="18" letter-spacing="2.4"><textPath href="#bottomArc" startOffset="50%" text-anchor="middle">SIH 2026 · PS SIH26067</textPath></text>
+  </g>
+</svg>

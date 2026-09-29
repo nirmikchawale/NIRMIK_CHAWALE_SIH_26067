@@ -23,6 +23,14 @@ test("live Ocean Canvas judge flow renders and core interactions work", async ({
   await page.goto(liveUrl, { waitUntil: "domcontentloaded" });
 
   await expect(page.getByRole("heading", { name: /Ocean Canvas/i })).toBeVisible();
+  const teamLogoButton = page.getByRole("button", { name: "Open The Optimizers Argo Compass logo" });
+  await expect(teamLogoButton).toBeVisible();
+  await teamLogoButton.click();
+  const logoDialog = page.getByRole("dialog", { name: "The Optimizers Argo Compass logo" });
+  await expect(logoDialog).toBeVisible();
+  await expect(logoDialog.getByRole("img", { name: "The Optimizers Argo Compass logo" })).toBeVisible();
+  await logoDialog.getByRole("button", { name: "Close team logo" }).click();
+  await expect(logoDialog).toBeHidden();
   // The current canvas-first UI deliberately hides duplicate map tools while
   // the Explorer drawer is open. Close the drawer before testing basemap tools.
   await page.getByRole("button", { name: "Hide explorer controls" }).click();
