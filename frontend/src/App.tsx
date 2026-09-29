@@ -173,6 +173,37 @@ export default function App() {
   }, [page]);
 
   useEffect(() => {
+    if (page === "explore") return;
+
+    const handleDocumentWheel = (event: globalThis.WheelEvent) => {
+      if (event.ctrlKey || event.metaKey || event.deltaY === 0) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (!target) return;
+
+      // Preserve native wheel behavior for nested panels/tables that can scroll
+      // independently. Otherwise make the document viewport the explicit
+      // scroll owner for the non-Explorer pages.
+      let node: Element | null = target;
+      while (node && node !== document.body && node !== document.documentElement) {
+        const style = getComputedStyle(node);
+        const canScrollY =
+          /(auto|scroll)/.test(style.overflowY) &&
+          node.scrollHeight > node.clientHeight + 1;
+        if (canScrollY) return;
+        node = node.parentElement;
+      }
+
+      const scroller = document.scrollingElement;
+      if (!scroller || scroller.scrollHeight <= scroller.clientHeight + 1) return;
+      event.preventDefault();
+      scroller.scrollTop += event.deltaY;
+    };
+
+    window.addEventListener("wheel", handleDocumentWheel, { passive: false });
+    return () => window.removeEventListener("wheel", handleDocumentWheel);
+  }, [page]);
+
+  useEffect(() => {
     const syncRoute = () => {
       const next = routeFromHash(window.location.hash);
       setPage(next);
