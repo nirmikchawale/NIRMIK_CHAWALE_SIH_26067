@@ -1,8 +1,8 @@
-# OceanTwin 3D — Explainable Water-Column Explorer
+# Ocean Canvas — Explainable Water-Column Explorer
 
 **SIH26067 · The Optimizers**
 
-OceanTwin 3D is a React + TypeScript + CesiumJS judge-facing scientific web application backed by FastAPI and static hosted science exports, using bundled Copernicus Marine model evidence and QC-screened Argo comparison profiles. The earlier Streamlit + Plotly application remains preserved as the offline scientific reference and emergency fallback.
+Ocean Canvas is a React + TypeScript + CesiumJS judge-facing scientific web application backed by FastAPI and static hosted science exports, using bundled Copernicus Marine model evidence and QC-screened Argo comparison profiles. The earlier Streamlit + Plotly application remains preserved as the offline scientific reference and emergency fallback.
 
 > **Scientific framing:** This is a model–observation diagnostic comparison, not independent validation. The reanalysis may assimilate in-situ observations. The bundled GLORYS diagnostic baseline covers one region and one day; the current MVP also includes separately verified INCOIS multi-time physical analysis, INCOIS surface chlorophyll, and Argo/Glider/CTD/BGC observation pathways. It remains a bounded SIH MVP rather than a 24/7 national operational forecasting system.
 
@@ -19,7 +19,7 @@ Current verified capabilities include:
 - Argo, Glider, CTD and BGC observation pathways through the canonical sensor plugin contract;
 - browser-native CF-aware NetCDF4 ingestion plus CSV/TSV/ASCII/JSON ingestion into temporary Explorer layers;
 - model-vs-observation diagnostics, anomaly screening, telemetry, provenance and evidence downloads;
-- source/plugin registry, verified INCOIS OPeNDAP DAP2 and WMS pathways, plus OceanTwin WMS/WCS compatibility services;
+- source/plugin registry, verified INCOIS OPeNDAP DAP2 and WMS pathways, plus Ocean Canvas WMS/WCS compatibility services;
 - automated public deployment verification with live Chromium judge-flow acceptance.
 
 See `docs/SIH26067_COMPLETION_MATRIX.md` and `docs/SIH26067_COMPLETION_STATE.md` for the authoritative final requirement state.
@@ -171,7 +171,7 @@ The following remain intentionally bounded and must not be overstated:
 - INCOIS chlorophyll is a satellite surface product and does not have a fabricated depth axis;
 - GLORYS–Argo results are diagnostic, not independent/global validation;
 - anomaly screening is descriptive statistical screening, not ML event detection or proof of sensor/model failure;
-- OceanTwin is a verified SIH MVP, not a 24/7 national operational digital twin or hazard-forecasting system.
+- Ocean Canvas is a verified SIH MVP, not a 24/7 national operational digital twin or hazard-forecasting system.
 
 ## Scientific sources
 
