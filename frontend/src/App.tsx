@@ -1,4 +1,5 @@
 import { SourceWorkbench } from "./components/SourceWorkbench";
+import { RefreshControl } from "./components/RefreshControl";
 import { useOceanMotion } from "./useOceanMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -752,6 +753,7 @@ export default function App() {
           </div>
         </div>
         <div className="header-status">
+          <RefreshControl />
           <button className="present-button" type="button" aria-expanded={guideOpen} onClick={() => setGuideOpen((open) => !open)}>Present demo</button>
           {page === "explore" && (
             <div className="workspace-mode-switcher" role="group" aria-label="Explorer workspace mode">

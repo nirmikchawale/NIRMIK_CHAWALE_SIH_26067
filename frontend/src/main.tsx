@@ -8,6 +8,7 @@ import "./feature-upgrades.css";
 import "./workbench.css";
 import "./station.css";
 import "./ocean-motion.css";
+import "./interface-polish.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
