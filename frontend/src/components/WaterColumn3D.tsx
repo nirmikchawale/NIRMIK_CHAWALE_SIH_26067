@@ -704,6 +704,7 @@ export function WaterColumn3D({
         onKeyDown={onKeyDown}
       />
 
+      <div className="renderer-tools" aria-label="Water-column view tools">
       <div className="globe-overlay top-left water-column-summary">
         <div>
           <span className="live-dot" />
@@ -776,6 +777,7 @@ export function WaterColumn3D({
 
       <div className="globe-overlay volume-note water-column-note">
         {currentsVolume ? "HORIZONTAL u/v AT GENUINE DEPTHS · NO VERTICAL w INFERRED" : "CANONICAL MODEL VALUES"} · visual depth ×{verticalExaggeration} · opacity {Math.round(opacity * 100)}% · geometry only
+      </div>
       </div>
     </main>
   );

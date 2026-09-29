@@ -53,8 +53,6 @@ interface Props {
   catalog: Catalog;
   profiles: ProfileSummary[];
   sourceMode: "glorys" | "incois" | "chlorophyll";
-  operationalAvailable: boolean;
-  chlorophyllAvailable: boolean;
   variable: "thetao" | "so" | "currents" | "chlorophyll";
   viewMode: ViewMode;
   visualizationMode: VisualizationMode;
@@ -70,7 +68,6 @@ interface Props {
   isoValue: number;
   mobileOpen: boolean;
   onMobileClose: () => void;
-  onSourceModeChange: (value: "glorys" | "incois" | "chlorophyll") => void;
   onVariableChange: (value: "thetao" | "so" | "currents" | "chlorophyll") => void;
   onViewModeChange: (value: ViewMode) => void;
   onWaterColumnOpacityChange: (value: number) => void;
@@ -88,8 +85,6 @@ export function ControlPanel({
   catalog,
   profiles,
   sourceMode,
-  operationalAvailable,
-  chlorophyllAvailable,
   variable,
   viewMode,
   visualizationMode,
@@ -105,7 +100,6 @@ export function ControlPanel({
   isoValue,
   mobileOpen,
   onMobileClose,
-  onSourceModeChange,
   onVariableChange,
   onViewModeChange,
   onWaterColumnOpacityChange,
@@ -166,78 +160,12 @@ export function ControlPanel({
         </button>
       </div>
 
-      <section className="explorer-story-intro" aria-label="Explainable 3D digital twin overview">
-        <div className="section-kicker">EXPLAINABLE 3D DIGITAL-TWIN WORKSPACE</div>
-        <h2>From ocean data to an explainable 3D digital-twin workspace.</h2>
-        <p>
-          Move from a verified numerical field to depth, time and real in-situ evidence without
-          losing the scientific trail. Every control below changes either the selected source or
-          the way genuine values are rendered—never the underlying measurements.
-        </p>
-        <div className="explorer-story-flow" aria-label="OceanTwin scientific workflow">
-          <article><span>01</span><strong>Choose evidence</strong><small>Model, INCOIS time or ocean colour</small></article>
-          <article><span>02</span><strong>Explore 3D</strong><small>Geography, depth and water-column structure</small></article>
-          <article><span>03</span><strong>Connect observations</strong><small>Argo and multi-sensor in-situ profiles</small></article>
-        </div>
-        <div className="explorer-scroll-cue">Scroll the intelligence panel ↓</div>
-      </section>
-
-      <section className="explore-source-section">
-        <div className="section-kicker">Scientific source</div>
-        <div className="segmented explore-source-selector" aria-label="Explore scientific source">
-          <button
-            type="button"
-            className={sourceMode === "glorys" ? "active" : ""}
-            aria-pressed={sourceMode === "glorys"}
-            onClick={() => onSourceModeChange("glorys")}
-          >
-            GLORYS baseline
-          </button>
-          <button
-            type="button"
-            className={sourceMode === "incois" ? "active" : ""}
-            aria-pressed={sourceMode === "incois"}
-            disabled={!operationalAvailable}
-            onClick={() => onSourceModeChange("incois")}
-          >
-            INCOIS multi-time
-          </button>
-          <button
-            type="button"
-            className={sourceMode === "chlorophyll" ? "active" : ""}
-            aria-pressed={sourceMode === "chlorophyll"}
-            disabled={!chlorophyllAvailable}
-            onClick={() => onSourceModeChange("chlorophyll")}
-          >
-            INCOIS chlorophyll
-          </button>
-        </div>
-        <div className="source-explainer-card" data-source-mode={sourceMode}>
-          <span>
-            {sourceMode === "glorys" ? "MODEL BASELINE" : sourceMode === "incois" ? "GENUINE MULTI-TIME" : "SURFACE OCEAN COLOUR"}
-          </span>
-          <strong>
-            {sourceMode === "glorys"
-              ? "GLORYS12V1 · reproducible model baseline"
-              : sourceMode === "incois"
-                ? "INCOIS · real timestamps for temporal exploration"
-                : "INCOIS chlorophyll · surface-only context"}
-          </strong>
-          <p>
-            {sourceMode === "incois"
-              ? "Build-verified INCOIS analysis with genuine timestamps and genuine depth coordinates. Source values remain unchanged; this is the temporal-breadth pathway."
-              : sourceMode === "chlorophyll"
-                ? "Verified satellite chlorophyll extends the workspace into ocean-colour context. It is explicitly surface-only, so OceanTwin never fabricates a depth axis."
-                : "Immutable GLORYS12V1 evidence provides temperature, salinity and horizontal currents through 31 verified depths. The bundled comparison baseline has one genuine timestamp and supports the Argo diagnostic workflow."}
-          </p>
-          <div className="source-proof-row">
-            <span>{sourceMode === "glorys" ? "31 verified depths" : sourceMode === "incois" ? "genuine time steps" : "surface only"}</span>
-            <span>{sourceMode === "glorys" ? "Argo comparison" : sourceMode === "incois" ? "no synthetic time" : "no fabricated depth"}</span>
-          </div>
-        </div>
-      </section>
-
-      <section>
+      <nav className="control-section-nav" aria-label="Jump to exploration controls">
+        {[["Variables", "explore-variables"], ["Depth", "explore-depth"], ["Time", "explore-time"], ["Observations", "explore-observations"]].map(([label, id]) =>
+          <button key={id} type="button" onClick={() => document.getElementById(id)?.scrollIntoView({ block: "nearest", behavior: "auto" })}>{label}</button>
+        )}
+      </nav>
+      <section id="explore-variables">
         <div className="section-kicker">Explore</div>
         <div className="variable-switcher variable-switcher-rich" aria-label="Ocean variable">
           {catalog.variables.map((item) => {
@@ -270,7 +198,7 @@ export function ControlPanel({
                 {displayUnits(selectedVariable.units)}
               </strong>
             </p>
-            <div className="variable-insight-card">
+            <details className="variable-insight-card"><summary>About this variable</summary>
               <span>WHAT YOU ARE READING</span>
               <strong>{selectedVariable.label}</strong>
               <p>
@@ -282,22 +210,9 @@ export function ControlPanel({
                       ? "Read genuine horizontal u/v flow vectors at their scientific depths. No vertical-current component is inferred."
                       : "Inspect genuine satellite chlorophyll at the ocean surface; Water Column 3D is intentionally unavailable for this source."}
               </p>
-            </div>
+            </details>
           </>
         )}
-
-        <div className="explorer-mode-story" aria-label="Connected 3D visualization modes">
-          <article className={visualizationMode === "globe" ? "active" : ""}>
-            <span>GEOGRAPHIC VIEW</span>
-            <strong>Where is the ocean structure?</strong>
-            <small>Depth-aware overlays, real coordinates and clickable observation markers.</small>
-          </article>
-          <article className={visualizationMode === "water-column" ? "active" : ""}>
-            <span>WATER COLUMN 3D</span>
-            <strong>What happens beneath the surface?</strong>
-            <small>Vertical structure, scientific depth levels and genuine scalar geometry.</small>
-          </article>
-        </div>
 
         <details className="advanced-control-group">
           <summary>
@@ -369,9 +284,9 @@ export function ControlPanel({
 
             <div className="persistent-colorbar-note">
               <span className="section-kicker visualization-kicker">Display colour</span>
-              <strong>Persistent viewport colorbar</strong>
+              <strong>Dedicated display range</strong>
               <p className="microcopy">
-                Palette, scale and min/max thresholds are available directly on the floating colorbar HUD over the 3D viewport.
+                Palette, scale and min/max thresholds are available in the Display range section below the ocean view.
               </p>
               {scalar && !surfaceOnly && <label className="iso-toggle">
                 <span className="label-row">
@@ -423,7 +338,7 @@ export function ControlPanel({
         </details>
       </section>
 
-      <section className="water-column-story">
+      <section className="water-column-story" id="explore-depth">
         <div className="section-kicker">Water column</div>
         {surfaceOnly ? (
           <div className="surface-only-control" aria-label="Surface-only scientific field">
@@ -505,7 +420,7 @@ export function ControlPanel({
         )}
       </section>
 
-      <section className="time-story">
+      <section className="time-story" id="explore-time">
         <div className="section-kicker">Time</div>
         {catalog.capabilities.time_animation ? (
           <TimelineScrubber
@@ -528,7 +443,7 @@ export function ControlPanel({
         )}
       </section>
 
-      <section className="observation-story">
+      <section className="observation-story" id="explore-observations">
         <div className="section-kicker">Observations</div>
         <p className="section-story-copy">
           In-situ profiles connect the numerical field to measured ocean conditions. Argo provides

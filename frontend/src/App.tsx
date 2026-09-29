@@ -1,3 +1,5 @@
+import { SourceWorkbench } from "./components/SourceWorkbench";
+import { useOceanMotion } from "./useOceanMotion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, fetchIncoisChlorophyll, fetchIncoisOperational, fetchVerifiedObservationPack } from "./api";
@@ -69,6 +71,7 @@ function initialTheme(): ThemeMode {
 }
 
 export default function App() {
+  useOceanMotion();
   const [catalog, setCatalog] = useState<Catalog | null>(null);
   const [sourceMode, setSourceMode] = useState<ExploreSourceMode>("glorys");
   const [operationalSnapshot, setOperationalSnapshot] = useState<IncoisOperationalSnapshot | null>(null);
@@ -893,7 +896,11 @@ export default function App() {
             }
           }} />}
           {page === "explore" ? (
-            <>
+            <div className="station-workspace" data-inspector={evidenceOpen || profilePanelOpen || workspaceMode === "analysis" ? "open" : "closed"}>
+              <SourceWorkbench source={sourceMode} operationalAvailable={Boolean(operationalCatalog) && !operationalError}
+                chlorophyllAvailable={Boolean(chlorophyllCatalog) && !chlorophyllError} onSource={handleSourceModeChange}
+                onOverview={() => { setProfilePanelOpen(false); setWorkspaceMode("explorer"); setEvidenceOpen(true); }}
+                onCompare={() => navigate("compare")} onData={() => navigate("data-lab")} />
               {workspaceMode === "presentation" && (
                 <button
                   type="button"
@@ -927,6 +934,7 @@ export default function App() {
                   onClick={() => {
                     setProfilePanelOpen(false);
                     setMobileSheet("none");
+                    setWorkspaceMode("explorer");
                     setEvidenceOpen(true);
                   }}
                 >
@@ -958,8 +966,6 @@ export default function App() {
                 catalog={activeExploreCatalog}
                 profiles={activeComparisonProfiles}
                 sourceMode={sourceMode}
-                operationalAvailable={Boolean(operationalCatalog) && !operationalError}
-                chlorophyllAvailable={Boolean(chlorophyllCatalog) && !chlorophyllError}
                 variable={variable}
                 viewMode={viewMode}
                 visualizationMode={visualizationMode}
@@ -975,7 +981,6 @@ export default function App() {
                 isoValue={isoValue}
                 mobileOpen={mobileSheet === "controls"}
                 onMobileClose={() => setMobileSheet("none")}
-                onSourceModeChange={handleSourceModeChange}
                 onVariableChange={handleVariableChange}
                 onViewModeChange={setViewMode}
                 onWaterColumnOpacityChange={setWaterColumnOpacity}
@@ -1090,7 +1095,7 @@ export default function App() {
                 onDepthSync={handleAnalysisDepthSync}
               />
 
-              {selectedImportedProfile ? (
+              {workspaceMode !== "analysis" && (selectedImportedProfile ? (
                 <ImportedObservationPanel
                   profile={selectedImportedProfile}
                   open={profilePanelOpen || mobileSheet === "observation"}
@@ -1112,7 +1117,7 @@ export default function App() {
                     setMobileSheet("none");
                   }}
                 />
-              ) : null}
+              ) : null)}
 
               <div className="mobile-explore-tray" role="toolbar" aria-label="Explore quick controls">
                 <button
@@ -1162,7 +1167,7 @@ export default function App() {
                   <strong>Model ↔ Argo</strong>
                 </button>
               </div>
-            </>
+            </div>
           ) : page === "telemetry" ? (
             <TelemetryPage catalog={catalog} provenance={provenance} />
           ) : page === "compare" ? (

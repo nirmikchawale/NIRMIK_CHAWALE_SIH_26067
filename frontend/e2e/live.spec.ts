@@ -174,6 +174,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page.locator(".judge-summary")).toContainText("sensor plugin profiles");
   await revealCanvasTools(page);
   const importedSelector = page.locator(".imported-observation-chips");
+  await importedSelector.getByRole("button", { name: /^Sensor profiles/ }).click();
   await expect(importedSelector).toBeVisible();
   await expect(importedSelector).toContainText("GLIDER");
   await expect(importedSelector).toContainText("CTD");
@@ -204,6 +205,7 @@ test("live OceanTwin judge flow renders and core interactions work", async ({ pa
   await expect(page).toHaveURL(/#\/explore$/);
   await revealCanvasTools(page);
   await expect(page.locator(".imported-observation-chips")).toContainText("test-ctd-profile-001");
+  await page.locator(".imported-observation-chips").getByRole("button", { name: /^Sensor profiles/ }).click();
   await page.locator(".imported-observation-chips").getByRole("button", { name: /CTD.*test-ctd-profile-001/i }).click();
   await expect(page.locator(".imported-profile-panel")).toContainText("CTD");
   await expect(page.locator(".imported-profile-panel")).toContainText("sea_water_temperature vs depth");

@@ -1147,6 +1147,7 @@ export function OceanGlobe({
       data-selected-imported-profile={selectedImportedProfileId}
     >
       <div ref={containerRef} className="cesium-host" />
+      <div className="renderer-tools" aria-label="Ocean view tools">
       {selectedProfile && profileCalloutOpen && (
         <div
           ref={calloutRef}
@@ -1287,7 +1288,7 @@ export function OceanGlobe({
         </small>
       </div>}
       {canEnterWaterColumn && introPhase === "region" && <div className="field-entry-actions">
-        <button type="button" className="study-region-entry" onClick={() => enterWaterColumnRef.current()}>
+        <button type="button" className="study-region-entry" aria-label="Enter Water Column 3D" onClick={() => enterWaterColumnRef.current()}>
           <span>LOOK BENEATH THE SURFACE</span><strong>Enter Water Column 3D</strong>
           <small>{regionEntryArmed ? "Click the ocean field, or enter here" : "Point inspection is on · enter 3D here"}</small>
         </button>
@@ -1417,6 +1418,7 @@ export function OceanGlobe({
           HORIZONTAL u/v FLOW · arrow direction + speed colour · {currents.depth_m.toFixed(2)} m · projected above globe for readability
         </div>
       )}
+      </div>
     </main>
   );
 }
