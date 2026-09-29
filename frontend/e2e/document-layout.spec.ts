@@ -46,7 +46,7 @@ for (const width of [1440, 390]) {
       // gestures for their own interaction, which must not be mistaken for a page-scroll failure.
       await page.locator(".app-header").hover();
       await page.mouse.wheel(0, 600);
-      await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(0);
+      await expect.poll(() => page.evaluate(() => document.scrollingElement?.scrollTop ?? 0)).toBeGreaterThan(0);
       const footer = page.locator('.science-footer');
       await footer.scrollIntoViewIfNeeded();
       await expect(footer).toBeInViewport();
