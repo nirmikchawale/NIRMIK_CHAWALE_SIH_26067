@@ -1,4 +1,4 @@
-"""FastAPI facade over OceanTwin's verified local scientific evidence."""
+"""FastAPI facade over Ocean Canvas's verified local scientific evidence."""
 from __future__ import annotations
 
 from functools import lru_cache
@@ -47,7 +47,7 @@ SCIENCE_NETWORK_REQUIRED = _env_flag("OCEANTWIN_SCIENCE_NETWORK_REQUIRED", False
 
 
 app = FastAPI(
-    title="OceanTwin 3D API",
+    title="Ocean Canvas API",
     version="1.0.0-mvp",
     description=(
         "Read-only API exposing the same verified Copernicus/Argo evidence used by "
