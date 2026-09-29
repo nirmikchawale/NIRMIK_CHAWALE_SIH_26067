@@ -22,6 +22,13 @@ import { VisualizationDock } from "./components/VisualizationDock";
 import { ProfilePanel } from "./components/ProfilePanel";
 import { ImportedObservationPanel } from "./components/ImportedObservationPanel";
 import { ProvenanceDrawer } from "./components/ProvenanceDrawer";
+import argoLogo0 from "./assets/exact-logo-00.b64?raw";
+import argoLogo1 from "./assets/exact-logo-01.b64?raw";
+import argoLogo2 from "./assets/exact-logo-02.b64?raw";
+import argoLogo3a from "./assets/exact-logo-03a.b64?raw";
+import argoLogo3b from "./assets/exact-logo-03b.b64?raw";
+import argoLogo4a from "./assets/exact-logo-04a.b64?raw";
+import argoLogo4b from "./assets/exact-logo-04b.b64?raw";
 import { PAGE_ITEMS, routeFromHash, type PageId } from "./navigation";
 import {
   buildIncoisChlorophyllCatalog,
@@ -60,7 +67,7 @@ type MobileSheet = "none" | "controls" | "observation";
 type WorkspaceMode = "explorer" | "analysis" | "presentation";
 
 const THEME_STORAGE_KEY = "oceantwin-theme";
-const ARGO_COMPASS_LOGO_SRC = `${import.meta.env.BASE_URL}argo-compass-logo.svg`;
+const ARGO_COMPASS_LOGO_SRC = `data:image/png;base64,${argoLogo0}${argoLogo1}${argoLogo2}${argoLogo3a}${argoLogo3b}${argoLogo4a}${argoLogo4b}`;
 
 function initialTheme(): ThemeMode {
   try {
