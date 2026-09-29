@@ -2,7 +2,11 @@
 :root { --station-bg:#0b1921; --station-panel:#122730; --station-raised:#1c3540; --station-line:#35505a; --station-text:#eef2e9; --station-muted:#adc0c4; --station-accent:#b5dccb; }
 :root[data-theme="light"] { --station-bg:#e9eeea; --station-panel:#f8faf5; --station-raised:#dce9e4; --station-line:#aabeb8; --station-text:#17332d; --station-muted:#4e6861; --station-accent:#1c6c59; }
 .ocean-workbench { --wb-bg:var(--station-bg); --wb-panel:var(--station-panel); --wb-raised:var(--station-raised); --wb-line:var(--station-line); --wb-text:var(--station-text); --wb-muted:var(--station-muted); --wb-accent:var(--station-accent); height:auto!important; min-height:100dvh; display:flex!important; flex-direction:column; overflow:visible!important; background:var(--station-bg); }
-body:has(.ocean-workbench) { overflow:auto!important; }
+/* The workstation is a normal-flow document: let the viewport own vertical scrolling.
+   Legacy html/body/#root rules pinned all three to 100% height with overflow:hidden,
+   which clipped every page below the first screen on widths above 760px. */
+html:has(.ocean-workbench), body:has(.ocean-workbench) { height:auto!important; min-height:100%; overflow-x:hidden!important; overflow-y:visible!important; }
+#root:has(.ocean-workbench) { height:auto!important; min-height:100dvh; overflow:visible!important; }
 .ocean-workbench .app-header { min-height:68px; height:auto!important; flex-wrap:wrap; gap:12px; padding:12px 22px; flex:none; }
 .ocean-workbench .brand h1 { font-size:20px; }
 .ocean-workbench .header-status { flex-wrap:wrap; justify-content:flex-end; }
@@ -189,3 +193,30 @@ body:has(.ocean-workbench) { overflow:auto!important; }
   .ocean-workbench .science-footer { padding:12px; }
 }
 @media(prefers-reduced-motion:reduce) { .station-workspace *, .station-workspace *::before, .station-workspace *::after { scroll-behavior:auto!important; transition:none!important; } }
+
+/* ---- 2026-09-29 final-MVP audit fixes ---- */
+/* Camera presets: the legacy 2-column grid reserved a 30px slot for the (hidden) short code,
+   so labels such as "Perspective" were squeezed into 30px and truncated. */
+.station-workspace .renderer-tools .camera-science-presets button { display:inline-flex!important; align-items:center; }
+.station-workspace .renderer-tools .camera-science-presets strong { overflow:visible; text-overflow:clip; }
+/* Depth-zone labels ("Mesopelagic", "Bathypelagic") must not be ellipsised. */
+.station-workspace .depth-zone-track button strong,.station-workspace .depth-zone-track button span { white-space:normal!important; overflow:visible!important; text-overflow:clip!important; overflow-wrap:normal; word-break:normal; hyphens:auto; font-size:9px!important; }
+@media(min-width:761px) {
+  /* Give the 3D scene most of the viewport now that the document scrolls normally. */
+  .ocean-workbench .station-workspace { grid-template-rows:auto 56px minmax(520px,calc(100dvh - 140px)) auto auto; }
+  /* Scene toolbar grows with its content instead of hiding controls behind an inner scrollbar. */
+  .station-workspace .renderer-tools { max-height:none; overflow:visible; }
+}
+.station-workspace .renderer-tools .field-entry-actions { align-items:center; }
+.station-workspace .renderer-tools .field-entry-actions > button { min-height:36px!important; height:auto!important; }
+.connector-link-unavailable { font-size:11px; color:var(--station-muted); border:1px dashed var(--station-line); border-radius:5px; padding:3px 7px; cursor:help; }
+.data-lab-jump { margin-top:14px; padding:9px 14px; border-radius:7px; border:1px solid var(--station-accent); background:transparent; color:var(--station-accent); font-weight:650; cursor:pointer; }
+.data-lab-jump:hover { background:color-mix(in srgb,var(--station-accent) 12%,transparent); }
+#data-lab-validator { scroll-margin-top:16px; }
+@media(max-width:760px) {
+  /* Three variable cards share 390px: let names/ranges wrap instead of "Tem…". */
+  .station-workspace .variable-switcher .variable-pill-icon { display:none!important; }
+  .station-workspace .variable-pill-copy { min-width:0; }
+  .station-workspace .variable-pill-copy strong,.station-workspace .variable-pill-copy small { white-space:normal!important; overflow:visible!important; text-overflow:clip!important; overflow-wrap:normal; word-break:normal; }
+  .station-workspace .variable-pill-copy strong { font-size:12px; }
+}
