@@ -1,23 +1,37 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { GLASS_THEMES, getGlassTheme, type GlassThemeId } from "../theme";
-
-interface Props {
-  theme: GlassThemeId;
-  onThemeChange: (theme: GlassThemeId) => void;
-}
+import {
+  GLASS_THEME_STORAGE_KEY,
+  GLASS_THEMES,
+  getGlassTheme,
+  initialGlassTheme,
+  type GlassThemeId
+} from "../theme";
 
 type ThemeFilter = "all" | "dark" | "light";
 
-export function ThemePicker({ theme, onThemeChange }: Props) {
+export function ThemePicker() {
+  const [theme, setTheme] = useState<GlassThemeId>(initialGlassTheme);
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState<ThemeFilter>("all");
-  const rootRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLSpanElement>(null);
   const activeTheme = getGlassTheme(theme);
   const visibleThemes = useMemo(
     () => GLASS_THEMES.filter((item) => filter === "all" || item.scheme === filter),
     [filter]
   );
+
+  useEffect(() => {
+    const definition = getGlassTheme(theme);
+    document.documentElement.dataset.glassTheme = theme;
+    document.documentElement.dataset.theme = definition.scheme;
+    document.documentElement.style.colorScheme = definition.scheme;
+    try {
+      window.localStorage.setItem(GLASS_THEME_STORAGE_KEY, theme);
+    } catch {
+      // Theme remains active for the session if persistent storage is unavailable.
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (!open) return;
@@ -36,7 +50,7 @@ export function ThemePicker({ theme, onThemeChange }: Props) {
   }, [open]);
 
   return (
-    <div className="theme-picker" ref={rootRef} data-open={open ? "true" : "false"}>
+    <span className="theme-picker" ref={rootRef} data-open={open ? "true" : "false"}>
       <button
         type="button"
         className="theme-toggle theme-picker-trigger"
@@ -47,9 +61,7 @@ export function ThemePicker({ theme, onThemeChange }: Props) {
         onClick={() => setOpen((current) => !current)}
       >
         <span className="theme-toggle-dot theme-preview-dot" aria-hidden="true">
-          {activeTheme.swatches.map((swatch) => (
-            <i key={swatch} style={{ background: swatch }} />
-          ))}
+          {activeTheme.swatches.map((swatch) => <i key={swatch} style={{ background: swatch }} />)}
         </span>
         <span className="theme-trigger-copy">
           <small>GLASS</small>
@@ -94,7 +106,7 @@ export function ThemePicker({ theme, onThemeChange }: Props) {
                   className={`theme-option ${selected ? "selected" : ""}`}
                   aria-pressed={selected}
                   onClick={() => {
-                    onThemeChange(item.id);
+                    setTheme(item.id);
                     setOpen(false);
                   }}
                 >
@@ -126,6 +138,6 @@ export function ThemePicker({ theme, onThemeChange }: Props) {
           </div>
         </section>
       )}
-    </div>
+    </span>
   );
 }
