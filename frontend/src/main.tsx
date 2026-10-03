@@ -9,6 +9,7 @@ import "./workbench.css";
 import "./station.css";
 import "./ocean-motion.css";
 import "./interface-polish.css";
+import "./scroll-foundation.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
