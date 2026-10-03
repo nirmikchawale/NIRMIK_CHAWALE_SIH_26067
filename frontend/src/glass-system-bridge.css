@@ -1,0 +1,27 @@
+/* Phase 2 integration bridge.
+   The legacy App.tsx still owns its historical binary theme button. Keep it hidden while the
+   non-destructive ThemePicker mounted beside RefreshControl becomes the user-facing control. */
+
+.header-status > button.theme-toggle:not(.theme-picker-trigger) {
+  display: none !important;
+}
+
+.header-status > .theme-picker {
+  display: inline-flex !important;
+  align-items: center;
+  min-width: 0;
+}
+
+.header-status > .theme-picker .theme-gallery {
+  color-scheme: inherit;
+}
+
+@media (max-width: 760px) {
+  .header-status > .theme-picker {
+    order: 2;
+  }
+
+  .header-status > .theme-picker .theme-picker-trigger {
+    max-width: 132px;
+  }
+}
