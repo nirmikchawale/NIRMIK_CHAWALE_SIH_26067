@@ -107,14 +107,13 @@ export function ThemePicker() {
             ))}
           </div>
 
-          <div className="theme-gallery-grid" role="list">
+          <div className="theme-gallery-grid" role="group" aria-label="Available glass themes">
             {visibleThemes.map((item) => {
               const selected = item.id === theme;
               return (
                 <button
                   key={item.id}
                   type="button"
-                  role="listitem"
                   className={`theme-option ${selected ? "selected" : ""}`}
                   aria-pressed={selected}
                   onClick={() => {
