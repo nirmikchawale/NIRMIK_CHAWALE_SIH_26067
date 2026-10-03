@@ -10,6 +10,7 @@ import "./station.css";
 import "./ocean-motion.css";
 import "./interface-polish.css";
 import "./scroll-foundation.css";
+import "./glass-system.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
