@@ -23,14 +23,26 @@ export function ThemePicker() {
 
   useEffect(() => {
     const definition = getGlassTheme(theme);
-    document.documentElement.dataset.glassTheme = theme;
-    document.documentElement.dataset.theme = definition.scheme;
-    document.documentElement.style.colorScheme = definition.scheme;
+    const applyTheme = () => {
+      document.documentElement.dataset.glassTheme = theme;
+      document.documentElement.dataset.theme = definition.scheme;
+      document.documentElement.style.colorScheme = definition.scheme;
+    };
+    applyTheme();
+    const frame = window.requestAnimationFrame(applyTheme);
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.dataset.theme !== definition.scheme) applyTheme();
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     try {
       window.localStorage.setItem(GLASS_THEME_STORAGE_KEY, theme);
     } catch {
       // Theme remains active for the session if persistent storage is unavailable.
     }
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
   }, [theme]);
 
   useEffect(() => {
