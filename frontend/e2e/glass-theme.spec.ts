@@ -13,7 +13,7 @@ test("glass appearance gallery exposes all presets and persists selection", asyn
 
   const gallery = page.getByRole("dialog", { name: "Glass appearance gallery" });
   await expect(gallery).toBeVisible();
-  await expect(gallery.getByRole("listitem")).toHaveCount(16);
+  await expect(gallery.locator(".theme-option")).toHaveCount(16);
 
   await gallery.getByRole("button", { name: /Lavender Haze/i }).click();
   await expect.poll(() => page.locator("html").getAttribute("data-glass-theme")).toBe("lavender-haze");
@@ -60,7 +60,7 @@ for (const viewport of [
     expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height + 1);
 
     await gallery.getByRole("button", { name: "Light glass", exact: true }).click();
-    await expect(gallery.getByRole("listitem")).toHaveCount(8);
+    await expect(gallery.locator(".theme-option")).toHaveCount(8);
     await gallery.getByRole("button", { name: /Pearl Lagoon/i }).click();
     await expect.poll(() => page.locator("html").getAttribute("data-glass-theme")).toBe("pearl-lagoon");
   });
